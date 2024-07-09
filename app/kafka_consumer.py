@@ -1,9 +1,7 @@
 from aiokafka import AIOKafkaConsumer
 import asyncio
-import os
-from sqlalchemy.ext.asyncio import AsyncSession
 from .database import async_session
-from . import crud, schemas
+from . import schemas
 
 KAFKA_SERVER = 'kafka:9092'
 

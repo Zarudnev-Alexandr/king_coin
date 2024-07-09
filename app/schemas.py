@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -20,6 +20,75 @@ class UserBase(UserCreate):
     current_factor: float
     days_in_row: int
 
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
+class UpgradeLevelSchema(BaseModel):
+    upgrade_id: int
+    lvl: int
+    factor: float
+    price: int
+
+
+class CreateUpgradeSchema(BaseModel):
+    name: str
+    category_id: int
+    image_url: str
+    is_in_shop: bool
+
+
+#Улучшение (карточка) без уровней
+class UpgradeSchema(CreateUpgradeSchema):
+    id: int
+
+
+#Улучшение (карточка) со всеми уровнями внутри
+class UpgradeWithLevelsSchema(CreateUpgradeSchema):
+    id: int
+
+    levels: List[UpgradeLevelSchema]
+
+
+class UpgradeWithoutLevelsSchema(CreateUpgradeSchema):
+    id: int
+    lvl: int
+    is_bought: bool
+    factor: float
+    price_of_next_lvl: Optional[int]
+
+    # levels: List[UpgradeLevelSchema]
+
+
+# class UpgradeCategoryCreateSchema(BaseModel):
+#     category: str
+#
+#     upgrades: List[UpgradeWithLevelsSchema]
+
+
+class UpgradeCategoryCreateSchema(BaseModel):
+    category: str
+
+    upgrades: List[UpgradeWithoutLevelsSchema]
+
+
+class UpgradeCategorySchema(UpgradeCategoryCreateSchema):
+    id: int
+
+
+#Покупка улушение (апгрейд с 0 до 1 уровня)
+class UserUpgradeCreateSchema(BaseModel):
+    user_id: int
+    upgrade_id: int
+
+
+#Купленные пользователем карты
+class UserUpgradeSchema(UserUpgradeCreateSchema):
+    lvl: int
+
+    user: UserBase
+    upgrade: UpgradeSchema
 
 
 

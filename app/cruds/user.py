@@ -2,12 +2,20 @@ from datetime import date
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from . import models, schemas
+from app import models, schemas
 
 
 async def get_user(db: AsyncSession, tg_id: int):
     result = await db.execute(select(models.User).filter(models.User.tg_id == tg_id))
     return result.scalars().first()
+
+
+async def get_user_bool(db: AsyncSession, tg_id: int):
+    result = await db.execute(select(models.User).filter(models.User.tg_id == tg_id))
+    if result.scalars().first():
+        return True
+    else:
+        return False
 
 
 async def create_user(db: AsyncSession, user: schemas.UserCreate):
@@ -17,6 +25,9 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate):
     await db.commit()
     await db.refresh(db_user)
     return db_user
+
+
+
 
 
 # async def get_upgrade_category(db: AsyncSession, category_id: int):

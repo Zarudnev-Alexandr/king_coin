@@ -11,17 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  fastapi:
-    build: .
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-      - kafka
-      - zookeeper
-    environment:
-      - KAFKA_SERVER=kafka:9093
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   adminer:
     image: adminer
@@ -40,11 +35,18 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     volumes:
       - ./kafka/bitnami/zookeeper:/kafka/bitnami/zookeeper
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc -w 5 localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   kafka:
     image: 'bitnami/kafka:2.8.0'
     container_name: kafka
     ports:
+      - "9092:9092"
       - "9093:9093"
     expose:
       - "9093"
@@ -60,7 +62,13 @@ services:
     depends_on:
       - zookeeper
     volumes:
-      - ./bitnami/kafka:/bitnami/kafka
+      - ./kafka/bitnami/kafka:/kafka/bitnami/kafka
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   kafdrop:
     image: obsidiandynamics/kafdrop
@@ -69,9 +77,21 @@ services:
       - "9000:9000"
     environment:
       - KAFKA_BROKERCONNECT=kafka:9092
-      - JVM_OPTS=-Xms32M -Xmx64M
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
+
+  fastapi:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
