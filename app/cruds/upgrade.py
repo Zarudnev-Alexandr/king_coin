@@ -3,19 +3,26 @@ from typing import List
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
-from app.models import UpgradeCategory, Upgrades, UpgradeLevel, UserUpgrades
+from app.models import UpgradeCategory, Upgrades, UpgradeLevel, UserUpgrades, DailyCombo, UserDailyComboProgress
 
 
 async def get_upgrade_category_by_id(db: AsyncSession, upgrade_category_id: int):
     """Категория улучшений (карточек) по id"""
-    upgrade_category = await db.get(UpgradeCategory, upgrade_category_id)
-    return upgrade_category
+    result = await db.execute(select(UpgradeCategory).filter(
+        UpgradeCategory.id == upgrade_category_id).options(
+        joinedload(UpgradeCategory.upgrades)
+    ))
+    return result.scalars().first()
 
 
 async def get_upgrade_category_by_name(db: AsyncSession, upgrade_category_name: str):
     """Категория улучшений (карточек) по названию"""
-    result = await db.execute(select(UpgradeCategory).filter(UpgradeCategory.category == upgrade_category_name))
+    result = await db.execute(select(UpgradeCategory).filter(
+        UpgradeCategory.category == upgrade_category_name).options(
+        joinedload(UpgradeCategory.upgrades)
+    ))
     return result.scalars().first()
 
 
@@ -24,7 +31,7 @@ async def get_all_upgrade_category(db: AsyncSession):
     query = select(UpgradeCategory)
 
     result = await db.execute(query)
-    upgrades = result.scalars().all()
+    upgrades = result.unique().scalars().all()
     return upgrades
 
 
@@ -57,7 +64,7 @@ async def get_all_upgrades_in_shop(category_id: int, db: AsyncSession):
         query = query.where(Upgrades.category_id == category_id)
 
     result = await db.execute(query)
-    upgrades = result.scalars().all()
+    upgrades = result.unique().scalars().all()
     return upgrades
 
 
@@ -68,7 +75,7 @@ async def get_all_upgrades(category_id: int, db: AsyncSession):
         query = query.where(Upgrades.category_id == category_id)
 
     result = await db.execute(query)
-    upgrades = result.scalars().all()
+    upgrades = result.unique().scalars().all()
     return upgrades
 
 
@@ -143,7 +150,7 @@ async def get_user_upgrades(user_id: int, db: AsyncSession) -> List[UserUpgrades
     result = await db.execute(
         select(UserUpgrades).where(UserUpgrades.user_id == user_id)
     )
-    return result.scalars().all()
+    return result.unique().scalars().all()
 
 
 async def get_user_upgrades_in_this_category(user_id: int, category_id: int, db: AsyncSession) -> List[UserUpgrades]:
@@ -152,4 +159,31 @@ async def get_user_upgrades_in_this_category(user_id: int, category_id: int, db:
         join(Upgrades).join(UpgradeCategory).\
         filter(UserUpgrades.user_id == user_id, UpgradeCategory.id == category_id)
     )
-    return result.scalars().all()
+    return result.unique().scalars().all()
+
+
+async def create_combo(db: AsyncSession, **kwargs):
+    """Создание дневного комбо"""
+    user_data = kwargs
+
+    combo = DailyCombo(**user_data)
+    db.add(combo)
+    await db.commit()
+    return combo
+
+
+async def get_latest_user_combo(db: AsyncSession):
+    """Получаем последнее на данный момент дневное комбо"""
+    latest_combo = await db.execute(select(DailyCombo).order_by(DailyCombo.created.desc()).limit(1))
+    latest_combo = latest_combo.scalars().first()
+    return latest_combo
+
+
+async def get_user_combo(db: AsyncSession, user_id: int, latest_combo):
+    """Получаем прогрес пользователя в текущем дневном комбо"""
+    user_combo_progress = await db.execute(
+        select(UserDailyComboProgress)
+        .filter_by(user_id=user_id, combo_id=latest_combo.id)
+    )
+    user_combo_progress = user_combo_progress.scalars().first()
+    return user_combo_progress

@@ -37,6 +37,7 @@ class CreateUpgradeSchema(BaseModel):
     category_id: int
     image_url: str
     is_in_shop: bool
+    description: Optional[str]
 
 
 #Улучшение (карточка) без уровней
@@ -55,16 +56,15 @@ class UpgradeWithoutLevelsSchema(CreateUpgradeSchema):
     id: int
     lvl: int
     is_bought: bool
-    factor: float
+    factor: Optional[float]
+    factor_at_new_lvl: Optional[float]
     price_of_next_lvl: Optional[int]
 
     # levels: List[UpgradeLevelSchema]
 
 
-# class UpgradeCategoryCreateSchema(BaseModel):
-#     category: str
-#
-#     upgrades: List[UpgradeWithLevelsSchema]
+class UpgradeCategoryBaseSchema(BaseModel):
+    category: str
 
 
 class UpgradeCategoryCreateSchema(BaseModel):
@@ -75,6 +75,16 @@ class UpgradeCategoryCreateSchema(BaseModel):
 
 class UpgradeCategorySchema(UpgradeCategoryCreateSchema):
     id: int
+
+
+class UpgradeCategoryBaseSchemaWithId(UpgradeCategoryBaseSchema):
+    id: int
+
+
+class UpgradeCategoryClassicSchema(BaseModel):
+    category: str
+
+    upgrades: List[UpgradeSchema]
 
 
 #Покупка улушение (апгрейд с 0 до 1 уровня)
@@ -91,111 +101,26 @@ class UserUpgradeSchema(UserUpgradeCreateSchema):
     upgrade: UpgradeSchema
 
 
+class CreateDailyComboSchema(BaseModel):
+    upgrade_1_id: int
+    upgrade_2_id: int
+    upgrade_3_id: int
+    reward: int
 
-# class UserBase(BaseModel):
-#     tg_id: int
-#     username: str
-#     fio: str
-#     lvl: int
-#     is_admin: bool
-#     is_banned: bool
-#     money: int
-#     current_factor: float
-#     invited_tg_id: int
-#     last_login_date: date
-#     days_in_row: int
-#     created: datetime
-#     updated: datetime
-#
-# class UserCreate(UserBase):
-#     pass
 
-# class User(UserBase):
-#     created: datetime
-#     updated: datetime
-#
-#     class Config:
-#         orm_mode = True
-#
-# class UpgradeCategoryBase(BaseModel):
-#     category: str
-#
-# class UpgradeCategoryCreate(UpgradeCategoryBase):
-#     pass
-#
-# class UpgradeCategory(UpgradeCategoryBase):
-#     id: int
-#
-#     class Config:
-#         orm_mode = True
-#
-# class UpgradeBase(BaseModel):
-#     name: str
-#     category_id: int
-#     image_url: str
-#
-# class UpgradeCreate(UpgradeBase):
-#     pass
-#
-# class Upgrade(UpgradeBase):
-#     id: int
-#
-#     class Config:
-#         orm_mode = True
-#
-# class UpgradeLevelBase(BaseModel):
-#     upgrade_id: int
-#     lvl: int
-#     factor: float
-#     price: int
-#
-# class UpgradeLevelCreate(UpgradeLevelBase):
-#     pass
-#
-# class UpgradeLevel(UpgradeLevelBase):
-#     pass
-#
-#     class Config:
-#         orm_mode = True
-#
-# class UserUpgradeBase(BaseModel):
-#     user_id: int
-#     upgrade_id: int
-#     lvl: int
-#
-# class UserUpgradeCreate(UserUpgradeBase):
-#     pass
-#
-# class UserUpgrade(UserUpgradeBase):
-#     pass
-#
-#     class Config:
-#         orm_mode = True
-#
-# class DailyRewardBase(BaseModel):
-#     day: int
-#     reward: int
-#
-# class DailyRewardCreate(DailyRewardBase):
-#     pass
-#
-# class DailyReward(DailyRewardBase):
-#     pass
-#
-#     class Config:
-#         orm_mode = True
-#
-# class ClickBase(BaseModel):
-#     user_id: int
-#
-# class ClickCreate(ClickBase):
-#     pass
-#
-# class Click(ClickBase):
-#     pass
-#
-#     class Config:
-#         orm_mode = True
+class DailyComboSchema(CreateDailyComboSchema):
+    id: int
+
+
+class UserDailyComboSchema(BaseModel):
+    user_id: int
+    combo_id: int
+    upgrade_1_bought: bool
+    upgrade_2_bought: bool
+    upgrade_3_bought: bool
+    reward_claimed: bool
+
+    combo: DailyComboSchema
 
 
 class Message(BaseModel):
