@@ -4,6 +4,18 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 
+# Создаем буст
+class BoostCreateSchema(BaseModel):
+    name: str
+    price: int
+    lvl: int
+    tap_boost: int
+    one_tap: int
+    pillars_10: int
+    pillars_30: int
+    pillars_100: int
+
+
 class UserCreate(BaseModel):
     tg_id: int
     username: str
@@ -12,13 +24,13 @@ class UserCreate(BaseModel):
 
 
 class UserBase(UserCreate):
-
     lvl: int
     is_admin: bool
     is_banned: bool
     money: int
     current_factor: float
     days_in_row: int
+    # boost: ReturnUserBoostSchema
 
     class Config:
         orm_mode = True
@@ -40,12 +52,12 @@ class CreateUpgradeSchema(BaseModel):
     description: Optional[str]
 
 
-#Улучшение (карточка) без уровней
+# Улучшение (карточка) без уровней
 class UpgradeSchema(CreateUpgradeSchema):
     id: int
 
 
-#Улучшение (карточка) со всеми уровнями внутри
+# Улучшение (карточка) со всеми уровнями внутри
 class UpgradeWithLevelsSchema(CreateUpgradeSchema):
     id: int
 
@@ -87,13 +99,13 @@ class UpgradeCategoryClassicSchema(BaseModel):
     upgrades: List[UpgradeSchema]
 
 
-#Покупка улушение (апгрейд с 0 до 1 уровня)
+# Покупка улушение (апгрейд с 0 до 1 уровня)
 class UserUpgradeCreateSchema(BaseModel):
     user_id: int
     upgrade_id: int
 
 
-#Купленные пользователем карты
+# Купленные пользователем карты
 class UserUpgradeSchema(UserUpgradeCreateSchema):
     lvl: int
 

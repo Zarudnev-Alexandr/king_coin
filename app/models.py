@@ -26,6 +26,7 @@ class User(Base):
     upgrades: Mapped[list["UserUpgrades"]] = relationship("UserUpgrades", back_populates="user", lazy='joined')
     combo_progress: Mapped[list["UserDailyComboProgress"]] = relationship("UserDailyComboProgress",
                                                                           back_populates="user", lazy='joined')
+    boost: Mapped[list["UserBoost"]] = relationship("UserBoost", back_populates="user", lazy='joined')
 
 
 class UpgradeCategory(Base):
@@ -108,3 +109,30 @@ class UserDailyComboProgress(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="combo_progress", lazy='joined')
     combo: Mapped["DailyCombo"] = relationship("DailyCombo", lazy='joined')
+
+
+class Boost(Base):
+    __tablename__ = 'boost'
+
+    name: Mapped[str] = mapped_column(String)
+    price: Mapped[int] = mapped_column(Integer)
+    lvl: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tap_boost: Mapped[int] = mapped_column(Integer)
+    one_tap: Mapped[int] = mapped_column(Integer)
+    pillars_10: Mapped[int] = mapped_column(Integer)
+    pillars_30: Mapped[int] = mapped_column(Integer)
+    pillars_100: Mapped[int] = mapped_column(Integer)
+
+    user_boost: Mapped[list["UserBoost"]] = relationship("UserBoost", back_populates="boost",
+                                                                    lazy='joined')
+
+
+class UserBoost(Base):
+    __tablename__ = 'user_boost'
+
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('user.tg_id'), primary_key=True)
+    boost_id: Mapped[int] = mapped_column(Integer, ForeignKey('boost.lvl'), primary_key=True)
+
+    user: Mapped["User"] = relationship("User", back_populates="boost", lazy='joined')
+    boost: Mapped["Boost"] = relationship("Boost", back_populates="user_boost", lazy='joined')
+
