@@ -12,7 +12,8 @@
     "path": "^0.12.7",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
-    "vue-router": "^4.4.0"
+    "vue-router": "^4.4.0",
+    "phaser": "^3.80.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",

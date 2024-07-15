@@ -33,7 +33,7 @@ const handleOnAccept = () => {
       <svg viewBox="0 0 339 340"
            fill="none"
            xmlns="http://www.w3.org/2000/svg"
-           style="position: absolute; z-index: 1; bottom: 0; right: 0; width: 97%; overflow: hidden"
+           style="position: absolute; z-index: 1; bottom: 0; right: 0; max-width: 97%; max-height: 100%; overflow: hidden"
       >
         <path
             d="M0.378845 338.621L339 0V329.297C339 334.82 334.523 339.297 329 339.297H4.00003C2.72291 339.297 1.5017 339.058 0.378845 338.621Z"
@@ -53,9 +53,11 @@ const handleOnAccept = () => {
       </span>
 
       <div class="accept-action">
-        <div class="accept-button-wrapper" @click="handleOnAccept">
-          <span>{{ props.mainButtonText ? props.mainButtonText : 'Получить' }}</span>
-        </div>
+        <slot name="actions">
+          <div class="accept-button-wrapper" @click="handleOnAccept">
+            <span>{{ props.mainButtonText ? props.mainButtonText : 'Получить' }}</span>
+          </div>
+        </slot>
       </div>
     </div>
   </div>
