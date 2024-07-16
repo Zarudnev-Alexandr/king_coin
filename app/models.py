@@ -19,7 +19,8 @@ class User(Base):
     money: Mapped[int] = mapped_column(BigInteger, default=0)
     current_factor: Mapped[float] = mapped_column(Float, default=0)
     invited_tg_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('user.tg_id'), nullable=True)
-    last_login_date: Mapped[DateTime] = mapped_column(DateTime)
+    last_login: Mapped[DateTime] = mapped_column(DateTime)
+    received_last_daily_reward: Mapped[DateTime] = mapped_column(DateTime)
     days_in_row: Mapped[int] = mapped_column(Integer, default=0)
 
     invited_by: Mapped["User"] = relationship("User", remote_side=[tg_id], lazy='joined')

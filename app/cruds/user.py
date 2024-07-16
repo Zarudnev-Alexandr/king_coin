@@ -3,7 +3,7 @@ from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app import models, schemas
-from app.models import UserBoost, Boost
+from app.models import UserBoost, Boost, DailyReward
 
 
 async def get_user(db: AsyncSession, tg_id: int):
@@ -21,7 +21,7 @@ async def get_user_bool(db: AsyncSession, tg_id: int):
 
 async def create_user(db: AsyncSession, user: schemas.UserCreate):
     db_user = models.User(**user.dict())
-    db_user.last_login_date=date.today()
+    db_user.last_login=date.today()
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
@@ -68,6 +68,21 @@ async def upgrade_user_boost(db, user_boost, user, next_boost):
 
     await db.commit()
     return user_boost
+
+
+async def get_daily_reward(db: AsyncSession, day: int) -> DailyReward:
+    result = await db.execute(select(DailyReward).where(DailyReward.day == day))
+    return result.scalars().first()
+
+
+async def add_daily_reward(db: AsyncSession, **kwargs) -> DailyReward:
+    """Создание ежедневной награды"""
+    daily_reward_data = kwargs
+
+    daily_reward = DailyReward(**daily_reward_data)
+    db.add(daily_reward)
+    await db.commit()
+    return daily_reward
 
 
 # async def get_upgrade_category(db: AsyncSession, category_id: int):

@@ -135,5 +135,17 @@ class UserDailyComboSchema(BaseModel):
     combo: DailyComboSchema
 
 
+class CreateDailyRewardSchema(BaseModel):
+    day: int
+    reward: int
+
+
+class DailyRewardResponse(CreateDailyRewardSchema):
+    total_money: int
+
+    class Config:
+        orm_mode = True
+
+
 class Message(BaseModel):
     message: str
