@@ -1,17 +1,20 @@
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.errors import KafkaError
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cruds.user import get_user, create_user
+from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
+    get_boost_by_lvl, get_next_boost, upgrade_user_boost, get_user_bool, get_daily_reward, add_daily_reward
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
-from ..schemas import Message, UserCreate, UserBase
+from ..models import DailyReward
+from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema
 
 user_route = APIRouter()
 
@@ -105,7 +108,7 @@ async def user_login(user_id: int, db: AsyncSession = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="User not found")
 
     current_time = datetime.utcnow()
-    last_login = user.last_login_date or current_time
+    last_login = user.last_login or current_time
     time_diff = current_time - last_login
 
     # Ограничиваем расчет дохода максимум 3 часами
@@ -132,7 +135,30 @@ async def user_login(user_id: int, db: AsyncSession = Depends(get_db)) -> dict:
     user.money += total_income
 
     # Обновляем дату последнего входа
-    user.last_login_date = current_time
+    user.last_login = current_time
+
+    # Получаем текущий буст пользователя
+    user_boost = await get_user_boost(db, user_id)
+
+    if user_boost:
+        boost = await get_boost_by_id(db, user_boost.boost_id)
+        if boost:
+            boost_data = {
+                "boost_id": boost.lvl,
+                "name": boost.name,
+                "price": boost.price,
+                "lvl": boost.lvl,
+                "tap_boost": boost.tap_boost,
+                "one_tap": boost.one_tap,
+                "pillars_10": boost.pillars_10,
+                "pillars_30": boost.pillars_30,
+                "pillars_100": boost.pillars_100
+            }
+        else:
+            boost_data = {}
+    else:
+        boost_data = {}
+    print('🐟', boost_data)
 
     await db.commit()
     await db.refresh(user)
@@ -140,5 +166,166 @@ async def user_login(user_id: int, db: AsyncSession = Depends(get_db)) -> dict:
     # Преобразуем объект user в словарь
     user_data = UserBase.from_orm(user).dict()
     user_data["total_income"] = total_income
+    user_data["boost"] = boost_data
 
     return user_data
+
+
+@user_route.post('/boost')
+async def create_upgrade(boost_create: BoostCreateSchema,
+                         db: AsyncSession = Depends(get_db)):
+    user_data = {
+        'name': boost_create.name,
+        'lvl': boost_create.lvl,
+        "price": boost_create.price,
+        'tap_boost': boost_create.tap_boost,
+        'one_tap': boost_create.one_tap,
+        'pillars_10': boost_create.pillars_10,
+        'pillars_30': boost_create.pillars_30,
+        'pillars_100': boost_create.pillars_100
+    }
+
+    boost = await get_boost_by_lvl(db, boost_lvl=boost_create.lvl)
+
+    if boost:
+        raise HTTPException(status_code=409, detail="this lvl is already in use")
+
+    new_boost = await add_boost(db, **user_data)
+    if new_boost:
+        return new_boost
+    else:
+        raise HTTPException(status_code=400, detail="failed to create boost")
+
+
+@user_route.post('/upgrade-boost')
+async def upgrade_boost(user_id: int, db: AsyncSession = Depends(get_db)):
+    user = await get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user_boost = await get_user_boost(db, user_id)
+
+    if not user_boost:
+        raise HTTPException(status_code=404, detail="User boost not found")
+
+    # Получаем текущий и следующий уровни буста
+    current_boost = await get_boost_by_id(db, user_boost.boost_id)
+
+    if not current_boost:
+        raise HTTPException(status_code=404, detail="Current boost not found")
+
+    next_boost = await get_next_boost(db, current_boost.lvl)
+
+    if not next_boost:
+        raise HTTPException(status_code=404, detail="Next boost level not found")
+
+    # Проверяем, хватает ли у пользователя денег на покупку следующего уровня
+    if user.money < next_boost.price:
+        raise HTTPException(status_code=400, detail="Not enough money to upgrade boost")
+
+    # Обновляем уровень буста у пользователя и списываем сумму покупки
+    new_user_boost = await upgrade_user_boost(db, user_boost, user, next_boost)
+
+    if not new_user_boost:
+        raise HTTPException(status_code=500, detail="failed to improve boost")
+
+    return {
+        "user_id": user_boost.user_id,
+        "boost_id": user_boost.boost_id,
+        "user_money": user.money
+    }
+
+
+@user_route.get("/next-upgrade/{user_id}")
+async def get_next_upgrade_func(user_id: int = Path(..., description="user id"),
+                                  db: AsyncSession = Depends(get_db)) -> BoostCreateSchema:
+    user = await get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user_boost = await get_user_boost(db, user_id)
+
+    if not user_boost:
+        raise HTTPException(status_code=404, detail="User boost not found")
+
+    # Получаем текущий и следующий уровни буста
+    current_boost = await get_boost_by_id(db, user_boost.boost_id)
+
+    if not current_boost:
+        raise HTTPException(status_code=404, detail="Current boost not found")
+
+    next_boost = await get_next_boost(db, current_boost.lvl)
+
+    if not next_boost:
+        raise HTTPException(status_code=404, detail="Next boost level not found")
+
+    return next_boost
+
+
+@user_route.post('/claim-daily-reward', response_model=DailyRewardResponse)
+async def claim_daily_reward(user_id: int, db: AsyncSession = Depends(get_db)):
+    user = await get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    current_time = datetime.utcnow()
+    received_last_daily_reward = user.received_last_daily_reward or current_time
+
+    # Проверка, прошло ли более одного дня с последнего входа
+    if current_time > received_last_daily_reward + timedelta(days=2):
+        user.days_in_row = 0
+
+    # Проверка, прошло ли менее одного дня с последнего входа
+    if current_time < received_last_daily_reward + timedelta(days=1):
+        raise HTTPException(status_code=404, detail="less than one day has passed")
+
+    # Определение текущего дня награды
+    reward_day = user.days_in_row + 1
+
+    # Получение награды
+    daily_reward = await get_daily_reward(db, reward_day)
+    if not daily_reward:
+        user.days_in_row = 1
+        reward_day = 1
+        daily_reward = await get_daily_reward(db, reward_day)
+        # raise HTTPException(status_code=404, detail="Reward for the day not found")
+
+    # Обновление пользователя
+    user.money += daily_reward.reward
+    user.days_in_row = reward_day
+    user.received_last_daily_reward = current_time
+
+    # Сброс дней в ряду, если награды закончились
+    max_reward_day = (await db.execute(select(func.max(DailyReward.day)))).scalar()
+    if user.days_in_row >= max_reward_day:
+        user.days_in_row = 0
+
+    await db.commit()
+    await db.refresh(user)
+
+    return DailyRewardResponse(
+        day=daily_reward.day,
+        reward=daily_reward.reward,
+        total_money=user.money
+    )
+
+
+@user_route.post('/create-daily-reward')
+async def create_daily_reward(daily_reward: CreateDailyRewardSchema,
+                              db: AsyncSession = Depends(get_db)):
+    user_data = {
+        'day': daily_reward.day,
+        'reward': daily_reward.reward,
+    }
+
+    old_daily_reward = await get_daily_reward(db, day=daily_reward.day)
+
+    if old_daily_reward:
+        raise HTTPException(status_code=409, detail="this day is already in use")
+
+    new_daily_reward = await add_daily_reward(db, **user_data)
+    if new_daily_reward:
+        return new_daily_reward
+    else:
+        raise HTTPException(status_code=400, detail="failed to create boost")
+
