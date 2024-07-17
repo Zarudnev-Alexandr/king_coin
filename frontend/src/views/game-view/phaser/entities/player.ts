@@ -7,13 +7,10 @@ export default class Player extends Phaser.GameObjects.Sprite {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
 
-    // Добавляем игрока на сцену
     scene.add.existing(this);
-
-    // Включаем физику
     scene.physics.world.enable(this);
+
     this.setDisplaySize(106, 106);
-    // Настраиваем физические свойства игрока00ы
     if (this.body && this.body instanceof Phaser.Physics.Arcade.Body) {
       this.body.setGravityY(500);
       this.body.setCollideWorldBounds(true);
@@ -29,14 +26,14 @@ export default class Player extends Phaser.GameObjects.Sprite {
     }
 
     if (this.gameStore.isPaused) return;
-    (this.body as Phaser.Physics.Arcade.Body).setVelocityY(-250);
+    (this.body as Phaser.Physics.Arcade.Body).setVelocityY(-300);
   }
 
   public stopMovement() {
     if (this.body && this.body instanceof Phaser.Physics.Arcade.Body) {
-      this.body.setVelocity(0, 0); // Сбрасываем скорость
-      this.body.setAcceleration(0, 0); // Сбрасываем ускорение
-      this.body.setGravityY(0); // Отключаем гравитацию
+      this.body.setVelocity(0, 0);
+      this.body.setAcceleration(0, 0);
+      this.body.setGravityY(0);
     }
   }
 
@@ -46,8 +43,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
 
   public enablePhysics() {
     if (this.body && this.body instanceof Phaser.Physics.Arcade.Body) {
-      this.body.setGravityY(500);
-      // Можно установить начальную скорость или оставить как есть
+      this.body.setGravityY(600);
     }
   }
 }

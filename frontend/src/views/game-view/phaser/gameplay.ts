@@ -6,17 +6,17 @@ import TopPipeImage from "@/assets/img/game/top-pipe.png"
 import BottomPipeImage from "@/assets/img/game/bottom-pipe.png"
 import Obstacle from "@/views/game-view/phaser/entities/obstacle.ts";
 import {useGameStore} from "@/shared/pinia/game-store.ts";
+import ObstacleManager from "@/views/game-view/phaser/entities/obstacle-manager.ts";
 
 class Gameplay extends Phaser.Scene {
   private background?: BackgroundSprite;
   private player?: Player;
-  private obstacles?: Phaser.Physics.Arcade.Group;
   private gameStore = useGameStore();
+  private obstacleManager: ObstacleManager | null = null;
   static instance: Gameplay | null = null;
 
   constructor() {
     super('Gameplay');
-    console.log("########################")
     Gameplay.instance = this;
   }
 
@@ -29,68 +29,42 @@ class Gameplay extends Phaser.Scene {
 
   create() {
     this.background = new BackgroundSprite(this, 0, 0, this.scale.height);
+    this.obstacleManager = new ObstacleManager(this);
     this.background.setOrigin(0, 0);
     this.player = new Player(this, 100, this.scale.height / 2);
 
-    this.obstacles = this.physics.add.group({
-      classType: Obstacle,
-      runChildUpdate: true // Включаем автоматическое обновление для всех детей группы
-    });
-
-    // Периодическое создание препятствий
-    this.time.addEvent({
-      delay: 2000, // Интервал между препятствиями в миллисекундах
-      callback: this.addObstacle,
-      callbackScope: this,
-      loop: true
-    });
 
     // Обработка столкновений игрока с препятствиями
-    this.physics.add.overlap(this.player, this.obstacles, this.handleCollision, undefined, this.player);
+    this.physics.add.overlap(this.player, this.obstacleManager.obstacles, this.handleCollision, undefined, this.player);
     this.disablePhysics();
   }
 
-  update() {
+  update(time: number, delta: number) {
     if (this.gameStore.isPaused || !this.gameStore.gameInitStarted) return;
 
     this.background?.update();
     this.player?.update();
 
-    this.obstacles?.getChildren().forEach((obstacle: Phaser.GameObjects.GameObject) => {
+    this.obstacleManager?.obstacles?.getChildren().forEach((obstacle: Phaser.GameObjects.GameObject) => {
       (obstacle as Obstacle).update();
     });
-    console.log(this.obstacles?.getChildren().length)
+    this.obstacleManager?.update(time, delta);
+    console.log(this.obstacleManager?.obstacles?.getChildren().length)
   }
 
   public disablePhysics() {
     this.player?.disablePhysics();
-
-    this.obstacles?.getChildren().forEach((obstacle: Phaser.GameObjects.GameObject) => {
-      (obstacle as Obstacle).disablePhysics();
-    });
+    this.obstacleManager?.setVelocityX(0);
   }
 
   public enablePhysics() {
     this.player?.enablePhysics();
-    this.obstacles?.getChildren().forEach((obstacle: Phaser.GameObjects.GameObject) => {
-      (obstacle as Obstacle).enablePhysics();
-    });
-  }
-
-  addObstacle() {
-    if (this.gameStore.isPaused || !this.gameStore.gameInitStarted) return;
-
-    const gap = 150; // Размер зазора между верхней и нижней трубой
-    const x = this.scale.width;
-    const y = Phaser.Math.Between(50, this.scale.height - 50 - gap);
-
-    const obstacle = new Obstacle(this, x, y, gap);
-    this.obstacles?.add(obstacle);
+    this.obstacleManager?.setVelocityX(-120);
   }
 
   handleCollision() {
-    // Обработка столкновения игрока с препятствием
-    this.scene.restart();
+    this.gameStore.setPause(true);
+    this.gameStore.setCurrentActiveModal('game-over');
   }
 }
 

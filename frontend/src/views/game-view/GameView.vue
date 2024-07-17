@@ -42,8 +42,7 @@ const handleExitGame = () => {
 }
 
 const handleRestart = () => {
-  gameStore.setPause(false);
-  gameStore.setCurrentActiveModal('');
+  gameStore.initGameState();
   Gameplay.instance?.scene.restart();
 }
 
@@ -101,7 +100,7 @@ onUnmounted(() => {
         </div>
         <div class="modal-actions-wrapper" v-if="gameStore.currentActiveModal === 'game-over'">
           <ModalActionButton style="width: 133px; height: 67px" @click="handleRestart">
-            <span class="action-button-title">Сыграть еще</span>
+            <span class="action-button-title" @click="handleRestart">Сыграть еще</span>
           </ModalActionButton>
         </div>
       </template>
