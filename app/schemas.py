@@ -151,5 +151,14 @@ class ImageUploadResponse(BaseModel):
     image_url: str
 
 
+class InitDataSchema(BaseModel):
+    allows_write_to_pm: bool
+    first_name: str
+    id: int
+    language_code: str
+    last_name: str
+    username: str
+
+
 class Message(BaseModel):
     message: str

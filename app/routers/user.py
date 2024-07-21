@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.errors import KafkaError
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Header
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +14,8 @@ from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
 from ..models import DailyReward
-from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema
+from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
+    InitDataSchema
 
 user_route = APIRouter()
 
@@ -190,6 +191,113 @@ async def user_login(user_id: int, db: AsyncSession = Depends(get_db)) -> dict:
     user_data["boost"] = boost_data
 
     return user_data
+
+
+
+
+@user_route.post('/logreg')
+async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    try:
+        # initData1 = "{\"allows_write_to_pm\":true,\"first_name\":\"firstname\",\"id\":905351175,\"language_code\":\"ru\",\"last_name\":\"\",\"username\":\"c2dent\"}"
+        print('🤡', initData)
+        # Декодируем строку JSON
+        decoded_data = json.loads(initData)
+        print('🐸', decoded_data)
+        print('🐸', type(decoded_data))
+
+        # Валидируем данные с помощью Pydantic
+        # data = InitDataSchema(**decoded_data)
+        data = decoded_data
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
+
+    tg_id = data.get("id")
+    username = data.get("username", "")
+    first_name = data.get("first_name", "")
+    last_name = data.get("last_name", "")
+    invited_tg_id = data.get("invited_tg_id", None)
+
+    if not tg_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    # Пытаемся найти пользователя по tg_id
+    db_user = await get_user(db, tg_id)
+
+    if db_user:
+        # Пользователь найден, выполняем вход
+        current_time = datetime.utcnow()
+        last_login = db_user.last_login or current_time
+        time_diff = current_time - last_login
+
+        hours_passed = min(time_diff.total_seconds() / 3600, 3)
+
+        user_upgrades = await get_user_upgrades(tg_id, db)
+        upgrades = await asyncio.gather(
+            *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+        )
+
+        total_hourly_income = sum(
+            next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+            for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+        )
+
+        total_income = total_hourly_income * hours_passed
+
+        db_user.money += total_income
+        db_user.last_login = current_time
+
+        user_boost = await get_user_boost(db, tg_id)
+        if user_boost:
+            boost = await get_boost_by_id(db, user_boost.boost_id)
+            boost_data = {
+                "boost_id": boost.lvl,
+                "name": boost.name,
+                "price": boost.price,
+                "lvl": boost.lvl,
+                "tap_boost": boost.tap_boost,
+                "one_tap": boost.one_tap,
+                "pillars_10": boost.pillars_10,
+                "pillars_30": boost.pillars_30,
+                "pillars_100": boost.pillars_100
+            } if boost else {}
+        else:
+            boost_data = {}
+
+        await db.commit()
+        await db.refresh(db_user)
+
+        user_data = {
+            "tg_id": db_user.tg_id,
+            "username": db_user.username,
+            "fio": db_user.fio,
+            "last_login": db_user.last_login,
+            "money": db_user.money,
+            "total_income": total_income,
+            "boost": boost_data
+        }
+
+        return user_data
+    else:
+        # Пользователь не найден, выполняем регистрацию
+        new_user = await create_user(
+            db,
+            tg_id=tg_id,
+            username=username,
+            fio=first_name,  # Ваша схема использует 'fio', но в данных 'first_name'
+            invited_tg_id=invited_tg_id
+        )
+        if not new_user:
+            raise HTTPException(status_code=500, detail="Error creating user")
+
+        user_data = {
+            "tg_id": new_user.tg_id,
+            "username": new_user.username,
+            "fio": new_user.fio,
+            "last_login": new_user.last_login,
+            "money": new_user.money
+        }
+
+        return user_data
 
 
 @user_route.post('/boost')
