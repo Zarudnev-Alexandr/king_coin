@@ -20,7 +20,7 @@ class UserCreate(BaseModel):
     tg_id: int
     username: str
     fio: str
-    invited_tg_id: Optional[int]
+    invited_tg_id: Optional[int] = None
 
 
 class UserBase(UserCreate):
