@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+import os
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,11 +10,11 @@ from app.cruds.upgrade import get_upgrade_category_by_name, create_upgrade_categ
     process_upgrade, get_user_upgrades_in_this_category, create_combo, get_user_combo, get_latest_user_combo
 from app.cruds.user import get_user, get_user_bool
 from app.database import get_db
-from app.models import UpgradeLevel, DailyCombo, UserDailyComboProgress
+from app.models import UpgradeLevel, DailyCombo, UserDailyComboProgress, Upgrades
 from app.schemas import UpgradeCategorySchema, CreateUpgradeSchema, UpgradeSchema, \
     UpgradeLevelSchema, UpgradeWithLevelsSchema, UserUpgradeCreateSchema, UserUpgradeSchema, CreateDailyComboSchema, \
     DailyComboSchema, UserDailyComboSchema, UpgradeCategoryClassicSchema, UpgradeCategoryBaseSchema, \
-    UpgradeCategoryBaseSchemaWithId
+    UpgradeCategoryBaseSchemaWithId, ImageUploadResponse
 
 upgrade_route = APIRouter()
 
@@ -275,3 +277,26 @@ async def get_user_combo_progress(user_id: int = Path(..., description="user id"
         raise HTTPException(status_code=404, detail="user dont buy any cards from combo today")
 
     return user_combo
+
+
+@upgrade_route.post('/upgrade/{upgrade_id}/upload_image', response_model=ImageUploadResponse)
+async def upload_image(upgrade_id: int, file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+    # Проверка, существует ли апгрейд
+    upgrade = await db.get(Upgrades, upgrade_id)
+    if not upgrade:
+        raise HTTPException(status_code=404, detail="Upgrade not found")
+
+    # Генерация уникального имени файла
+    file_extension = file.filename.split(".")[-1]
+    file_name = f"{upgrade_id}.{file_extension}"
+
+    # Сохранение файла на сервере
+    file_path = os.path.join("uploads", file_name)
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    # Обновление записи в базе данных
+    upgrade.image_url = file_path
+    await db.commit()
+
+    return ImageUploadResponse(image_url=file_path)
