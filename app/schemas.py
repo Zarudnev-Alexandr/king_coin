@@ -147,5 +147,9 @@ class DailyRewardResponse(CreateDailyRewardSchema):
         orm_mode = True
 
 
+class ImageUploadResponse(BaseModel):
+    image_url: str
+
+
 class Message(BaseModel):
     message: str
