@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,9 +20,23 @@ async def get_user_bool(db: AsyncSession, tg_id: int):
         return False
 
 
-async def create_user(db: AsyncSession, user: schemas.UserCreate):
-    db_user = models.User(**user.dict())
-    db_user.last_login=date.today()
+# async def create_user(db: AsyncSession, user: schemas.UserCreate):
+#     db_user = models.User(**user.dict())
+#     db_user.last_login=date.today()
+#     db.add(db_user)
+#     await db.commit()
+#     await db.refresh(db_user)
+#     return db_user
+
+
+async def create_user(db: AsyncSession, **kwargs):
+    user_data = kwargs
+    user_data['last_login'] = datetime.datetime.now()
+    user_data['received_last_daily_reward'] = datetime.datetime.now() - datetime.timedelta(days=1)
+    print('🐸', user_data)
+    # db_user = models.User(**user.dict())
+    # db_user.last_login=date.today()
+    db_user = models.User(**user_data)
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)

@@ -19,86 +19,107 @@ from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRew
 user_route = APIRouter()
 
 
-@user_route.post('/create_message')
-async def send(message: Message):
-    producer = AIOKafkaProducer(
-        loop=loop, bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)
-    await producer.start()
-    try:
-        value_json = json.dumps(message.__dict__).encode('utf-8')
-        await producer.send_and_wait(topic=KAFKA_TOPIC, value=value_json)
-    finally:
-        await producer.stop()
+# @user_route.post('/create_message')
+# async def send(message: Message):
+#     producer = AIOKafkaProducer(
+#         loop=loop, bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)
+#     await producer.start()
+#     try:
+#         value_json = json.dumps(message.__dict__).encode('utf-8')
+#         await producer.send_and_wait(topic=KAFKA_TOPIC, value=value_json)
+#     finally:
+#         await producer.stop()
+#
+#
+# async def consume():
+#     try:
+#         consumer = AIOKafkaConsumer(KAFKA_TOPIC,
+#                                     loop=loop,
+#                                     bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+#                                     group_id=KAFKA_CONSUMER_GROUP)
+#     except KafkaError as err:
+#         raise Exception(f"🥰🥰🥰{err}")
+#
+#     await consumer.start()
+#     try:
+#
+#         async for msg in consumer:
+#             print(f'Consumer msg😍😍😍😍😍😍: {msg}')
+#     except Exception as e:
+#         print(f"Error consuming messages: {e}")
+#     finally:
+#         await consumer.stop()
 
 
-async def consume():
-    try:
-        consumer = AIOKafkaConsumer(KAFKA_TOPIC,
-                                    loop=loop,
-                                    bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-                                    group_id=KAFKA_CONSUMER_GROUP)
-    except KafkaError as err:
-        raise Exception(f"🥰🥰🥰{err}")
-
-    await consumer.start()
-    try:
-
-        async for msg in consumer:
-            print(f'Consumer msg😍😍😍😍😍😍: {msg}')
-    except Exception as e:
-        print(f"Error consuming messages: {e}")
-    finally:
-        await consumer.stop()
+# @user_route.post('/user')
+# async def register_send(user: UserCreate, db: AsyncSession = Depends(get_db)):
+#     producer = AIOKafkaProducer(loop=loop, bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)
+#     await producer.start()
+#
+#     try:
+#         db_user = await get_user(db, tg_id=user.tg_id)
+#         if db_user:
+#             raise HTTPException(status_code=400, detail="User already registered")
+#
+#         # Собираем сообщение для Kafka
+#         message = {
+#             "tg_id": user.tg_id,
+#             "username": user.username,
+#             "fio": user.fio,
+#             "invited_tg_id": user.invited_tg_id
+#         }
+#         value_json = json.dumps(message).encode('utf-8')
+#         await producer.send_and_wait(topic="user_registration", value=value_json)
+#
+#         return {"status": "User registration message sent to Kafka"}
+#
+#     finally:
+#         await producer.stop()
+#
+#
+# async def consume_register():
+#     consumer = AIOKafkaConsumer(
+#         "user_registration",
+#         loop=loop,
+#         bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+#         group_id="registration_group"
+#     )
+#
+#     await consumer.start()
+#     try:
+#         async for msg in consumer:
+#             print(f'Received message: {msg.value.decode("utf-8")}')
+#             message = json.loads(msg.value.decode("utf-8"))
+#             user_data = UserCreate(**message)
+#
+#             async with await get_db() as db:
+#                 await create_user(db, user_data)
+#                 await db.commit()
+#     except Exception as e:
+#         print(f"Error consuming messages: {e}")
+#     finally:
+#         await consumer.stop()
 
 
 @user_route.post('/user')
 async def register_send(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    producer = AIOKafkaProducer(loop=loop, bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)
-    await producer.start()
+    db_user = await get_user(db, tg_id=user.tg_id)
+    if db_user:
+        raise HTTPException(status_code=400, detail="User already registered")
 
-    try:
-        db_user = await get_user(db, tg_id=user.tg_id)
-        if db_user:
-            raise HTTPException(status_code=400, detail="User already registered")
+    message = {
+        "tg_id": user.tg_id,
+        "username": user.username,
+        "fio": user.fio,
+        "invited_tg_id": user.invited_tg_id
+    }
 
-        # Собираем сообщение для Kafka
-        message = {
-            "tg_id": user.tg_id,
-            "username": user.username,
-            "fio": user.fio,
-            "invited_tg_id": user.invited_tg_id
-        }
-        value_json = json.dumps(message).encode('utf-8')
-        await producer.send_and_wait(topic="user_registration", value=value_json)
+    # user_data = UserCreate(**message)
+    new_user = await create_user(db, **message)
+    if not new_user:
+        raise HTTPException(status_code=500, detail="Error")
 
-        return {"status": "User registration message sent to Kafka"}
-
-    finally:
-        await producer.stop()
-
-
-async def consume_register():
-    consumer = AIOKafkaConsumer(
-        "user_registration",
-        loop=loop,
-        bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-        group_id="registration_group"
-    )
-
-    await consumer.start()
-    try:
-        async for msg in consumer:
-            print(f'Received message: {msg.value.decode("utf-8")}')
-            message = json.loads(msg.value.decode("utf-8"))
-            user_data = UserCreate(**message)
-
-            async with await get_db() as db:
-                await create_user(db, user_data)
-                await db.commit()
-    except Exception as e:
-        print(f"Error consuming messages: {e}")
-    finally:
-        await consumer.stop()
+    return new_user
 
 
 @user_route.post('/user-login')
