@@ -118,9 +118,21 @@ async def get_user_upgrades_by_upgrade_id(user_id: int, upgrade_id: int, db: Asy
     return result.scalars().first()
 
 
-async def add_bought_upgrade(db, user_id: int, upgrade_id: int, lvl: int) -> UserUpgrades:
+async def add_bought_upgrade(db, user, upgrade, lvl: int) -> UserUpgrades:
     """Adds a new upgrade record for the user"""
-    user_upgrade = UserUpgrades(user_id=user_id, upgrade_id=upgrade_id, lvl=lvl)
+    lvl_data = next(first_lvl for first_lvl in upgrade.levels if first_lvl.lvl == 1)
+
+    if not lvl_data:
+        raise HTTPException(status_code=400, detail="НЕт даже первого уровня")
+
+    print('🦄🦄', lvl_data.__dict__)
+    print('🥶', user.__dict__)
+
+    if user.money < lvl_data.price:
+        raise HTTPException(status_code=400, detail="You have not money to upgrade")
+
+    user.money -= lvl_data.price
+    user_upgrade = UserUpgrades(user_id=user.tg_id, upgrade_id=upgrade.id, lvl=lvl)
     db.add(user_upgrade)
     await db.commit()
     await db.refresh(user_upgrade)

@@ -204,7 +204,7 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     user_upgrade = await get_user_upgrades_by_upgrade_id(user_id, upgrade_id, db)
 
     if not user_upgrade:
-        user_upgrade = await add_bought_upgrade(db, user_id=user_id, upgrade_id=upgrade_id, lvl=1)
+        user_upgrade = await add_bought_upgrade(db, user, upgrade, lvl=1)
     else:
         await process_upgrade(user, user_upgrade, upgrade, db)
 

@@ -193,8 +193,6 @@ async def user_login(user_id: int, db: AsyncSession = Depends(get_db)) -> dict:
     return user_data
 
 
-
-
 @user_route.post('/logreg')
 async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     try:
@@ -272,6 +270,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             "fio": db_user.fio,
             "last_login": db_user.last_login,
             "money": db_user.money,
+            "earnings_per_hour": total_hourly_income,
             "total_income": total_income,
             "boost": boost_data
         }
@@ -341,6 +340,8 @@ async def upgrade_boost(user_id: int, db: AsyncSession = Depends(get_db)):
     current_boost = await get_boost_by_id(db, user_boost.boost_id)
 
     if not current_boost:
+        # current_boost = await get_boost_by_id(db, 1)
+        # if not current_boost:
         raise HTTPException(status_code=404, detail="Current boost not found")
 
     next_boost = await get_next_boost(db, current_boost.lvl)
