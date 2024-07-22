@@ -393,9 +393,24 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
         await db.refresh(user_combo_progress)
 
     await db.refresh(user_upgrade)
+
+    next_upgrade_level = await db.execute(
+        select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=user_upgrade.lvl + 1)
+    )
+    next_upgrade_level = next_upgrade_level.scalars().first()
+
+    current_upgrade_level = await db.execute(
+        select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=user_upgrade.lvl)
+    )
+    current_upgrade_level = current_upgrade_level.scalars().first()
     return_data = {
         "user_remaining_money": user_upgrade.user.money,
-
+        "upgrade_id": user_upgrade.upgrade.id,
+        "current_lvl": current_upgrade_level.lvl,
+        "current_factor": current_upgrade_level.factor if current_upgrade_level else None,
+        "factor_at_new_lvl": next_upgrade_level.factor if next_upgrade_level else None,
+        "price_of_next_lvl": next_upgrade_level.price if next_upgrade_level else None,
+        "next_lvl": next_upgrade_level.lvl if next_upgrade_level else None
     }
     return return_data
 
