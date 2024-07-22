@@ -7,7 +7,7 @@ import AxiosErrorHandler from "@/shared/api/axios/axios-error-handler.ts";
 import UserApiService from "@/shared/api/services/user-api-service.ts";
 
 const userStore = useUserStore();
-const baseUrl = import.meta.env.VITE_BASE_URL;
+const baseUrl = 'https://king-coin.online/api';
 const axiosClientCreator = new AxiosClientCreator(baseUrl, true);
 const axiosInstance = axiosClientCreator.makeAxiosClient();
 const errorHandler = new AxiosErrorHandler();
