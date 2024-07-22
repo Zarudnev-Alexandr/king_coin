@@ -2,6 +2,18 @@
 
 import Combo from "@/views/improvements-view/components/combo.vue";
 import CoinCardList from "@/views/improvements-view/components/coin-card-list.vue";
+import CoinApiService from "@/shared/api/services/coin-api-service.ts";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
+import {onMounted} from "vue";
+
+const coinApiService = new CoinApiService(axiosInstance, errorHandler);
+
+onMounted(async () => {
+  const response = await coinApiService.getCategories();
+  if (response.right) {
+    console.log(response.right);
+  }
+});
 </script>
 
 <template>
@@ -16,7 +28,7 @@ import CoinCardList from "@/views/improvements-view/components/coin-card-list.vu
       </div>
     </div>
     <combo/>
-    <coin-card-list style="margin-top: 20px;" />
+    <coin-card-list style="margin-top: 20px;"/>
     <div style="margin-top: 100px;"></div>
   </div>
 </template>

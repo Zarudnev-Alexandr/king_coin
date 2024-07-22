@@ -19,7 +19,6 @@ const handleOnAccept = () => {
 
 <template>
   <div class="action-modal-wrapper">
-    <div style="margin-top: 15vh"></div>
     <div class="action-modal">
       <svg
           viewBox="0 0 206 206"
@@ -75,10 +74,10 @@ const handleOnAccept = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   overflow-y: auto;
 
   .action-modal {
-    padding-top: 30px;
     width: 92%;
     border-radius: 10px;
     border: 2px solid white;

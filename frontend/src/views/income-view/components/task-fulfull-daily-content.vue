@@ -24,7 +24,7 @@ import dailyRewards from "@/shared/constants/daily-rewards.ts";
   justify-content: center;
   align-items: center;
   gap: 15px;
-  padding: 10px 5px;
+  padding: 0 5px 10px 5px;
 
   .fulfill-reward-grid {
     display: flex;

@@ -3,7 +3,7 @@
 import FriendsHeader from "@/views/friends-view/components/friends-header.vue";
 import InviteInfoCards from "@/views/friends-view/components/InviteInfoCards.vue";
 import FloatButton from "@/components/FloatButton.vue";
-import {friendsList} from "../../shared/constants/friends-list.ts";
+import {friendsList} from "@/shared/constants/friends-list.ts";
 import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
 import FriendItem from "@/views/friends-view/components/friend-item.vue";
 
