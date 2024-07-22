@@ -196,12 +196,8 @@ async def user_login(user_id: int, db: AsyncSession = Depends(get_db)) -> dict:
 @user_route.post('/logreg')
 async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     try:
-        # initData1 = "{\"allows_write_to_pm\":true,\"first_name\":\"firstname\",\"id\":905351175,\"language_code\":\"ru\",\"last_name\":\"\",\"username\":\"c2dent\"}"
-        print('🤡', initData)
         # Декодируем строку JSON
         decoded_data = json.loads(initData)
-        print('🐸', decoded_data)
-        print('🐸', type(decoded_data))
 
         # Валидируем данные с помощью Pydantic
         # data = InitDataSchema(**decoded_data)
