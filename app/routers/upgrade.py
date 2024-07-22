@@ -8,14 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cruds.upgrade import get_upgrade_category_by_name, create_upgrade_category, get_upgrade_category_by_id, \
     get_upgrade_by_name, add_upgrade, get_upgrade_by_id, get_all_upgrades_in_shop, get_all_upgrades, \
     get_all_upgrade_category, get_upgrade_level, add_upgrade_level, get_user_upgrades_by_upgrade_id, add_bought_upgrade, \
-    process_upgrade, get_user_upgrades_in_this_category, create_combo, get_user_combo, get_latest_user_combo, \
-    get_upgrade_category_all_func, get_user_upgrades_in_all_categories
+    process_upgrade, get_user_upgrades_in_this_category, create_combo, get_user_combo, get_latest_user_combo
 from app.cruds.user import get_user, get_user_bool
 from app.database import get_db
 from app.models import UpgradeLevel, DailyCombo, UserDailyComboProgress, Upgrades
 from app.schemas import UpgradeCategorySchema, CreateUpgradeSchema, UpgradeSchema, \
     UpgradeLevelSchema, UpgradeWithLevelsSchema, UserUpgradeCreateSchema, UserUpgradeSchema, CreateDailyComboSchema, \
-    DailyComboSchema, UserDailyComboSchema, UpgradeCategoryClassicSchema, UpgradeCategoryBaseSchema, \
+    DailyComboSchema, UserDailyComboSchema, UpgradeCategoryBaseSchema, \
     UpgradeCategoryBaseSchemaWithId, ImageUploadResponse
 
 upgrade_route = APIRouter()
@@ -24,6 +23,12 @@ upgrade_route = APIRouter()
 @upgrade_route.post('/upgrade-category')
 async def create_upgrade_category_func(upgrade_category_create: UpgradeCategoryBaseSchema,
                                        db: AsyncSession = Depends(get_db)) -> UpgradeCategoryBaseSchemaWithId:
+    """
+    Добавление категории, в которой хранятся апгрейды (Crypto, например) в БД
+    :param upgrade_category_create:
+    :param db:
+    :return:
+    """
     user_data = {
         "category": upgrade_category_create.category
     }
@@ -40,12 +45,18 @@ async def create_upgrade_category_func(upgrade_category_create: UpgradeCategoryB
 
 
 @upgrade_route.get('/upgrade-category/all')
-async def get_upgrade_category_all(init_data: str = Header(...),
+async def get_upgrade_category_all(initData: str = Header(...),
                                    db: AsyncSession = Depends(get_db)) -> list[UpgradeCategorySchema]:
+    """
+    Все категории со всеми карточками для конкретного пользователя
+    :param initData:
+    :param db:
+    :return:
+    """
     try:
-        data = json.loads(init_data)
+        data = json.loads(initData)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header init_data")
+        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
 
     tg_id = data.get("id")
     if not tg_id:
@@ -162,6 +173,13 @@ async def get_upgrade_category_all(init_data: str = Header(...),
 async def get_upgrade_category(identifier: str = Path(..., description="Upgrade category id or name"),
                                user_id: int = Path(..., description="user id"),
                                db: AsyncSession = Depends(get_db)) -> UpgradeCategorySchema:
+    """
+    Все карточки одной выбранной категории для конкретного прользователя
+    :param identifier:
+    :param user_id:
+    :param db:
+    :return:
+    """
     user = await get_user_bool(db=db, tg_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -215,6 +233,12 @@ async def get_upgrade_category(identifier: str = Path(..., description="Upgrade 
 @upgrade_route.post('/upgrade')
 async def create_upgrade(upgrade_create: CreateUpgradeSchema,
                          db: AsyncSession = Depends(get_db)) -> UpgradeSchema:
+    """
+    Добавление апгрейда в БД
+    :param upgrade_create:
+    :param db:
+    :return:
+    """
     user_data = {
         "name": upgrade_create.name,
         "category_id": upgrade_create.category_id,
@@ -235,37 +259,43 @@ async def create_upgrade(upgrade_create: CreateUpgradeSchema,
         raise HTTPException(status_code=400, detail="failed to create upgrade")
 
 
-@upgrade_route.get('/upgrade/all')
-async def get_upgrade_category_all(category_id: int = Query(default=None),
-                                   is_in_shop: bool = Query(default=False),
-                                   db: AsyncSession = Depends(get_db)) -> list[UpgradeSchema]:
-    if is_in_shop:
-        upgrades = await get_all_upgrades_in_shop(category_id, db)
-    else:
-        upgrades = await get_all_upgrades(category_id, db)
+# @upgrade_route.get('/upgrade/all')
+# async def get_upgrade_category_all(category_id: int = Query(default=None),
+#                                    is_in_shop: bool = Query(default=False),
+#                                    db: AsyncSession = Depends(get_db)) -> list[UpgradeSchema]:
+#     if is_in_shop:
+#         upgrades = await get_all_upgrades_in_shop(category_id, db)
+#     else:
+#         upgrades = await get_all_upgrades(category_id, db)
+#
+#     if not upgrades:
+#         raise HTTPException(status_code=404, detail="upgrades not found")
+#     return upgrades
 
-    if not upgrades:
-        raise HTTPException(status_code=404, detail="upgrades not found")
-    return upgrades
 
-
-@upgrade_route.get('/upgrade/{identifier}')
-async def get_upgrade_category(identifier: str = Path(..., description="Upgrade id or name"),
-                               db: AsyncSession = Depends(get_db)) -> UpgradeWithLevelsSchema:
-    if identifier.isdigit():
-        upgrade = await get_upgrade_by_id(db, upgrade_id=int(identifier))
-    else:
-        upgrade = await get_upgrade_by_name(db, upgrade_name=identifier)
-
-    if upgrade:
-        return upgrade
-    else:
-        raise HTTPException(status_code=404, detail="Upgrade not found")
+# @upgrade_route.get('/upgrade/{identifier}')
+# async def get_upgrade_category(identifier: str = Path(..., description="Upgrade id or name"),
+#                                db: AsyncSession = Depends(get_db)) -> UpgradeWithLevelsSchema:
+#     if identifier.isdigit():
+#         upgrade = await get_upgrade_by_id(db, upgrade_id=int(identifier))
+#     else:
+#         upgrade = await get_upgrade_by_name(db, upgrade_name=identifier)
+#
+#     if upgrade:
+#         return upgrade
+#     else:
+#         raise HTTPException(status_code=404, detail="Upgrade not found")
 
 
 @upgrade_route.post('/upgrade-level')
 async def create_upgrade(upgrade_level_create: UpgradeLevelSchema,
                          db: AsyncSession = Depends(get_db)) -> UpgradeLevelSchema:
+    """
+    Добавление уровней для апгрейдов в БД
+    :param upgrade_level_create:
+    :param db:
+    :return:
+    """
     user_data = {
         "upgrade_id": upgrade_level_create.upgrade_id,
         "lvl": upgrade_level_create.lvl,
@@ -295,7 +325,14 @@ async def create_upgrade(upgrade_level_create: UpgradeLevelSchema,
 
 @upgrade_route.post('/buy-upgrade')
 async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
-                      db: AsyncSession = Depends(get_db)) -> UserUpgradeSchema:
+                      db: AsyncSession = Depends(get_db)):
+    """
+    Покупка апгрейда пользователем. Если апгрейд вообще не куплен, то выдается 1 уровень, если первый уровень есть,
+    то просто идет прокачка
+    :param user_upgrade_create:
+    :param db:
+    :return:
+    """
     user_id = user_upgrade_create.user_id
     upgrade_id = user_upgrade_create.upgrade_id
 
@@ -317,6 +354,7 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
 
     if not user_upgrade:
         user_upgrade = await add_bought_upgrade(db, user, upgrade, lvl=1)
+        print('🥶', user_upgrade.__dict__)
     else:
         await process_upgrade(user, user_upgrade, upgrade, db)
 
@@ -355,12 +393,24 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
         await db.refresh(user_combo_progress)
 
     await db.refresh(user_upgrade)
-    return user_upgrade
+    return_data = {
+        "user_remaining_money": user_upgrade.user.money,
+
+    }
+    return return_data
 
 
 @upgrade_route.post('/create-daily-combo')
 async def create_daily_combo(daily_combo_create: CreateDailyComboSchema,
                              db: AsyncSession = Depends(get_db)) -> DailyComboSchema:
+    """
+    Создание дневного комбо. Комбо не обязательно работает один день, просто подразумевается, что менять его будут
+    раз в день) Вносим сюда 3 разных апгрейда и награду
+    :param daily_combo_create:
+    :param db:
+    :return:
+    """
+
     user_data = {
         "upgrade_1_id": daily_combo_create.upgrade_1_id,
         "upgrade_2_id": daily_combo_create.upgrade_2_id,
@@ -374,6 +424,12 @@ async def create_daily_combo(daily_combo_create: CreateDailyComboSchema,
 @upgrade_route.get("/user-combo/{user_id}")
 async def get_user_combo_progress(user_id: int = Path(..., description="user id"),
                                   db: AsyncSession = Depends(get_db)) -> UserDailyComboSchema:
+    """
+    Получение информации о текущем состоянии дневного комбо конкретного пользователя
+    :param user_id:
+    :param db:
+    :return:
+    """
     user = await get_user_bool(db=db, tg_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -393,6 +449,13 @@ async def get_user_combo_progress(user_id: int = Path(..., description="user id"
 
 @upgrade_route.post('/upgrade/{upgrade_id}/upload_image', response_model=ImageUploadResponse)
 async def upload_image(upgrade_id: int, file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+    """
+    Добавление изображения к апгрейдам
+    :param upgrade_id:
+    :param file:
+    :param db:
+    :return:
+    """
     # Проверка, существует ли апгрейд
     upgrade = await db.get(Upgrades, upgrade_id)
     if not upgrade:
