@@ -5,7 +5,7 @@ import {ref, Ref, UnwrapRef} from "vue";
 
 const activeTab: Ref<UnwrapRef<string>> = ref('coins');
 
-const changeTab = (tab: string, cardList: any[]) => {
+const changeTab = (tab: string, _: any[]) => {
   activeTab.value = tab;
 }
 </script>
