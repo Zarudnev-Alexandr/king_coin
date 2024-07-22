@@ -38,7 +38,7 @@ start_dialog = Dialog(
     Window(
         Format('🌟 Добро пожаловать!'),
         Group(
-            WebApp(Const('Играть'), Const('https://music.yandex.ru/home'))
+            WebApp(Const('Играть'), Const('https://king-coin.online:444/'))
         ),
         state=StartSG.start
     )
