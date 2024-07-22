@@ -288,14 +288,27 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
         if not new_user:
             raise HTTPException(status_code=500, detail="Error creating user")
 
-        user_data = {
-            "tg_id": new_user.tg_id,
-            "username": new_user.username,
-            "fio": new_user.fio,
-            "last_login": new_user.last_login,
-            "money": new_user.money
-        }
+        boost_data = {
+            "boost_id": new_user.boost.lvl,
+            "name": new_user.boost.name,
+            "price": new_user.boost.price,
+            "lvl": new_user.boost.lvl,
+            "tap_boost": new_user.boost.tap_boost,
+            "one_tap": new_user.boost.one_tap,
+            "pillars_10": new_user.boost.pillars_10,
+            "pillars_30": new_user.boost.pillars_30,
+            "pillars_100": new_user.boost.pillars_100
+        } if new_user.boost else {}
 
+        user_data = {
+            "tg_id": new_user.user.tg_id,
+            "username": new_user.user.username,
+            "fio": new_user.user.fio,
+            "last_login": new_user.user.last_login,
+            "money": new_user.user.money,
+            "boost": boost_data
+        }
+        await db.close()
         return user_data
 
 
