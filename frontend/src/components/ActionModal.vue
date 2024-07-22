@@ -47,9 +47,9 @@ const handleOnAccept = () => {
               fill="#392200"/>
           </svg>
       </span>
-      <span style="position: relative; z-index: 10">
+      <div style="position: relative; z-index: 10">
         <slot></slot>
-      </span>
+      </div>
 
       <div class="accept-action">
         <slot name="actions">
