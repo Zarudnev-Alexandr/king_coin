@@ -47,7 +47,7 @@ const handleOnAccept = () => {
               fill="#392200"/>
           </svg>
       </span>
-      <span style="position: relative; z-index: 5">
+      <span style="position: relative; z-index: 10">
         <slot></slot>
       </span>
 
