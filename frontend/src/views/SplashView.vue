@@ -2,15 +2,10 @@
 import {onMounted} from "vue";
 import AppIconButton from "@/components/AppIconButton.vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
-import AxiosClientCreator from "@/shared/api/axios/axios-client.ts";
-import AxiosErrorHandler from "@/shared/api/axios/axios-error-handler.ts";
 import UserApiService from "@/shared/api/services/user-api-service.ts";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 
 const userStore = useUserStore();
-const baseUrl = 'https://king-coin.online/api';
-const axiosClientCreator = new AxiosClientCreator(baseUrl, true);
-const axiosInstance = axiosClientCreator.makeAxiosClient();
-const errorHandler = new AxiosErrorHandler();
 const userApiService = new UserApiService(axiosInstance, errorHandler);
 
 onMounted(async () => {
