@@ -26,6 +26,14 @@ async def get_upgrade_category_by_name(db: AsyncSession, upgrade_category_name: 
     return result.scalars().first()
 
 
+async def get_upgrade_category_all_func(db: AsyncSession):
+    """Все карточки во всех категориях"""
+    result = await db.execute(select(UpgradeCategory).options(
+        joinedload(UpgradeCategory.upgrades)
+    ))
+    return result.unique().scalars().all()
+
+
 async def get_all_upgrade_category(db: AsyncSession):
     """Все категории улучшений (карточкек)"""
     query = select(UpgradeCategory)
@@ -170,6 +178,15 @@ async def get_user_upgrades_in_this_category(user_id: int, category_id: int, db:
         select(UserUpgrades).\
         join(Upgrades).join(UpgradeCategory).\
         filter(UserUpgrades.user_id == user_id, UpgradeCategory.id == category_id)
+    )
+    return result.unique().scalars().all()
+
+
+async def get_user_upgrades_in_all_categories(user_id: int, db: AsyncSession) -> List[UserUpgrades]:
+    result = await db.execute(
+        select(UserUpgrades).\
+        join(Upgrades).join(UpgradeCategory).\
+        filter(UserUpgrades.user_id == user_id)
     )
     return result.unique().scalars().all()
 
