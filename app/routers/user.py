@@ -468,3 +468,26 @@ async def create_daily_reward(daily_reward: CreateDailyRewardSchema,
     else:
         raise HTTPException(status_code=400, detail="failed to create boost")
 
+
+@user_route.get('/get-referral-link')
+async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    """
+    Получаем реферальную ссылку
+    """
+    try:
+        decoded_data = json.loads(initData)
+
+        data = decoded_data
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
+
+    tg_id = data.get("id")
+    if not tg_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    db_user = await get_user(db, tg_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    referral_link = f"https://t.me/KingCoin_ebot?start=ref_{tg_id}"
+    return {"referral_link": referral_link}

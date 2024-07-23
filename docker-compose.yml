@@ -95,12 +95,12 @@ services:
       db:
         condition: service_healthy
 
-  bot:
-    build:
-      context: .
-      dockerfile: bot/Dockerfile.bot
-    depends_on:
-      - db
+#  bot:
+#    build:
+#      context: .
+#      dockerfile: bot/Dockerfile.bot
+#    depends_on:
+#      - db
 
 volumes:
   postgres_data:

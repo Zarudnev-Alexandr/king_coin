@@ -5,6 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from .routers import user
 from .routers import upgrade
+from .routers import task
 
 app = FastAPI()
 
@@ -18,6 +19,7 @@ app.add_middleware(
 
 app.include_router(user.user_route, prefix='/api/users', tags=['Users'])
 app.include_router(upgrade.upgrade_route, prefix='/api/upgrades', tags=['Upgrades'])
+app.include_router(task.task_route, prefix='/api/tasks', tags=['Tasks'])
 
 
 # @app.on_event("startup")

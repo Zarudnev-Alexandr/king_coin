@@ -5,6 +5,9 @@ from pydantic import BaseModel
 
 
 # Создаем буст
+from app.models import TaskType
+
+
 class BoostCreateSchema(BaseModel):
     name: str
     price: int
@@ -124,12 +127,28 @@ class DailyComboSchema(CreateDailyComboSchema):
     id: int
 
 
+# class UserDailyComboSchema(BaseModel):
+#     user_id: int
+#     combo_id: int
+#     upgrade_1_bought: bool
+#     upgrade_2_bought: bool
+#     upgrade_3_bought: bool
+#     reward_claimed: bool
+#
+#     combo: DailyComboSchema
+
+
+class UpgradeInfoSchema(BaseModel):
+    is_bought: bool
+    image_url: Optional[str] = None
+
+
 class UserDailyComboSchema(BaseModel):
     user_id: int
     combo_id: int
-    upgrade_1_bought: bool
-    upgrade_2_bought: bool
-    upgrade_3_bought: bool
+    upgrade_1: UpgradeInfoSchema
+    upgrade_2: UpgradeInfoSchema
+    upgrade_3: UpgradeInfoSchema
     reward_claimed: bool
 
     combo: DailyComboSchema
@@ -158,6 +177,27 @@ class InitDataSchema(BaseModel):
     language_code: str
     last_name: str
     username: str
+
+
+class TaskBaseSchema(BaseModel):
+    name: str
+    description: str
+    type: TaskType
+    reward: int
+    requirement: int = None
+    link: str = None
+
+
+class TaskCreateSchema(TaskBaseSchema):
+    user_creator_id: int
+
+
+class TaskResponseSchema(TaskBaseSchema):
+    id: int
+    completed: bool
+
+    class Config:
+        orm_mode = True
 
 
 class Message(BaseModel):

@@ -1,10 +1,18 @@
-from sqlalchemy import DateTime, func, BigInteger, Integer, String, Float, Date, ForeignKey, Boolean, Text
+import enum
+
+from sqlalchemy import DateTime, func, BigInteger, Integer, String, Float, Date, ForeignKey, Boolean, Text, Enum
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
     created: Mapped[DateTime] = mapped_column(DateTime, default=func.now())
     updated: Mapped[DateTime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+
+
+class TaskType(enum.Enum):
+    INVITE = "invite"
+    SUBSCRIBE_TELEGRAM = "subscribe_telegram"
+    GENERIC = "generic"
 
 
 class User(Base):
@@ -28,6 +36,7 @@ class User(Base):
     combo_progress: Mapped[list["UserDailyComboProgress"]] = relationship("UserDailyComboProgress",
                                                                           back_populates="user", lazy='joined')
     boost: Mapped[list["UserBoost"]] = relationship("UserBoost", back_populates="user", lazy='joined')
+    tasks = relationship("UserTask", back_populates="user", lazy='joined')
 
 
 class UpgradeCategory(Base):
@@ -136,4 +145,38 @@ class UserBoost(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="boost", lazy='joined')
     boost: Mapped["Boost"] = relationship("Boost", back_populates="user_boost", lazy='joined')
+
+
+class Task(Base):
+    __tablename__ = 'task'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, unique=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    type: Mapped[TaskType] = mapped_column(Enum(TaskType))
+    reward: Mapped[int] = mapped_column(Integer)
+    requirement: Mapped[int] = mapped_column(BigInteger, nullable=True)
+    link: Mapped[str] = mapped_column(String, nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "type": self.type,
+            "reward": self.reward,
+            "requirement": self.requirement,
+        }
+
+
+class UserTask(Base):
+    __tablename__ = 'user_task'
+
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('user.tg_id'), primary_key=True)
+    task_id: Mapped[int] = mapped_column(Integer, ForeignKey('task.id'), primary_key=True)
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    completion_date: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+
+    user: Mapped["User"] = relationship("User", back_populates="tasks", lazy='joined')
+    task: Mapped["Task"] = relationship("Task", lazy='joined')
 
