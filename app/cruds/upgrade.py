@@ -133,9 +133,6 @@ async def add_bought_upgrade(db, user, upgrade, lvl: int) -> UserUpgrades:
     if not lvl_data:
         raise HTTPException(status_code=400, detail="НЕт даже первого уровня")
 
-    # print('🦄🦄', lvl_data.__dict__)
-    # print('🥶', user.__dict__)
-
     if user.money < lvl_data.price:
         raise HTTPException(status_code=400, detail="You have not money to upgrade")
 

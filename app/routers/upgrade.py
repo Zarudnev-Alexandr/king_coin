@@ -15,7 +15,7 @@ from app.models import UpgradeLevel, DailyCombo, UserDailyComboProgress, Upgrade
 from app.schemas import UpgradeCategorySchema, CreateUpgradeSchema, UpgradeSchema, \
     UpgradeLevelSchema, UpgradeWithLevelsSchema, UserUpgradeCreateSchema, UserUpgradeSchema, CreateDailyComboSchema, \
     DailyComboSchema, UserDailyComboSchema, UpgradeCategoryBaseSchema, \
-    UpgradeCategoryBaseSchemaWithId, ImageUploadResponse
+    UpgradeCategoryBaseSchemaWithId, ImageUploadResponse, UpgradeInfoSchema
 
 upgrade_route = APIRouter()
 
@@ -348,19 +348,29 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
         raise HTTPException(status_code=404, detail="Upgrade not in shop")
 
     if len(upgrade.levels) < 1:
-        raise HTTPException(status_code=404, detail="list of levels is empty")
+        raise HTTPException(status_code=404, detail="List of levels is empty")
 
     user_upgrade = await get_user_upgrades_by_upgrade_id(user_id, upgrade_id, db)
 
     if not user_upgrade:
         user_upgrade = await add_bought_upgrade(db, user, upgrade, lvl=1)
-        print('🥶', user_upgrade.__dict__)
+        new_upgrade_purchased = True
     else:
         await process_upgrade(user, user_upgrade, upgrade, db)
+        new_upgrade_purchased = False
 
     # Check the latest daily combo
     latest_combo = await db.execute(select(DailyCombo).order_by(DailyCombo.created.desc()).limit(1))
     latest_combo = latest_combo.scalars().first()
+
+    combo_status = {
+        "new_combo_created": False,
+        "upgrade_1_purchased": False,
+        "upgrade_2_purchased": False,
+        "upgrade_3_purchased": False,
+        "combo_completed": False,
+        "reward_claimed": False
+    }
 
     if latest_combo:
         # Check if the bought upgrade is part of the daily combo
@@ -373,13 +383,17 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
         if not user_combo_progress:
             user_combo_progress = UserDailyComboProgress(user_id=user_id, combo_id=latest_combo.id)
             db.add(user_combo_progress)
+            combo_status["new_combo_created"] = True
 
         if upgrade_id == latest_combo.upgrade_1_id:
             user_combo_progress.upgrade_1_bought = True
+            # combo_status["upgrade_1_purchased"] = True
         elif upgrade_id == latest_combo.upgrade_2_id:
             user_combo_progress.upgrade_2_bought = True
+            # combo_status["upgrade_2_purchased"] = True
         elif upgrade_id == latest_combo.upgrade_3_id:
             user_combo_progress.upgrade_3_bought = True
+            # combo_status["upgrade_3_purchased"] = True
 
         # Check if all upgrades are bought and grant reward
         if (user_combo_progress.upgrade_1_bought and
@@ -388,9 +402,15 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
                 not user_combo_progress.reward_claimed):
             user.money += latest_combo.reward
             user_combo_progress.reward_claimed = True
+            combo_status["combo_completed"] = True
+            combo_status["reward_claimed"] = True
 
         await db.commit()
         await db.refresh(user_combo_progress)
+
+        combo_status["upgrade_1_purchased"] = True if user_combo_progress.upgrade_1_bought else False
+        combo_status["upgrade_2_purchased"] = True if user_combo_progress.upgrade_2_bought else False
+        combo_status["upgrade_3_purchased"] = True if user_combo_progress.upgrade_3_bought else False
 
     await db.refresh(user_upgrade)
 
@@ -403,15 +423,18 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
         select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=user_upgrade.lvl)
     )
     current_upgrade_level = current_upgrade_level.scalars().first()
+
     return_data = {
-        "user_remaining_money": user_upgrade.user.money,
-        "upgrade_id": user_upgrade.upgrade.id,
-        "current_lvl": current_upgrade_level.lvl,
+        "user_remaining_money": user.money,
+        "upgrade_id": upgrade.id,
+        "current_lvl": current_upgrade_level.lvl if current_upgrade_level else None,
         "current_factor": current_upgrade_level.factor if current_upgrade_level else None,
         "factor_at_new_lvl": next_upgrade_level.factor if next_upgrade_level else None,
         "price_of_next_lvl": next_upgrade_level.price if next_upgrade_level else None,
-        "next_lvl": next_upgrade_level.lvl if next_upgrade_level else None
+        "next_lvl": next_upgrade_level.lvl if next_upgrade_level else None,
+        "combo_status": combo_status
     }
+
     return return_data
 
 
@@ -436,15 +459,20 @@ async def create_daily_combo(daily_combo_create: CreateDailyComboSchema,
     return new_combo
 
 
-@upgrade_route.get("/user-combo/{user_id}")
-async def get_user_combo_progress(user_id: int = Path(..., description="user id"),
+@upgrade_route.get("/user-combo")
+async def get_user_combo_progress(initData: str = Header(...),
                                   db: AsyncSession = Depends(get_db)) -> UserDailyComboSchema:
     """
     Получение информации о текущем состоянии дневного комбо конкретного пользователя
-    :param user_id:
-    :param db:
-    :return:
     """
+    try:
+        decoded_data = json.loads(initData)
+        data = decoded_data
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
+
+    user_id = data.get("id")
+
     user = await get_user_bool(db=db, tg_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -452,14 +480,44 @@ async def get_user_combo_progress(user_id: int = Path(..., description="user id"
     latest_combo = await get_latest_user_combo(db)
 
     if not latest_combo:
-        raise HTTPException(status_code=404, detail="daily combo not found")
+        raise HTTPException(status_code=404, detail="Daily combo not found")
 
     user_combo = await get_user_combo(db, user_id, latest_combo)
 
     if not user_combo:
-        raise HTTPException(status_code=404, detail="user dont buy any cards from combo today")
+        raise HTTPException(status_code=404, detail="User didn't buy any cards from combo today")
 
-    return user_combo
+    # Get upgrade info with image URLs
+    upgrade_1 = await get_upgrade_by_id(db, latest_combo.upgrade_1_id)
+    upgrade_2 = await get_upgrade_by_id(db, latest_combo.upgrade_2_id)
+    upgrade_3 = await get_upgrade_by_id(db, latest_combo.upgrade_3_id)
+
+    combo_data = DailyComboSchema(
+        id=latest_combo.id,
+        upgrade_1_id=latest_combo.upgrade_1_id,
+        upgrade_2_id=latest_combo.upgrade_2_id,
+        upgrade_3_id=latest_combo.upgrade_3_id,
+        reward=latest_combo.reward
+    )
+
+    return UserDailyComboSchema(
+        user_id=user_id,
+        combo_id=latest_combo.id,
+        upgrade_1=UpgradeInfoSchema(
+            is_bought=user_combo.upgrade_1_bought,
+            image_url=upgrade_1.image_url if upgrade_1 else None
+        ),
+        upgrade_2=UpgradeInfoSchema(
+            is_bought=user_combo.upgrade_2_bought,
+            image_url=upgrade_2.image_url if upgrade_2 else None
+        ),
+        upgrade_3=UpgradeInfoSchema(
+            is_bought=user_combo.upgrade_3_bought,
+            image_url=upgrade_3.image_url if upgrade_3 else None
+        ),
+        reward_claimed=user_combo.reward_claimed,
+        combo=combo_data
+    )
 
 
 @upgrade_route.post('/upgrade/{upgrade_id}/upload_image', response_model=ImageUploadResponse)
