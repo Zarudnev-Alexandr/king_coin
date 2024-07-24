@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import HTTPException
@@ -207,9 +208,20 @@ async def get_latest_user_combo(db: AsyncSession):
 
 async def get_user_combo(db: AsyncSession, user_id: int, latest_combo):
     """Получаем прогрес пользователя в текущем дневном комбо"""
+    start_time = datetime.utcnow()
+    print(f"😪🕒 Start get_user_combo: {start_time}")
+
     user_combo_progress = await db.execute(
         select(UserDailyComboProgress)
         .filter_by(user_id=user_id, combo_id=latest_combo.id)
     )
+
+    fetch_end_time = datetime.utcnow()
+    print(f"😪🕒 Fetch from DB: {fetch_end_time}, Duration: {(fetch_end_time - start_time).total_seconds()}s")
+
     user_combo_progress = user_combo_progress.scalars().first()
+
+    end_time = datetime.utcnow()
+    print(f"😪🕒 End get_user_combo: {end_time}, Total Duration: {(end_time - start_time).total_seconds()}s")
+
     return user_combo_progress
