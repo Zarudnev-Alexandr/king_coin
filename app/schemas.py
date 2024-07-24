@@ -141,6 +141,8 @@ class DailyComboSchema(CreateDailyComboSchema):
 class UpgradeInfoSchema(BaseModel):
     is_bought: bool
     image_url: Optional[str] = None
+    name: Optional[str] = None
+    id: Optional[int] = None
 
 
 class UserDailyComboSchema(BaseModel):
