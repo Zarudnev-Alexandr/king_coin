@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import IncomeTaskItem from "@/views/income-view/components/income-task-item.vue";
+import Task from "@/shared/api/types/task.ts";
 
-interface Props {
-  taskList: {
-    reward: number,
-    title: string,
-    type: string,
-    isDone: boolean,
-  }[]
-}
-
-const props: Props = defineProps<Props>();
+const task = {
+  name: "Подпишись на Telegram канал",
+  reward: 13188500,
+  completed: false,
+  type: 'subscription',
+  description: "Подпишись на наш Telegram канал и получи 13 188 500 KingCoin",
+  link: null,
+  requirement: 0,
+  id: 0,
+} as Task;
 </script>
 
 <template>
@@ -18,7 +19,7 @@ const props: Props = defineProps<Props>();
     <img src="@/assets/svg/income/actual-tasks-coin-icon.png" alt="">
     <h3 class="sf-pro-font">Актуальные задания</h3>
     <div class="task-list-wrap">
-      <IncomeTaskItem v-for="(task, index) in props.taskList" :key="index" :task-item="task"/>
+      <IncomeTaskItem :task-item="task"/>
     </div>
   </div>
 </template>
