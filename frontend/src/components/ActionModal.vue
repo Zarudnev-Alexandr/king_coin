@@ -39,14 +39,13 @@ const handleOnAccept = () => {
             fill="#321E00"/>
       </svg>
 
-
-      <span class="close-icon" @click="closeActionModal">
+      <div class="close-icon" @click="() => closeActionModal()">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
               d="M9.72067 0.279326C9.34823 -0.0931191 8.74434 -0.0930985 8.37191 0.279326L5 3.65124L1.62809 0.279326C1.25564 -0.0931191 0.651751 -0.0930985 0.279326 0.279326C-0.0930985 0.651751 -0.0931191 1.25564 0.279326 1.62809L3.65124 5L0.279326 8.37191C-0.0930985 8.74434 -0.0931191 9.34823 0.279326 9.72067C0.651772 10.0931 1.25567 10.0931 1.62809 9.72067L5 6.34876L8.37191 9.72067C8.74436 10.0931 9.34825 10.0931 9.72067 9.72067C10.0931 9.34825 10.0931 8.74436 9.72067 8.37191L6.34876 5L9.72067 1.62809C10.0931 1.25567 10.0931 0.651772 9.72067 0.279326Z"
               fill="#392200"/>
-          </svg>
-      </span>
+        </svg>
+      </div>
       <div style="position: relative; z-index: 10">
         <slot></slot>
       </div>
@@ -96,7 +95,7 @@ const handleOnAccept = () => {
       align-items: center;
       background-color: rgba(160, 116, 50, 1);
       border-radius: 50%;
-      z-index: 5;
+      z-index: 15;
     }
 
     .accept-action {

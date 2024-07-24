@@ -2,17 +2,17 @@
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 
-const appStore = useAppStore();
+const {selectTaskForFulfill} = useAppStore();
 </script>
 
 <template>
   <div class="fulfill-modal-wrap">
     <img src="@/assets/svg/income/task-fulfill-example-avatar.png" alt="">
-    <span class="card-name sf-pro-font">{{ appStore.selectTaskForFulfill.title }}</span>
-    <span class="fulfill-description sf-pro-font">{{ appStore.selectTaskForFulfill.description }}</span>
+    <span class="card-name sf-pro-font">{{ selectTaskForFulfill?.name }}</span>
+    <span class="fulfill-description sf-pro-font">{{ selectTaskForFulfill?.description }}</span>
     <div class="fulfill-price">
       <img src="@/assets/svg/coin.svg" alt="">
-      <span class="sf-pro-font">{{ formatNumberWithSpaces(appStore.selectTaskForFulfill.reward) }}</span>
+      <span class="sf-pro-font">{{ formatNumberWithSpaces(selectTaskForFulfill?.reward ?? 0) }}</span>
     </div>
   </div>
 </template>

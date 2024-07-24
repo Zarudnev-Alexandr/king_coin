@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {formatNumber} from "@/helpers/formats.ts";
+import {Coin} from "@/shared/api/types/coin.ts";
 
 interface Props {
-  cardItem: any
+  cardItem: Coin
 }
 
 const props: Props = defineProps<Props>();
@@ -13,20 +14,20 @@ const props: Props = defineProps<Props>();
     <div class="coin-special-card-gradient"/>
     <div class="coin-special-card-data">
       <span class="text-style-white">{{ props.cardItem.name }}</span>
-      <p class="sf-pro-font">Множитель</p>
+      <p class="sf-pro-font">Доход в час</p>
       <div class="coin-special-card-income">
         <img class="coin-img" src="@/assets/svg/coin.svg" alt="">
-        <span class="text-style-white">{{ formatNumber(props.cardItem.income) }}</span>
+        <span class="text-style-white">{{ formatNumber(props.cardItem.factor ?? 0) }}</span>
       </div>
     </div>
     <div style="width: 100%; border-top: 1px solid rgba(131, 101, 51, 1)"></div>
     <div class="card-item-down-part">
       <span class="text-style-white" style="color: rgba(238, 214, 147, 1)!important;">lvl {{
-          props.cardItem.level
+          props.cardItem.lvl
         }}</span>
       <div class="down-part-price-wrapper">
         <img class="coin-img" src="@/assets/svg/coin.svg" alt="">
-        <span class="text-style-white">{{ formatNumber(props.cardItem.price) }}</span>
+        <span class="text-style-white">{{ formatNumber(props.cardItem.price_of_next_lvl ?? 0) }}</span>
       </div>
     </div>
   </div>
@@ -79,6 +80,7 @@ const props: Props = defineProps<Props>();
 
     .down-part-price-wrapper {
       display: flex;
+      gap: 5px;
     }
   }
 

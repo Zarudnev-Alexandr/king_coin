@@ -1,5 +1,5 @@
 import {AxiosError} from 'axios';
-import {CommonResponseError, DataStructureError, DefaultApiError, Either, ERROR_CODES} from "@/shared/api/axios/types.ts";
+import {CommonResponseError, DefaultApiError, Either, ERROR_CODES} from "@/shared/api/axios/types.ts";
 
 
 class AxiosErrorHandler {
@@ -9,9 +9,9 @@ class AxiosErrorHandler {
       this.checkDataEmpty(response);
 
       return {right: response as T};
-    } catch (error) {
-      if (error instanceof DataStructureError) {
-        return {left: {message: error.message}};
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.detail) {
+        return {left: {message: error.response.data.detail}};
       }
       return {left: await this.processAxiosError(error as AxiosError)};
     }

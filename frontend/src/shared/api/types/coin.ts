@@ -7,7 +7,7 @@ export interface Coin {
   id: number,
   lvl: number,
   is_bought: boolean,
-  factor: number,
-  factor_at_new_lvl: number,
-  price_of_next_lvl: number,
+  factor: number | null,
+  factor_at_new_lvl: number | null,
+  price_of_next_lvl: number | null,
 }

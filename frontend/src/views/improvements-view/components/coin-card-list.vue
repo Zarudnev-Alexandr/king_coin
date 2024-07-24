@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import {Ref, ref, UnwrapRef} from "vue";
+import {computed, Ref, ref, UnwrapRef} from "vue";
 import CoinCardGrid from "@/views/improvements-view/components/coin-card-grid.vue";
-import {actionList, cryptoList, specialList} from "@/shared/constants/card-list.ts";
+import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 
 const activeTab: Ref<UnwrapRef<string>> = ref('Crypto');
-const currentCardList = ref(cryptoList)
+const improvementsStore = useImprovementsStore();
 
-const changeTab = (tab: string, cardList: any[]) => {
+const currentCardList = computed(() => {
+  if (activeTab.value === 'Crypto') {
+    return improvementsStore.cryptoCoinList;
+  } else if (activeTab.value === 'Action') {
+    return improvementsStore.actionCoinList;
+  } else if (activeTab.value === 'Special') {
+    return improvementsStore.specialCoinList;
+  }
+});
+
+const changeTab = (tab: string) => {
   activeTab.value = tab;
-  currentCardList.value = cardList;
 }
 </script>
 
@@ -17,24 +26,24 @@ const changeTab = (tab: string, cardList: any[]) => {
     <div class="coin-card-list-tab">
       <div class="coin-card-list-tab-item"
            :class="{'active': activeTab === 'Crypto'}"
-           @click="() => changeTab('Crypto', cryptoList)">
+           @click="() => changeTab('Crypto')">
         <span>Crypto</span>
       </div>
       <div class="coin-card-list-tab-item"
            :class="{'active': activeTab === 'Action'}"
-           @click="() => changeTab('Action', actionList)">
+           @click="() => changeTab('Action')">
         <span>Action</span>
       </div>
       <div class="coin-card-list-tab-item"
            :class="{'active': activeTab === 'Special'}"
-           @click="() => changeTab('Special', specialList)">
+           @click="() => changeTab('Special')">
         <span>Special</span>
       </div>
       <div class="coin-card-list-tab-item">
         <span>Soon</span>
       </div>
     </div>
-    <coin-card-grid :card-list="currentCardList" :current-tab="activeTab"/>
+    <coin-card-grid v-if="currentCardList" :card-list="currentCardList" :current-tab="activeTab"/>
   </div>
 </template>
 

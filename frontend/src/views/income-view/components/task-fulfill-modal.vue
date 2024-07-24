@@ -11,12 +11,11 @@ const handleClose = () => {
 }
 
 const handleAccept = () => {
-  console.log("Было принято");
   appStore.setSelectTaskForFulfill(null);
 }
 
 const getMainButtonText = () => {
-  if (appStore.selectTaskForFulfill.type === 'subscription') {
+  if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram') {
     return 'Выполнить';
   }
   return 'Забрать';
@@ -29,9 +28,9 @@ const getMainButtonText = () => {
                @on-accept="handleAccept"
                :main-button-text="getMainButtonText()">
     >
-    <task-fulfill-subribe-content v-if="appStore.selectTaskForFulfill.type === 'subscription'"/>
+    <task-fulfill-subribe-content v-if="appStore.selectTaskForFulfill.type === 'subscribe_telegram'"/>
     <task-fulfull-daily-content v-if="appStore.selectTaskForFulfill.type === 'daily'"/>
-    <task-fulfill-subribe-content v-if="appStore.selectTaskForFulfill.type === 'referral'"/>
+    <task-fulfill-subribe-content v-if="appStore.selectTaskForFulfill.type === 'invite'"/>
   </ActionModal>
 </template>
 

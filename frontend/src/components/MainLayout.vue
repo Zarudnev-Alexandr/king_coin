@@ -2,6 +2,7 @@
 import BottomMenu from "@/components/BottomMenu.vue";
 import CardImprovementsModalContent from "@/views/improvements-view/components/card-improvements-modal-content.vue";
 import TaskFulfillModal from "@/views/income-view/components/task-fulfill-modal.vue";
+import ComboNotify from "@/views/improvements-view/components/combo-notify.vue";
 </script>
 
 <template>
@@ -10,6 +11,7 @@ import TaskFulfillModal from "@/views/income-view/components/task-fulfill-modal.
     <BottomMenu/>
     <CardImprovementsModalContent/>
     <TaskFulfillModal/>
+    <ComboNotify/>
   </div>
 </template>
 

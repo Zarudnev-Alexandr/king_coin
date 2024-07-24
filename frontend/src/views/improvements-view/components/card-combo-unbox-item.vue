@@ -57,6 +57,7 @@
   padding: 4px;
   height: 100%;
   box-sizing: border-box;
+  min-height: 77px;
 
   .combo-unbox-item {
     border: 1px solid rgba(131, 101, 51, 1);

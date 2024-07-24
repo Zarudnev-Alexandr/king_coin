@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import CoinCardGridSimpleItem from "@/views/improvements-view/components/coin-card-grid-simple-item.vue";
 import CoinCardGridSpecialItem from "@/views/improvements-view/components/coin-card-grid-special-item.vue";
-import {useAppStore} from "@/shared/pinia/app-store.ts";
+import {Coin} from "@/shared/api/types/coin.ts";
+import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 
 interface Props {
-  cardList: any[],
+  cardList: Coin[],
   currentTab: string,
 }
 
 const props: Props = defineProps<Props>();
-const appStore = useAppStore();
+const improvementsStore = useImprovementsStore();
 
-const onSelectCardForImpro = (card: any) => {
-  appStore.setSelectCoinForImpro(card);
+const onSelectCardForImpro = (card: Coin) => {
+  if (card.price_of_next_lvl === null) {
+    return;
+  }
+  improvementsStore.setSelectCoinForImpro(card);
 }
 </script>
 

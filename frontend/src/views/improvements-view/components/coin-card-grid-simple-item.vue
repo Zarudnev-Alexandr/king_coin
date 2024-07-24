@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {formatNumber} from "@/helpers/formats.ts";
+import {Coin} from "@/shared/api/types/coin.ts";
 
 interface Props {
-  cardItem: any
+  cardItem: Coin
 }
 
 const props: Props = defineProps<Props>();
@@ -14,10 +15,10 @@ const props: Props = defineProps<Props>();
       <div class="up-part-data">
         <span class="sf-pro-font">{{ props.cardItem.name }}</span>
         <div class="up-part-data-income">
-          <span class="sf-pro-font">Множитель</span>
+          <span class="sf-pro-font">Доход в час</span>
           <div class="up-part-data-income-value">
             <img src="@/assets/svg/coin.svg" alt="">
-            <span class="sf-pro-font">+ {{ formatNumber(props.cardItem.income) }}</span>
+            <span class="sf-pro-font">+ {{ formatNumber(props.cardItem.factor ?? 0) }}</span>
           </div>
         </div>
       </div>
@@ -27,10 +28,12 @@ const props: Props = defineProps<Props>();
     </div>
     <div style="width: 100%; border-top: 1px solid rgba(131, 101, 51, 1)"></div>
     <div class="card-item-down-part">
-      <span class="sf-pro-font">lvl {{ props.cardItem.level }}</span>
+      <span class="sf-pro-font">lvl {{ props.cardItem.lvl }}</span>
       <div class="down-part-price-wrapper">
-        <img src="@/assets/svg/coin.svg" alt="">
-        <span class="sf-pro-font">{{ formatNumber(props.cardItem.price) }}</span>
+        <img src="@/assets/svg/coin.svg" alt="" v-if="props.cardItem.price_of_next_lvl">
+        <span class="sf-pro-font" v-if="props.cardItem.price_of_next_lvl">
+          {{ formatNumber(props.cardItem.price_of_next_lvl) }}</span>
+        <span v-else>Макс</span>
       </div>
     </div>
   </div>
@@ -60,6 +63,7 @@ const props: Props = defineProps<Props>();
 
     .down-part-price-wrapper {
       display: flex;
+      gap: 5px;
 
       img {
         width: 14px;

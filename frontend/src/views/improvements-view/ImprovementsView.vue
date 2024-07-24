@@ -5,13 +5,41 @@ import CoinCardList from "@/views/improvements-view/components/coin-card-list.vu
 import CoinApiService from "@/shared/api/services/coin-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {onMounted} from "vue";
+import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
+import {CoinCategory} from "@/shared/api/types/coin-category.ts";
+import {formatNumberWithSpaces} from "@/helpers/formats.ts";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
 
 const coinApiService = new CoinApiService(axiosInstance, errorHandler);
+const {
+  setLoading,
+  dataLoaded,
+  setDataLoaded,
+  setCryptoCoinList,
+  setActionCoinList,
+  setSpecialCoinList,
+} = useImprovementsStore();
+const userStore = useUserStore();
 
 onMounted(async () => {
+  if (dataLoaded) {
+    return;
+  }
+
+  setLoading(true);
   const response = await coinApiService.getCategories();
   if (response.right) {
-    console.log(response.right);
+    setDataLoaded(true);
+    response.right.map((item: CoinCategory) => {
+      if (item.category === 'Crypto') {
+        setCryptoCoinList(item.upgrades);
+      } else if (item.category === 'Action') {
+        setActionCoinList(item.upgrades);
+      } else if (item.category === 'Special') {
+        setSpecialCoinList(item.upgrades);
+      }
+    });
+    setLoading(false);
   }
 });
 </script>
@@ -23,7 +51,7 @@ onMounted(async () => {
         <div style="height: 35px"></div>
         <div class="impro-scoreboard-content">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span>0</span>
+          <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
         </div>
       </div>
     </div>

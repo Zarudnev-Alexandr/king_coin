@@ -1,24 +1,15 @@
 <script setup lang="ts">
 
 import IncomeTaskItem from "@/views/income-view/components/income-task-item.vue";
-
-interface Props {
-  taskList: {
-    reward: number,
-    title: string,
-    type: string,
-    isDone: boolean,
-  }[]
-}
-
-const props: Props = defineProps<Props>();
+import {useIncomeStore} from "@/shared/pinia/income-store.ts";
+const {tasks} = useIncomeStore()
 </script>
 
 <template>
   <div class="actual-tasks-wrap">
     <h3 class="sf-pro-font">Список заданий</h3>
     <div class="task-list-wrap">
-      <IncomeTaskItem v-for="(task, index) in props.taskList" :key="index" :task-item="task"/>
+      <IncomeTaskItem v-for="(task, index) in tasks" :key="index" :task-item="task"/>
     </div>
   </div>
 </template>

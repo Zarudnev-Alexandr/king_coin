@@ -1,36 +1,88 @@
 <script setup lang="ts">
 import {formatNumber, formatNumberWithSpaces} from "@/helpers/formats.ts";
 import ActionModal from "@/components/ActionModal.vue";
-import {useAppStore} from "@/shared/pinia/app-store.ts";
+import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
+import CoinApiService from "@/shared/api/services/coin-api-service.ts";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
+import ComboApiService from "@/shared/api/services/combo-api-service.ts";
+import CoinUpgradeResponse from "@/shared/api/types/coin-upgrade-response.ts";
 
-const appStore = useAppStore();
+const improvementsStore = useImprovementsStore();
+const userStore = useUserStore();
+const coinApiService = new CoinApiService(axiosInstance, errorHandler);
+const comboApiService = new ComboApiService(axiosInstance, errorHandler);
 
 const handleClose = () => {
-  appStore.setSelectCoinForImpro(null);
+  improvementsStore.setSelectCoinForImpro(null);
 }
 
-const handleAccept = () => {
-  console.log("Было принято");
-  appStore.setSelectCoinForImpro(null);
+const checkCombo = (res: CoinUpgradeResponse) => {
+  if (res.combo_status.upgrade_1_purchased) {
+    improvementsStore.upgradePurchaseCombo(1);
+    improvementsStore.setComboNotify(true);
+  } else if (res.combo_status.upgrade_2_purchased) {
+    improvementsStore.upgradePurchaseCombo(2);
+    improvementsStore.setComboNotify(true);
+  } else if (res.combo_status.upgrade_3_purchased) {
+    improvementsStore.upgradePurchaseCombo(3);
+    improvementsStore.setComboNotify(true);
+  }
+}
+
+const updateCombo = () => {
+  comboApiService.getComboData().then(res => {
+    if (res.right) {
+      improvementsStore.setCombo(res.right);
+    }
+  });
+}
+
+const handleAccept = async () => {
+  if (!improvementsStore.selectCoinForImpro || !userStore.user) {
+    return;
+  }
+
+  const res = await coinApiService.upgradeCoin(improvementsStore.selectCoinForImpro.id, userStore.user.tg_id); // todo поправить после исправление в бэке
+  if (res.right) {
+    userStore.user.money -= improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0;
+    userStore.user.earnings_per_hour += improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0;
+    improvementsStore.selectCoinForImpro.price_of_next_lvl = res.right.price_of_next_lvl;
+    improvementsStore.selectCoinForImpro.factor_at_new_lvl = res.right.factor_at_new_lvl;
+    improvementsStore.selectCoinForImpro.factor = res.right.current_factor;
+    improvementsStore.selectCoinForImpro.lvl = res.right.current_lvl;
+    improvementsStore.setSelectCoinForImpro(null);
+
+    if (res.right.combo_status.new_combo_created) {
+      updateCombo();
+      improvementsStore.setComboNotify(true);
+    } else {
+      checkCombo(res.right);
+    }
+  }
 }
 </script>
 
 <template>
-  <ActionModal v-if="appStore.selectCoinForImpro" @close="handleClose" @on-accept="handleAccept">
+  <ActionModal v-if="improvementsStore.selectCoinForImpro" @close="handleClose" @on-accept="handleAccept">
     <div class="card-impro-modal-content-wrapper">
       <img src="@/assets/img/specific/card-modal-content-example-icon.png" alt="">
-      <span class="card-name sf-pro-font">{{ appStore.selectCoinForImpro.name }}</span>
-      <span class="impro-description sf-pro-font">Очень уморительный текст с описанием монеты и преимуществ, которые получит тип, купив ее</span>
+      <span class="card-name sf-pro-font">{{ improvementsStore.selectCoinForImpro.name }}</span>
+      <span class="impro-description sf-pro-font">{{ improvementsStore.selectCoinForImpro.description }}</span>
       <div class="impro-data-income">
-        <span>Множитель</span>
+        <span>Прибыль в час</span>
         <div class="impro-data-income-value">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ {{ formatNumber(appStore.selectCoinForImpro.income) }}</span>
+          <span class="sf-pro-font">+ {{
+              formatNumber(improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0)
+            }}</span>
         </div>
       </div>
       <div class="imrpo-price">
         <img src="@/assets/svg/coin.svg" alt="">
-        <span class="sf-pro-font">{{ formatNumberWithSpaces(appStore.selectCoinForImpro.price) }}</span>
+        <span class="sf-pro-font">{{
+            formatNumberWithSpaces(improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0)
+          }}</span>
       </div>
     </div>
   </ActionModal>
@@ -44,6 +96,7 @@ const handleAccept = () => {
   align-items: center;
   gap: 10px;
   padding-bottom: 10px;
+  padding-top: 30px;
 
   img {
     border-radius: 10px;

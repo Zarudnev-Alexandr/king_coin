@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
+import Task from "@/shared/api/types/task.ts";
 
 interface Props {
-  taskItem: {
-    reward: number,
-    title: string,
-    type: string,
-    isDone: boolean,
-  }
+  taskItem: Task
 }
 
 const appStore = useAppStore();
 const props: Props = defineProps<Props>();
 
 const handleClick = () => {
+  if (props.taskItem.type === 'invite' || props.taskItem.completed) {
+    return;
+  }
   appStore.setSelectTaskForFulfill(props.taskItem);
 }
 </script>
@@ -23,9 +22,9 @@ const handleClick = () => {
   <div class="task-item-wrapper" @click="handleClick">
     <div class="task-item-avatar">
       <img src="@/assets/svg/income/task-item-avatar-example.png" alt="" class="task-avatar">
-      <img src="@/assets/svg/income/task-is-done-icon.png" alt="" class="is-done-icon" v-if="props.taskItem.isDone">
+      <img src="@/assets/svg/income/task-is-done-icon.png" alt="" class="is-done-icon" v-if="props.taskItem.completed">
     </div>
-    <h2 class="sf-pro-font">{{ props.taskItem.title }}</h2>
+    <h2 class="sf-pro-font">{{ props.taskItem.name }}</h2>
     <CoinCountItem :count="props.taskItem.reward" format-number="withSpace"/>
   </div>
 </template>
