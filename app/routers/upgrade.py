@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, UploadFile, File, Header
 from sqlalchemy import select
@@ -465,6 +466,8 @@ async def get_user_combo_progress(initData: str = Header(...),
     """
     Получение информации о текущем состоянии дневного комбо конкретного пользователя
     """
+    start_time = datetime.utcnow()
+    print(f"🕒 Start: {start_time}")
     try:
         decoded_data = json.loads(initData)
         data = decoded_data
@@ -473,24 +476,40 @@ async def get_user_combo_progress(initData: str = Header(...),
 
     user_id = data.get("id")
 
+    user_start_time = datetime.utcnow()
     user = await get_user_bool(db=db, tg_id=user_id)
+    user_end_time = datetime.utcnow()
+    print(
+        f"🕒 User fetch: Start {user_start_time}, End {user_end_time}, Duration: {(user_end_time - user_start_time).total_seconds()}s")
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    latest_combo_start_time = datetime.utcnow()
     latest_combo = await get_latest_user_combo(db)
+    latest_combo_end_time = datetime.utcnow()
+    print(
+        f"🕒 Latest combo fetch: Start {latest_combo_start_time}, End {latest_combo_end_time}, Duration: {(latest_combo_end_time - latest_combo_start_time).total_seconds()}s")
 
     if not latest_combo:
         raise HTTPException(status_code=404, detail="Daily combo not found")
 
+    user_combo_start_time = datetime.utcnow()
     user_combo = await get_user_combo(db, user_id, latest_combo)
+    user_combo_end_time = datetime.utcnow()
+    print(
+        f"🕒 User combo fetch: Start {user_combo_start_time}, End {user_combo_end_time}, Duration: {(user_combo_end_time - user_combo_start_time).total_seconds()}s")
 
     if not user_combo:
         raise HTTPException(status_code=404, detail="User didn't buy any cards from combo today")
 
+    upgrades_start_time = datetime.utcnow()
     # Get upgrade info with image URLs
     upgrade_1 = await get_upgrade_by_id(db, latest_combo.upgrade_1_id)
     upgrade_2 = await get_upgrade_by_id(db, latest_combo.upgrade_2_id)
     upgrade_3 = await get_upgrade_by_id(db, latest_combo.upgrade_3_id)
+    upgrades_end_time = datetime.utcnow()
+    print(
+        f"🕒 Upgrades fetch: Start {upgrades_start_time}, End {upgrades_end_time}, Duration: {(upgrades_end_time - upgrades_start_time).total_seconds()}s")
 
     combo_data = DailyComboSchema(
         id=latest_combo.id,
@@ -500,7 +519,8 @@ async def get_user_combo_progress(initData: str = Header(...),
         reward=latest_combo.reward
     )
 
-    return UserDailyComboSchema(
+    response_start_time = datetime.utcnow()
+    user_daily_combo = UserDailyComboSchema(
         user_id=user_id,
         combo_id=latest_combo.id,
         upgrade_1=UpgradeInfoSchema(
@@ -518,6 +538,12 @@ async def get_user_combo_progress(initData: str = Header(...),
         reward_claimed=user_combo.reward_claimed,
         combo=combo_data
     )
+    response_end_time = datetime.utcnow()
+    print(
+        f"🕒 Response formation: Start {response_start_time}, End {response_end_time}, Duration: {(response_end_time - response_start_time).total_seconds()}s")
+    end_time = datetime.utcnow()
+    print(f"🕒 End: {end_time}, Total Duration: {(end_time - start_time).total_seconds()}s")
+    return user_daily_combo
 
 
 @upgrade_route.post('/upgrade/{upgrade_id}/upload_image', response_model=ImageUploadResponse)
