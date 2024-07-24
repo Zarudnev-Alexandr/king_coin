@@ -1,7 +1,7 @@
-from datetime import datetime
 from typing import List
 
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -151,7 +151,13 @@ async def process_upgrade(user, user_upgrade, upgrade, db):
     next_lvl_data = next((lvl for lvl in upgrade.levels if lvl.lvl == next_lvl), None)
 
     if not next_lvl_data:
-        raise HTTPException(status_code=400, detail="Level is max!")
+        return None
+    #     current_lvl_data = next((lvl for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), None)
+    #     raise HTTPException(status_code=200, detail={"is_lvl_max": True,
+    #                                                  "factor": current_lvl_data.factor,
+    #                                                  "lvl": current_lvl_data.lvl,
+    #                                                  "price_at_current_lvl": current_lvl_data.price})
+        # raise HTTPException(status_code=400, detail="Level is max!")
 
     if user.money < next_lvl_data.price:
         raise HTTPException(status_code=400, detail="You have not money to upgrade")
@@ -208,20 +214,9 @@ async def get_latest_user_combo(db: AsyncSession):
 
 async def get_user_combo(db: AsyncSession, user_id: int, latest_combo):
     """Получаем прогрес пользователя в текущем дневном комбо"""
-    start_time = datetime.utcnow()
-    print(f"😪🕒 Start get_user_combo: {start_time}")
-
     user_combo_progress = await db.execute(
         select(UserDailyComboProgress)
         .filter_by(user_id=user_id, combo_id=latest_combo.id)
     )
-
-    fetch_end_time = datetime.utcnow()
-    print(f"😪🕒 Fetch from DB: {fetch_end_time}, Duration: {(fetch_end_time - start_time).total_seconds()}s")
-
     user_combo_progress = user_combo_progress.scalars().first()
-
-    end_time = datetime.utcnow()
-    print(f"😪🕒 End get_user_combo: {end_time}, Total Duration: {(end_time - start_time).total_seconds()}s")
-
     return user_combo_progress
