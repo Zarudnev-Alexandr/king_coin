@@ -21,6 +21,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String)
     fio: Mapped[str] = mapped_column(String)
     lvl: Mapped[int] = mapped_column(Integer, default=1)
+    taps_for_level: Mapped[int] = mapped_column(Integer, default=0)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
     money: Mapped[int] = mapped_column(BigInteger, default=0)
@@ -36,6 +37,14 @@ class User(Base):
                                                                           back_populates="user", lazy='selectin')
     boost: Mapped[list["UserBoost"]] = relationship("UserBoost", back_populates="user", lazy='selectin')
     tasks = relationship("UserTask", back_populates="user", lazy='selectin')
+
+
+class Level(Base):
+    __tablename__ = 'level'
+
+    lvl: Mapped[int] = mapped_column(Integer, primary_key=True, unique=True, index=True)
+    taps_for_level: Mapped[int] = mapped_column(Integer)
+    required_money: Mapped[int] = mapped_column(BigInteger, unique=True)
 
 
 class UpgradeCategory(Base):
@@ -154,6 +163,7 @@ class Task(Base):
     reward: Mapped[int] = mapped_column(Integer)
     requirement: Mapped[int] = mapped_column(BigInteger, nullable=True)
     link: Mapped[str] = mapped_column(String, nullable=True)
+    end_time: Mapped[DateTime] = mapped_column(DateTime, nullable=True, default=None)
 
     def to_dict(self):
         return {
@@ -163,6 +173,7 @@ class Task(Base):
             "type": self.type,
             "reward": self.reward,
             "requirement": self.requirement,
+            "end_time": self.end_time,
         }
 
 

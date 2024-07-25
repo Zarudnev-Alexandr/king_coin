@@ -1,6 +1,8 @@
+from datetime import datetime
+
 import requests
 from environs import Env
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Task, UserTask, User
@@ -77,8 +79,15 @@ def check_telegram_subscription(chat_id: int, user_id: int) -> bool:
 
 async def get_all_tasks(db: AsyncSession):
     """Получаем все задания"""
-    result = await db.execute(select(Task))
-    return result.unique().scalars().all()
+    current_time = datetime.utcnow()
+    result = await db.execute(
+        select(Task).where(
+            or_(Task.end_time.is_(None), Task.end_time >= current_time)
+        )
+    )
+    tasks = result.unique().scalars().all()
+    return tasks
+
 
 
 async def get_user_tasks(db: AsyncSession, user_id: int):
