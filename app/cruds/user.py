@@ -4,7 +4,7 @@ from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app import models, schemas
-from app.models import UserBoost, Boost, DailyReward
+from app.models import UserBoost, Boost, DailyReward, Level
 
 
 async def get_user(db: AsyncSession, tg_id: int):
@@ -18,15 +18,6 @@ async def get_user_bool(db: AsyncSession, tg_id: int):
         return True
     else:
         return False
-
-
-# async def create_user(db: AsyncSession, user: schemas.UserCreate):
-#     db_user = models.User(**user.dict())
-#     db_user.last_login=date.today()
-#     db.add(db_user)
-#     await db.commit()
-#     await db.refresh(db_user)
-#     return db_user
 
 
 async def create_user(db: AsyncSession, **kwargs):
@@ -71,6 +62,32 @@ async def get_boost_by_lvl(db: AsyncSession, boost_lvl: int):
     return result.scalars().first()
 
 
+async def update_user_level(db: AsyncSession, user):
+    """Апгрейд уровня пользователя"""
+    levels = await db.execute(select(Level).order_by(Level.lvl))
+    levels = levels.unique().scalars().all()
+
+    new_level = user.lvl
+    next_level = None
+    new_taps_for_level = user.taps_for_level
+    for level in levels:
+        if user.money >= level.required_money:
+            new_level = level.lvl
+            new_taps_for_level = level.taps_for_level
+        else:
+            next_level = level
+            break
+
+    # Обновить уровень пользователя, если он изменился
+    if user.lvl != new_level:
+        user.lvl = new_level
+        user.taps_for_level = new_taps_for_level
+        await db.commit()
+        await db.refresh(user)
+
+    return next_level
+
+
 async def get_next_boost(db: AsyncSession, current_lvl: int):
     next_boost = await db.execute(select(Boost).where(Boost.lvl == current_lvl + 1))
     next_boost = next_boost.scalars().first()
@@ -98,6 +115,13 @@ async def upgrade_user_boost(db, user_boost, user, next_boost):
 async def get_daily_reward(db: AsyncSession, day: int) -> DailyReward:
     result = await db.execute(select(DailyReward).where(DailyReward.day == day))
     return result.scalars().first()
+
+
+async def get_daily_reward_all(db: AsyncSession):
+    result = await db.execute(
+        select(DailyReward)
+    )
+    return result.unique().scalars().all()
 
 
 async def add_daily_reward(db: AsyncSession, **kwargs) -> DailyReward:

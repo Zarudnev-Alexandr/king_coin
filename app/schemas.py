@@ -1,7 +1,7 @@
-import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+from datetime import datetime, timedelta
 
 
 # Создаем буст
@@ -28,6 +28,7 @@ class UserCreate(BaseModel):
 
 class UserBase(UserCreate):
     lvl: int
+    taps_for_level: int
     is_admin: bool
     is_banned: bool
     money: int
@@ -127,17 +128,6 @@ class DailyComboSchema(CreateDailyComboSchema):
     id: int
 
 
-# class UserDailyComboSchema(BaseModel):
-#     user_id: int
-#     combo_id: int
-#     upgrade_1_bought: bool
-#     upgrade_2_bought: bool
-#     upgrade_3_bought: bool
-#     reward_claimed: bool
-#
-#     combo: DailyComboSchema
-
-
 class UpgradeInfoSchema(BaseModel):
     is_bought: bool
     image_url: Optional[str] = None
@@ -186,12 +176,20 @@ class TaskBaseSchema(BaseModel):
     description: str
     type: TaskType
     reward: int
-    requirement: int = None
-    link: str = None
+    requirement: Optional[int] = None
+    link: Optional[str] = None
+    end_time: Optional[datetime] = None
 
 
 class TaskCreateSchema(TaskBaseSchema):
     user_creator_id: int
+    days_active: int = None
+
+    @validator('days_active')
+    def check_days_active(cls, v):
+        if v is not None and v < 0:
+            raise ValueError('days_active must be a non-negative integer')
+        return v
 
 
 class TaskResponseSchema(TaskBaseSchema):

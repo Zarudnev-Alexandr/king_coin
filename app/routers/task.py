@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import json
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -20,7 +21,11 @@ async def create_task(task: TaskCreateSchema, db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=400, detail="User not found")
 
     if not db_user.is_admin:
-        raise HTTPException(status_code=403, detail="You have not permission to create task")
+        raise HTTPException(status_code=403, detail="You have no permission to create task")
+
+    end_time = None
+    if task.days_active is not None:
+        end_time = datetime.utcnow() + timedelta(days=task.days_active)
 
     task_data = {
         "name": task.name,
@@ -28,14 +33,15 @@ async def create_task(task: TaskCreateSchema, db: AsyncSession = Depends(get_db)
         "type": task.type,
         "reward": task.reward,
         "requirement": task.requirement,
-        "link": task.link
+        "link": task.link,
+        "end_time": end_time
     }
 
     new_task = await add_task(db, **task_data)
     if new_task:
         return new_task
     else:
-        raise HTTPException(status_code=400, detail="failed to create task")
+        raise HTTPException(status_code=400, detail="Failed to create task")
 
 
 @task_route.post("/check/{task_id}")
@@ -57,6 +63,9 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
     task = await get_task(db, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+
+    if task.end_time < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Task timed out")
 
     user_task = await get_user_task(db, task_id, tg_id)
     if user_task and user_task.completed:
@@ -125,6 +134,7 @@ async def get_tasks_for_user(initData: str = Header(...), db: AsyncSession = Dep
     tasks_with_completion_flag = []
     for task in tasks:
         task_dict = task.to_dict()
+        task_dict['temporary_task'] = True if task.end_time is not None else False
         task_dict['completed'] = user_task_ids.get(task.id, False)
         tasks_with_completion_flag.append(task_dict)
 
