@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import IncomeTaskItem from "@/views/income-view/components/income-task-item.vue";
-import Task from "@/shared/api/types/task.ts";
+import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 
-const task = {
-  name: "Подпишись на Telegram канал",
-  reward: 13188500,
-  completed: false,
-  type: 'subscription',
-  description: "Подпишись на наш Telegram канал и получи 13 188 500 KingCoin",
-  link: null,
-  requirement: 0,
-  id: 0,
-} as Task;
+const {tasks} = useIncomeStore()
 </script>
 
 <template>
@@ -19,7 +10,8 @@ const task = {
     <img src="@/assets/svg/income/actual-tasks-coin-icon.png" alt="">
     <h3 class="sf-pro-font">Актуальные задания</h3>
     <div class="task-list-wrap">
-      <IncomeTaskItem :task-item="task"/>
+      <IncomeTaskItem v-for="(task, index) in tasks.filter(item => item.end_time !== null)" :key="index"
+                      :task-item="task"/>
     </div>
   </div>
 </template>

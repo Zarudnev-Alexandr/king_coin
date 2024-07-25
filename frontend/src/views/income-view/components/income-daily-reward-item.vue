@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
+import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 
 interface Props {
   day: number,
@@ -8,12 +9,19 @@ interface Props {
 }
 
 const props: Props = defineProps<Props>();
+const {dailyTask} = useIncomeStore();
+
+const checkIsActive = () => {
+  if (dailyTask?.day === props.day) {
+    return dailyTask.is_collect;
+  }
+  return props.day < (dailyTask?.day ?? 0);
+}
 </script>
 
 <template>
   <div class="daily-reward-item-wrap"
-       :class="{'active': props.active}"
-  >
+       :class="{'active': checkIsActive(), 'opacity50': props.day > (dailyTask?.day ?? 0)}">
     <img src="@/assets/svg/coin.svg" alt="">
     <span class="daily-reward-day sf-pro-font">День {{ props.day }}</span>
     <span class="daily-reward-reward sf-pro-font">{{ formatNumberWithSpaces(props.reward) }}</span>
@@ -53,6 +61,10 @@ const props: Props = defineProps<Props>();
     text-align: center;
     color: white;
   }
+}
+
+.opacity50 {
+  opacity: 0.5;
 }
 
 .active {

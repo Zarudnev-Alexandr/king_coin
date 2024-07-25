@@ -7,6 +7,7 @@ interface Task {
   link: string | null;
   id: number;
   completed: boolean;
+  end_time: string | null;
 }
 
 export default Task;

@@ -1,17 +1,41 @@
 <script setup lang="ts">
+import {computed, ref, watch} from 'vue';
 import IncomeTaskItem from "@/views/income-view/components/income-task-item.vue";
 import Task from "@/shared/api/types/task.ts";
+import {useIncomeStore} from "@/shared/pinia/income-store.ts";
+import dailyRewards from "@/shared/constants/daily-rewards.ts";
 
-const task = {
+const incomeStore = useIncomeStore();
+
+const getCurrentDailyReward = computed(() => {
+  const reward = dailyRewards.find((reward) => incomeStore.dailyTask?.day === reward.day);
+  return reward ? reward.reward : 0;
+});
+
+const getCurrentDailyIsCollect = computed(() => {
+  return incomeStore.dailyTask?.is_collect ?? false;
+});
+
+const task = ref<Task>({
   name: "Ежедневная награда",
   description: "Самый крупный telegram канал из крипто-джунглей",
   type: "daily",
-  reward: 30000,
+  reward: getCurrentDailyReward.value,
   requirement: 4,
   link: null,
   id: 0,
-  completed: false,
-} as Task;
+  completed: getCurrentDailyIsCollect.value,
+  end_time: null,
+});
+
+watch(getCurrentDailyReward, (newReward) => {
+  task.value.reward = newReward;
+});
+
+watch(getCurrentDailyIsCollect, (newIsCollect) => {
+  task.value.completed = newIsCollect;
+});
+
 
 </script>
 
@@ -19,7 +43,7 @@ const task = {
   <div class="daily-tasks-wrap">
     <h3 class="sf-pro-font">Ежедневные задания</h3>
     <div class="task-list-wrap">
-      <IncomeTaskItem :task-item="task as Task"/>
+      <IncomeTaskItem :task-item="task"/>
     </div>
   </div>
 </template>

@@ -2,7 +2,6 @@
 
 import IncomeHeader from "@/views/income-view/components/income-header.vue";
 import IncomeActualTasks from "@/views/income-view/components/income-actual-tasks.vue";
-import {actualTasks, dailyTasks} from "@/shared/constants/tasks.ts";
 import IncomeDailyTasks from "@/views/income-view/components/income-daily-tasks.vue";
 import IncomeTaskList from "@/views/income-view/components/income-task-list.vue";
 import {onMounted} from "vue";
@@ -11,14 +10,19 @@ import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts"
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 
 const taskService = new TasksApiService(axiosInstance, errorHandler)
-const { setLoading, setTasks } = useIncomeStore();
+const {setLoading, setTasks, setDailyTask} = useIncomeStore();
 
-onMounted( async () => {
+onMounted(async () => {
   setLoading(true);
   const res = await taskService.getTasks();
   if (res && res.right) {
     setTasks(res.right);
     setLoading(false);
+  }
+
+  const dailyRes = await taskService.getDailyTaskInfo();
+  if (dailyRes && dailyRes.right) {
+    setDailyTask(dailyRes.right);
   }
 })
 </script>
@@ -26,8 +30,8 @@ onMounted( async () => {
 <template>
   <div class="income-wrapper">
     <income-header/>
-    <income-actual-tasks :task-list="actualTasks"/>
-    <income-daily-tasks :task-list="dailyTasks"/>
+    <income-actual-tasks/>
+    <income-daily-tasks/>
     <income-task-list/>
   </div>
 </template>

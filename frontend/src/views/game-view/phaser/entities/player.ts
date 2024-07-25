@@ -10,7 +10,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
     scene.add.existing(this);
     scene.physics.world.enable(this);
 
-    this.setDisplaySize(106, 106);
+    this.setDisplaySize(106, 85);
     if (this.body && this.body instanceof Phaser.Physics.Arcade.Body) {
       this.body.setGravityY(500);
       this.body.setCollideWorldBounds(true);
