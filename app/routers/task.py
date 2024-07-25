@@ -64,7 +64,7 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    if task.end_time < datetime.utcnow():
+    if task.end_time and task.end_time < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Task timed out")
 
     user_task = await get_user_task(db, task_id, tg_id)
@@ -74,7 +74,6 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
     # Если задание на приглашение пользователей
     if task.type == TaskType.INVITE:
         invited_count = await get_invited_count(db, tg_id)
-        print('😪😪', invited_count)
         if invited_count < task.requirement:
             if not user_task:
                 await create_user_task(db, task_id, tg_id)
