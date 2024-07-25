@@ -1,14 +1,21 @@
 <script setup lang="ts">
-interface Props {
-  level: number;
-}
+import {useUserStore} from "@/shared/pinia/user-store.ts";
+import {computed} from "vue";
 
-const props: Props = defineProps<Props>();
+const {user} = useUserStore();
+
+const percent = computed(() => {
+  if (user === null || user.next_level_data.required_money === 0) {
+    return 0;
+  }
+
+  return (user.money / user.next_level_data.required_money) * 100;
+});
 </script>
 
 <template>
   <div class="level-indicator">
-    <div class="level" :style="{ width: `${props.level / 40 * 100}%` }"></div>
+    <div class="level" :style="{ width: `${percent}%` }"></div>
   </div>
 </template>
 

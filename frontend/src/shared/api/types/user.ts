@@ -18,5 +18,13 @@ export interface User {
   tg_id: number,
   total_income: number,
   username: string | null,
+  user_lvl: number,
+  taps_for_level: number,
   boost: UserBoost,
+  next_level_data: {
+    next_lvl: number,
+    required_money: number,
+    taps_for_level: number,
+    money_to_get_the_next_boost: number,
+  }
 }

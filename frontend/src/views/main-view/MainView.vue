@@ -5,9 +5,19 @@ import AppIconButton from "@/components/AppIconButton.vue";
 import HeaderStatisticItem from "@/views/main-view/components/header-statistic-item.vue";
 import {useRouter} from "vue-router";
 import ActionModal from "@/components/ActionModal.vue";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
-import {formatNumberWithSpaces} from "@/helpers/formats.ts";
+import {formatNumber, formatNumberWithSpaces} from "@/helpers/formats.ts";
+import Level1Image from "@/assets/img/level/level-1.png"
+import Level2Image from "@/assets/img/level/level-2.png"
+import Level3Image from "@/assets/img/level/level-3.png"
+import Level4Image from "@/assets/img/level/level-4.png"
+import Level5Image from "@/assets/img/level/level-5.png"
+import Level6Image from "@/assets/img/level/level-6.png"
+import Level7Image from "@/assets/img/level/level-7.png"
+import Level8Image from "@/assets/img/level/level-8.png"
+import Level9Image from "@/assets/img/level/level-9.png"
+import Level10Image from "@/assets/img/level/level-10.png"
 
 const router = useRouter();
 const visibleBoostModal = ref(false);
@@ -17,11 +27,43 @@ const user = userStore.user;
 const gotoRatingView = () => {
   router.push({name: 'Rating'});
 }
+
+const getLevelImage = () => {
+  switch (user?.user_lvl) {
+    case 1:
+      return Level1Image;
+    case 2:
+      return Level2Image;
+    case 3:
+      return Level3Image;
+    case 4:
+      return Level4Image;
+    case 5:
+      return Level5Image;
+    case 6:
+      return Level6Image;
+    case 7:
+      return Level7Image;
+    case 8:
+      return Level8Image;
+    case 9:
+      return Level9Image;
+    case 10:
+      return Level10Image;
+    default:
+      return Level1Image;
+  }
+}
+const mainMonkeyAvatar = computed(() => {
+  return {
+    backgroundImage: `url(${getLevelImage()})`
+  };
+});
 </script>
 
 <template>
   <div class="main-view-wrapper">
-    <div class="main-monkey"/>
+    <div class="main-monkey" :style="mainMonkeyAvatar"/>
     <div class="main-view-content">
       <div class="header-data">
         <div class="header-data-scoreboard">
@@ -31,13 +73,15 @@ const gotoRatingView = () => {
               <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
             </div>
             <div class="header-data-statistic">
-              <header-statistic-item title="Доход за тап" :value="user?.boost.one_tap.toString() ?? ''"/>
-              <header-statistic-item title="До lvl-апа" value="100k"/>
-              <header-statistic-item title="Доход в час" :value="user!.earnings_per_hour.toString() ?? ''"/>
+              <header-statistic-item title="Доход за тап" :value="user?.boost.one_tap ?? ''"/>
+              <header-statistic-item title="До lvl-апа"
+                                     :value="formatNumber(user?.next_level_data.required_money ?? 0)"/>
+              <header-statistic-item title="Доход в час" :value="user!.earnings_per_hour ?? ''"/>
             </div>
           </div>
         </div>
       </div>
+      <div class="gradient-black"></div>
       <div class="bottom-data">
         <div class="bottom-data-actions">
           <AppIconButton style="width: 48px; height: 48px;" @on-click="gotoRatingView">
@@ -52,14 +96,15 @@ const gotoRatingView = () => {
         </div>
         <div class="current-level-wrapper">
           <span class="text-lvl sf-pro-font">Lvl: </span>
-          <span class="app-text-gradient text-current-level sf-pro-font">{{ user?.boost.lvl }}</span>
+          <span class="app-text-gradient text-current-level sf-pro-font">{{ user?.user_lvl }}</span>
           <img src="@/assets/svg/right-arrow.svg" alt="">
-          <level-indicator :level="15" style="flex: 1"/>
+          <level-indicator style="flex: 1"/>
         </div>
         <div style="height: 65px;"/>
       </div>
     </div>
-    <action-modal v-if="visibleBoostModal" @close="() => visibleBoostModal = false" @on-accept="() => visibleBoostModal = false">
+    <action-modal v-if="visibleBoostModal" @close="() => visibleBoostModal = false"
+                  @on-accept="() => visibleBoostModal = false">
       <div class="boost-modal-wrapper">
         <div style="height: 30px"/>
         <img src="@/assets/img/boost-icon.png" alt="">
@@ -173,6 +218,16 @@ const gotoRatingView = () => {
     justify-content: space-between;
     height: 100%;
 
+    .gradient-black {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 215px;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 58.43%);
+      z-index: 11;
+    }
+
     .header-data {
       background: linear-gradient(180deg, #000000 0%, rgba(0, 0, 0, 0) 58.43%);
       display: flex;
@@ -180,6 +235,8 @@ const gotoRatingView = () => {
       justify-content: flex-start;
       box-sizing: border-box;
       padding-bottom: 50px;
+      position: relative;
+      z-index: 12;
 
       .header-data-scoreboard {
         background-image: url("@/assets/svg/header-scoreboard.svg");
@@ -238,7 +295,8 @@ const gotoRatingView = () => {
       display: flex;
       flex-direction: column;
       padding: 0 10px;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 58.43%);
+      position: relative;
+      z-index: 12;
 
       .current-level-wrapper {
         display: flex;
@@ -274,7 +332,7 @@ const gotoRatingView = () => {
   .main-monkey {
     width: 100%;
     height: 85%;
-    background-image: url('@/assets/img/main-view-monkey.png');
+    background-image: url('@/assets/img/level/level-1.png');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
