@@ -172,6 +172,7 @@ class Task(Base):
             "description": self.description,
             "type": self.type,
             "reward": self.reward,
+            "link": self.link,
             "requirement": self.requirement,
             "end_time": self.end_time,
         }
