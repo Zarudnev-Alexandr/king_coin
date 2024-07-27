@@ -243,31 +243,48 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
 
         user_boost = await get_user_boost(db, tg_id)
         if user_boost:
-            boost = await get_boost_by_id(db, user_boost.boost_id)
-            boost_data = {
-                "boost_id": boost.lvl,
-                "name": boost.name,
-                "price": boost.price,
-                "lvl": boost.lvl,
-                "tap_boost": boost.tap_boost,
-                "one_tap": boost.one_tap,
-                "pillars_10": boost.pillars_10,
-                "pillars_30": boost.pillars_30,
-                "pillars_100": boost.pillars_100
-            } if boost else {}
+            current_boost = await get_boost_by_id(db, user_boost.boost_id)
+            if current_boost:
+                boost_data = {
+                    "boost_id": current_boost.lvl,
+                    "name": current_boost.name,
+                    "price": current_boost.price,
+                    "lvl": current_boost.lvl,
+                    "tap_boost": current_boost.tap_boost,
+                    "one_tap": current_boost.one_tap,
+                    "pillars_10": current_boost.pillars_10,
+                    "pillars_30": current_boost.pillars_30,
+                    "pillars_100": current_boost.pillars_100
+                }
+
+                next_boost = await get_next_boost(db, current_boost.lvl)
+                next_boost_data = {
+                    "boost_id": next_boost.lvl,
+                    "name": next_boost.name,
+                    "price": next_boost.price,
+                    "lvl": next_boost.lvl,
+                    "tap_boost": next_boost.tap_boost,
+                    "one_tap": next_boost.one_tap,
+                    "pillars_10": next_boost.pillars_10,
+                    "pillars_30": next_boost.pillars_30,
+                    "pillars_100": next_boost.pillars_100
+                } if next_boost else None
+            else:
+                boost_data = {}
+                next_boost_data = None
         else:
             boost_data = {}
+            next_boost_data = None
 
         await db.commit()
         await db.refresh(db_user)
         next_level = await update_user_level(db, db_user)
 
         next_level_data = {
-            "next_lvl": next_level.lvl if next_level else None,
+            "lvl": next_level.lvl if next_level else None,
             "required_money": next_level.required_money if next_level else None,
             "taps_for_level": next_level.taps_for_level if next_level else None,
-            "money_to_get_the_next_boost": next_level.required_money - db_user.money if next_level.required_money
-            else None
+            "money_to_get_the_next_boost": next_level.required_money - db_user.money if next_level and next_level.required_money else None
         } if next_level else {}
 
         user_data = {
@@ -281,6 +298,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             "earnings_per_hour": total_hourly_income,
             "total_income": total_income,
             "boost": boost_data,
+            "next_boost": next_boost_data,
             "next_level_data": next_level_data
         }
 
@@ -309,13 +327,25 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             "pillars_100": new_user.boost.pillars_100
         } if new_user.boost else {}
 
+        next_boost = await get_next_boost(db, new_user.boost.lvl)
+        next_boost_data = {
+            "boost_id": next_boost.lvl,
+            "name": next_boost.name,
+            "price": next_boost.price,
+            "lvl": next_boost.lvl,
+            "tap_boost": next_boost.tap_boost,
+            "one_tap": next_boost.one_tap,
+            "pillars_10": next_boost.pillars_10,
+            "pillars_30": next_boost.pillars_30,
+            "pillars_100": next_boost.pillars_100
+        } if next_boost else None
+
         next_level = await update_user_level(db, new_user.user)
         next_level_data = {
             "next_lvl": next_level.lvl if next_level else None,
             "required_money": next_level.required_money if next_level else None,
             "taps_for_level": next_level.taps_for_level if next_level else None,
-            "money_to_get_the_next_boost": next_level.required_money - new_user.user.money if next_level.required_money
-            else None
+            "money_to_get_the_next_boost": next_level.required_money - new_user.user.money if next_level and next_level.required_money else None
         } if next_level else {}
 
         user_data = {
@@ -326,9 +356,12 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             "money": new_user.user.money,
             "user_lvl": new_user.user.lvl,
             "taps_for_level": new_user.user.taps_for_level,
+            "earnings_per_hour": 0,
             "boost": boost_data,
+            "next_boost": next_boost_data,
             "next_level_data": next_level_data
         }
+
         await db.close()
         return user_data
 
@@ -360,44 +393,61 @@ async def create_upgrade(boost_create: BoostCreateSchema,
 
 
 @user_route.post('/upgrade-boost')
-async def upgrade_boost(user_id: int, db: AsyncSession = Depends(get_db)):
-    user = await get_user(db, user_id)
+async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    try:
+        decoded_data = json.loads(initData)
+        data = decoded_data
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
+
+    tg_id = data.get("id")
+    if not tg_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    user = await get_user(db, tg_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user_boost = await get_user_boost(db, user_id)
-
+    user_boost = await get_user_boost(db, user.tg_id)
     if not user_boost:
         raise HTTPException(status_code=404, detail="User boost not found")
 
-    # Получаем текущий и следующий уровни буста
     current_boost = await get_boost_by_id(db, user_boost.boost_id)
-
     if not current_boost:
-        # current_boost = await get_boost_by_id(db, 1)
-        # if not current_boost:
         raise HTTPException(status_code=404, detail="Current boost not found")
 
     next_boost = await get_next_boost(db, current_boost.lvl)
-
     if not next_boost:
-        raise HTTPException(status_code=404, detail="Next boost level not found")
+        next_boost = None
 
-    # Проверяем, хватает ли у пользователя денег на покупку следующего уровня
-    if user.money < next_boost.price:
+    if user.money < (next_boost.price if next_boost else float('inf')):
         raise HTTPException(status_code=400, detail="Not enough money to upgrade boost")
 
-    # Обновляем уровень буста у пользователя и списываем сумму покупки
     new_user_boost = await upgrade_user_boost(db, user_boost, user, next_boost)
-
     if not new_user_boost:
         raise HTTPException(status_code=500, detail="failed to improve boost")
 
-    return {
+    # Получаем следующий уровень буста после обновления
+    next_boost_after_bought = await get_next_boost(db, next_boost.lvl if next_boost else current_boost.lvl)
+
+    next_boost_after_bought_dict = {
+        "lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
+        "price": next_boost_after_bought.price if next_boost_after_bought else None,
+        "tap_boost": next_boost_after_bought.tap_boost if next_boost_after_bought else None,
+        "one_tap": next_boost_after_bought.one_tap if next_boost_after_bought else None,
+        "pillars_10": next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
+        "pillars_30": next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
+        "pillars_100": next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
+    }
+
+    response = {
         "user_id": user_boost.user_id,
         "boost_id": user_boost.boost_id,
-        "user_money": user.money
+        "user_money": user.money,
+        "next_boost": next_boost_after_bought_dict
     }
+
+    return response
 
 
 @user_route.get("/next-upgrade/{user_id}")
