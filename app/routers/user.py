@@ -454,7 +454,7 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
         user.days_in_row = 0
 
     # Проверка, прошло ли менее одного дня с последнего входа
-    if current_time < received_last_daily_reward + timedelta(days=1):
+    if current_time < received_last_daily_reward + timedelta(hours=24):
         raise HTTPException(status_code=200, detail="less than one day has passed")
 
     # Определение текущего дня награды
@@ -532,10 +532,10 @@ async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = D
     days_in_row = db_user.days_in_row
 
     # Получаем текущую дату
-    today = datetime.utcnow().date()
+    today = datetime.utcnow()
 
     # Проверяем, была ли награда уже получена сегодня
-    if last_received and last_received.date() == today:
+    if last_received and today < last_received + timedelta(hours=24):
         is_collect = True
         current_day = (days_in_row % 12)
         if current_day == 0:
