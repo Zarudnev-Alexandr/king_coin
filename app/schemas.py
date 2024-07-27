@@ -200,5 +200,9 @@ class TaskResponseSchema(TaskBaseSchema):
         orm_mode = True
 
 
+class GameResultsSchema(BaseModel):
+    encrypted_information: str
+
+
 class Message(BaseModel):
     message: str
