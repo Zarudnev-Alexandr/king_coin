@@ -16,7 +16,7 @@ from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
 from ..models import DailyReward
 from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
-    InitDataSchema
+    InitDataSchema, GameResultsSchema
 
 user_route = APIRouter()
 
@@ -595,3 +595,39 @@ async def get_referral_link_api(initData: str = Header(...), db: AsyncSession = 
 
     referral_link = f"https://t.me/KingCoin_ebot?start=ref_{tg_id}"
     return {"referral_link": referral_link}
+
+
+@user_route.post('/game-result')
+async def get_game_result_api(encrypted_information: GameResultsSchema,
+                              initData: str = Header(...),
+                              db: AsyncSession = Depends(get_db)):
+    """
+    Получаем результаты игры
+    """
+    try:
+        decoded_data = json.loads(initData)
+
+        data = decoded_data
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
+
+    tg_id = data.get("id")
+    if not tg_id:
+        raise HTTPException(status_code=400, detail="User ID is required")
+
+    db_user = await get_user(db, tg_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # В будущем тут будет шифрование
+
+    # encrypted_data = {
+    #     "earned_coins": encrypted_information.encrypted_information
+    # }
+    earned_coins = int(encrypted_information.encrypted_information)
+
+    db_user.money += earned_coins
+    await db.commit()
+    await db.refresh(db_user)
+
+    return {"money_added": earned_coins, "users_money": db_user.money}
