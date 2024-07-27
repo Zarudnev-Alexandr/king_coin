@@ -1,4 +1,4 @@
-interface UserBoost {
+export interface UserBoost {
   boost_id: number,
   lvl: number,
   name: string,
@@ -26,5 +26,6 @@ export interface User {
     required_money: number,
     taps_for_level: number,
     money_to_get_the_next_boost: number,
-  }
+  },
+  next_boost: UserBoost,
 }

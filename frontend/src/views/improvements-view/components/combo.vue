@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import ComboCardItem from "@/views/improvements-view/components/combo-card-item.vue";
 import CardComboUnboxItem from "@/views/improvements-view/components/card-combo-unbox-item.vue";
-import {computed, onMounted} from "vue";
+import {onMounted, Ref, ref, watch} from "vue";
 import ComboApiService from "@/shared/api/services/combo-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 
 const comboApiService = new ComboApiService(axiosInstance, errorHandler);
 const improvementsStore = useImprovementsStore();
+const images: Ref<{ url: string, name: string }[]> = ref([]);
 
 onMounted(async () => {
   if (improvementsStore.combo) {
@@ -20,25 +21,25 @@ onMounted(async () => {
   }
 })
 
-const images = computed(() => {
-  const combo = improvementsStore.combo;
-  if (!combo) return [];
 
-  let images = []
-  if (combo?.upgrade_1.is_bought) {
-    images.push({url: combo.upgrade_1.image_url, name: combo.upgrade_1.name})
+watch(() => improvementsStore.combo, (newReward) => {
+  if (!newReward) {
+    images.value.length = 0;
+    return
   }
 
-  if (combo?.upgrade_2.is_bought) {
-    images.push({url: combo.upgrade_2.image_url, name: combo.upgrade_2.name})
+  if (newReward?.upgrade_1.is_bought) {
+    images.value.push({url: newReward.upgrade_1.image_url!, name: newReward.upgrade_1.name})
   }
 
-  if (combo?.upgrade_3.is_bought) {
-    images.push({url: combo.upgrade_3.image_url, name: combo.upgrade_3.name})
+  if (newReward?.upgrade_2.is_bought) {
+    images.value.push({url: newReward.upgrade_2.image_url!, name: newReward.upgrade_2.name})
   }
 
-  return images;
-})
+  if (newReward?.upgrade_3.is_bought) {
+    images.value.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
+  }
+});
 </script>
 
 <template>

@@ -18,11 +18,14 @@ import Level7Image from "@/assets/img/level/level-7.png"
 import Level8Image from "@/assets/img/level/level-8.png"
 import Level9Image from "@/assets/img/level/level-9.png"
 import Level10Image from "@/assets/img/level/level-10.png"
+import BoostApiService from "@/shared/api/services/boost-api-service.ts";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 
 const router = useRouter();
 const visibleBoostModal = ref(false);
 const userStore = useUserStore();
 const user = userStore.user;
+const boostApiService = new BoostApiService(axiosInstance, errorHandler);
 
 const gotoRatingView = () => {
   router.push({name: 'Rating'});
@@ -59,6 +62,23 @@ const mainMonkeyAvatar = computed(() => {
     backgroundImage: `url(${getLevelImage()})`
   };
 });
+
+const openBoostModal = () => {
+  if (!user?.next_boost || !user?.next_boost.lvl) return;
+
+  visibleBoostModal.value = true;
+}
+
+const upgradeBoost = async () => {
+  if (user!.money < user!.next_boost.price) return;
+
+  const res = await boostApiService.upgradeBoost();
+  if (res && res.right) {
+    userStore.moneyPlus(-user!.next_boost.price);
+    userStore.updateBoostData(res.right.next_boost);
+    visibleBoostModal.value = false;
+  }
+}
 </script>
 
 <template>
@@ -73,10 +93,11 @@ const mainMonkeyAvatar = computed(() => {
               <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
             </div>
             <div class="header-data-statistic">
-              <header-statistic-item title="Доход за тап" :value="user?.boost.one_tap ?? ''"/>
+              <header-statistic-item title="Доход за тап"
+                                     :value="(user?.taps_for_level ?? 0) + (user?.boost.one_tap ?? 0)"/>
               <header-statistic-item title="До lvl-апа"
                                      :value="formatNumber(user?.next_level_data.required_money ?? 0)"/>
-              <header-statistic-item title="Доход в час" :value="user!.earnings_per_hour ?? ''"/>
+              <header-statistic-item title="Доход в час" :value="formatNumber(user?.earnings_per_hour ?? 0)"/>
             </div>
           </div>
         </div>
@@ -90,7 +111,7 @@ const mainMonkeyAvatar = computed(() => {
           <AppIconButton style="width: 48px; height: 48px;">
             <img src="@/assets/svg/settings-icon.svg" alt="">
           </AppIconButton>
-          <AppIconButton style="width: 48px; height: 48px;" @on-click="() => visibleBoostModal = true">
+          <AppIconButton style="width: 48px; height: 48px;" @on-click="openBoostModal">
             <img src="@/assets/svg/boost-icon.svg" alt="">
           </AppIconButton>
         </div>
@@ -104,7 +125,7 @@ const mainMonkeyAvatar = computed(() => {
       </div>
     </div>
     <action-modal v-if="visibleBoostModal" @close="() => visibleBoostModal = false"
-                  @on-accept="() => visibleBoostModal = false">
+                  @on-accept="upgradeBoost">
       <div class="boost-modal-wrapper">
         <div style="height: 30px"/>
         <img src="@/assets/img/boost-icon.png" alt="">
@@ -112,14 +133,14 @@ const mainMonkeyAvatar = computed(() => {
         <span class="boost-description sf-pro-font">
           Увеличивает количество монет, которое вы можете заработать за одно нажатие
         </span>
-        <span class="boost-description sf-pro-font">Уровень 1</span>
+        <span class="boost-description sf-pro-font">Уровень {{ userStore.user?.next_boost.lvl }}</span>
         <div class="boost-reward">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ 1 монета за тап</span>
+          <span class="sf-pro-font">+ {{ userStore.user?.next_boost.tap_boost }} монета за тап</span>
         </div>
         <div class="boost-price">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">310 110</span>
+          <span class="sf-pro-font">{{ formatNumber(userStore.user?.next_boost.price ?? 0) }}</span>
         </div>
       </div>
     </action-modal>

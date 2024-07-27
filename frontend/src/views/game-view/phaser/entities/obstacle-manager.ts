@@ -4,9 +4,11 @@ import ObstacleBottomPipe from "@/views/game-view/phaser/entities/obstacle-botto
 import {useGameStore} from "@/shared/pinia/game-store.ts";
 import CoinReward from "@/views/game-view/phaser/entities/coin-reward.ts";
 import MysteryBox from "@/views/game-view/phaser/entities/mystery-box.ts";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
 
 class ObstacleManager {
   gameStore = useGameStore();
+  userStore = useUserStore();
   private readonly scene: Phaser.Scene;
   public obstacles: Phaser.Physics.Arcade.Group;
   public rewards: Phaser.Physics.Arcade.Group;
@@ -45,7 +47,15 @@ class ObstacleManager {
     let mysteryBox = null;
 
     if (this.obstacleCount === 9 || this.obstacleCount === 29 || this.obstacleCount === 99) {
-      rewardCoin = new CoinReward(this.scene, this.scene.scale.width + (this.distanceBetweenPipesX / 2), rewardY, 200);
+      let reward = 200;
+
+      if (this.obstacleCount === 29 && this.userStore.user) {
+        reward = this.userStore.user?.boost.pillars_30;
+      } else if (this.obstacleCount === 99 && this.userStore.user) {
+        reward = this.userStore.user?.boost.pillars_100;
+      }
+
+      rewardCoin = new CoinReward(this.scene, this.scene.scale.width + (this.distanceBetweenPipesX / 2), rewardY, reward);
     }
 
     if (this.obstacleCount === 15 || this.obstacleCount === 33 || this.obstacleCount === 78) {

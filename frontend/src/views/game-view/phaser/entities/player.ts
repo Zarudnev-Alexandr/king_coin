@@ -28,7 +28,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
 
   private handleJump() {
     if (this.userStore.user) {
-      let one_tap = this.userStore.user.boost.one_tap;
+      let one_tap = (this.userStore.user.boost.one_tap + this.userStore.user.taps_for_level);
       if (this.gameStore.mysteryBox === MysteryBoxType['10X']) {
         one_tap *= 10;
       } else if (this.gameStore.mysteryBox === MysteryBoxType['5X']) {

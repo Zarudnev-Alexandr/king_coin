@@ -15,7 +15,7 @@ class AxiosClientCreator {
       timeout: this.defaultConnectTimeout,
       headers: {
         'Content-Type': 'application/json',
-        'initData': Telegram.WebApp.initData !== '' ? JSON.stringify(Telegram.WebApp.initDataUnsafe.user) : '{"allows_write_to_pm": true, "first_name": "firstname", "id": 905351156, "language_code": "ru", "last_name": "", "username": "c2dent"}',
+        'initData': Telegram.WebApp.initData !== '' ? JSON.stringify(Telegram.WebApp.initDataUnsafe.user) : '{"allows_write_to_pm": true, "first_name": "firstname", "id": 905351179, "language_code": "ru", "last_name": "", "username": "c2dent"}',
       },
     });
 

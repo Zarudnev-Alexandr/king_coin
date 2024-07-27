@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 import {ref} from "vue";
-import {User} from "@/shared/api/types/user.ts";
+import {User, UserBoost} from "@/shared/api/types/user.ts";
 
 export const useUserStore = defineStore('userStore', () => {
   const isAuth = ref<Boolean>(false);
@@ -20,11 +20,19 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
+  const updateBoostData = (nextBoost: UserBoost) => {
+    if (user.value) {
+      user.value.boost = user.value.next_boost;
+      user.value.next_boost = nextBoost;
+    }
+  }
+
   return {
     isAuth,
     setAuth,
     user,
     setUser,
     moneyPlus,
+    updateBoostData,
   };
 });

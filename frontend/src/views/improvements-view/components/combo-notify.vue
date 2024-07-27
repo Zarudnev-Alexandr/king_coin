@@ -2,31 +2,34 @@
 
 import FloatButton from "@/components/FloatButton.vue";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
-import {computed} from "vue";
+import {ref, Ref, watch} from "vue";
 
-const {setComboNotify, combo} = useImprovementsStore();
+const {setComboNotify} = useImprovementsStore();
 const improvementsStore = useImprovementsStore();
+const images: Ref<{ url: string, name: string }[]> = ref([]);
 
 const handleConfirm = () => {
   setComboNotify(false);
 }
 
-const images = computed(() => {
-  let images = []
-  if (combo?.upgrade_1.is_bought) {
-    images.push(combo.upgrade_1.image_url)
+watch(() => improvementsStore.combo, (newReward) => {
+  if (!newReward) {
+    images.value.length = 0;
+    return
   }
 
-  if (combo?.upgrade_2.is_bought) {
-    images.push(combo.upgrade_2.image_url)
+  if (newReward?.upgrade_1.is_bought) {
+    images.value.push({url: newReward.upgrade_1.image_url!, name: newReward.upgrade_1.name})
   }
 
-  if (combo?.upgrade_3.is_bought) {
-    images.push(combo.upgrade_3.image_url)
+  if (newReward?.upgrade_2.is_bought) {
+    images.value.push({url: newReward.upgrade_2.image_url!, name: newReward.upgrade_2.name})
   }
 
-  return images;
-})
+  if (newReward?.upgrade_3.is_bought) {
+    images.value.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
+  }
+});
 </script>
 
 <template>
