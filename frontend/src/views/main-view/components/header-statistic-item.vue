@@ -11,7 +11,7 @@ const props: Props = defineProps<Props>();
   <div class="statistic-item-wrapper">
     <span class="sf-pro-font">{{ props.title }}</span>
     <div class="statistic-item-value">
-      <img src="../../../assets/svg/coin.svg" alt="">
+      <img src="@/assets/svg/coin.svg" alt="">
       <span class="sf-pro-font">{{ props.value }}</span>
     </div>
   </div>

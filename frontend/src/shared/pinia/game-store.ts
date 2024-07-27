@@ -1,6 +1,7 @@
 import {defineStore} from "pinia";
 import {Ref, ref} from "vue";
 import Gameplay from "@/views/game-view/phaser/gameplay.ts";
+import {MysteryBoxType} from "@/shared/api/types/enums.ts";
 
 
 export const useGameStore = defineStore('gameStore', () => {
@@ -9,6 +10,7 @@ export const useGameStore = defineStore('gameStore', () => {
   const gameInitStarted = ref(false);
   const currentActiveModal: Ref<'game-over' | 'pause' | 'exit' | ''> = ref('');
   const transitionView = ref('');
+  const mysteryBox: Ref<MysteryBoxType | null> = ref(null);
 
   const setScore = (value: number) => {
     score.value = value;
@@ -40,6 +42,10 @@ export const useGameStore = defineStore('gameStore', () => {
     currentActiveModal.value = value
   }
 
+  const setMysteryBox = (value: MysteryBoxType | null) => {
+    mysteryBox.value = value;
+  }
+
   return {
     score,
     setScore,
@@ -52,5 +58,7 @@ export const useGameStore = defineStore('gameStore', () => {
     setCurrentActiveModal,
     transitionView,
     setTransitionView,
+    mysteryBox,
+    setMysteryBox
   };
 });

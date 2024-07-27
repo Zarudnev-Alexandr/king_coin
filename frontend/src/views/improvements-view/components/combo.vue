@@ -52,7 +52,7 @@ const images = computed(() => {
       </div>
       <div class="get-combo-button">
         <img src="@/assets/svg/coin.svg" alt="">
-        <span class="sf-pro-font">+ {{ 600000 }}</span>
+        <span class="sf-pro-font">+ 6 000 000</span>
       </div>
     </div>
 

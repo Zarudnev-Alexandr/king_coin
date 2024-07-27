@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, onUnmounted, ref} from 'vue';
+import {onMounted, onUnmounted, ref, watch} from 'vue';
 import Phaser from 'phaser';
 import Gameplay from '@/views/game-view/phaser/gameplay';
 import {useGameStore} from "@/shared/pinia/game-store.ts";
@@ -7,10 +7,22 @@ import ActionModal from "@/components/ActionModal.vue";
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 import ModalActionButton from "@/components/ModalActionButton.vue";
 import {useRouter} from "vue-router";
+import AppIconButton from "@/components/AppIconButton.vue";
+import FiveXIcon from "@/assets/svg/game/x5.svg";
+import TexXIcon from "@/assets/svg/game/x10.svg";
+import CoinIcon from "@/assets/svg/game/coin.svg";
+import SpeedIcon from "@/assets/svg/game/2.5x.svg";
+import {MysteryBoxType} from "@/shared/api/types/enums.ts";
+import GameApiService from "@/shared/api/services/game-api-service.ts";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
 
 const phaserRef = ref<HTMLDivElement | null>(null);
+const gameApiService = new GameApiService(axiosInstance, errorHandler);
+
 let game: Phaser.Game | null = null;
 const gameStore = useGameStore();
+const userStore = useUserStore();
 const router = useRouter();
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -46,6 +58,50 @@ const handleRestart = () => {
   Gameplay.instance?.scene.restart();
 }
 
+const getIconMysteryBox = () => {
+  if (!gameStore.mysteryBox) {
+    return;
+  }
+
+  if (gameStore.mysteryBox! === MysteryBoxType['5X']) {
+    return FiveXIcon;
+  } else if (gameStore.mysteryBox === MysteryBoxType['10X']) {
+    return TexXIcon;
+  } else if (gameStore.mysteryBox === MysteryBoxType['100COIN']) {
+    return CoinIcon;
+  } else if (gameStore.mysteryBox === MysteryBoxType['SPEED_X2.5']) {
+    return SpeedIcon;
+  }
+}
+
+const getTextMysteryBox = () => {
+  if (!gameStore.mysteryBox) {
+    return;
+  }
+
+
+  if (gameStore.mysteryBox! === MysteryBoxType['5X'] || gameStore.mysteryBox! === MysteryBoxType['10X']) {
+    return 'Прибыль';
+  } else if (gameStore.mysteryBox === MysteryBoxType['100COIN']) {
+    return '+ 100 coins';
+  } else if (gameStore.mysteryBox === MysteryBoxType['SPEED_X2.5']) {
+    return 'Скорость';
+  }
+}
+
+const sendGameResult = async () => {
+  const res = await gameApiService.sendGameResult(gameStore.score);
+  if (res && res.right) {
+    userStore.moneyPlus(res.right.money_added);
+  }
+}
+
+watch(() => gameStore.currentActiveModal, (newVal, _) => {
+  if (newVal === 'game-over') {
+    sendGameResult();
+  }
+});
+
 onMounted(() => {
   if (phaserRef.value) {
     config.parent = phaserRef.value;
@@ -69,6 +125,15 @@ onUnmounted(() => {
         <span class="game-container-header-text">{{ gameStore.score }}</span>
       </div>
     </div>
+    <div class="mystery-box-result" v-if="gameStore.mysteryBox">
+      <div class="box-result-content">
+        <AppIconButton style="width: 48px; height: 48px;"
+                       :class="{'speed-bg': gameStore.mysteryBox === MysteryBoxType['SPEED_X2.5']}">
+          <img :src="getIconMysteryBox()" alt="">
+        </AppIconButton>
+        <span class="text-info">{{ getTextMysteryBox() }}</span>
+      </div>
+    </div>
     <div ref="phaserRef" id="game-container"/>
 
     <ActionModal v-if="gameStore.currentActiveModal !== ''">
@@ -90,7 +155,8 @@ onUnmounted(() => {
         </div>
       </div>
       <template #actions>
-        <div class="modal-actions-wrapper" v-if="gameStore.currentActiveModal === 'pause' || gameStore.currentActiveModal === 'exit'">
+        <div class="modal-actions-wrapper"
+             v-if="gameStore.currentActiveModal === 'pause' || gameStore.currentActiveModal === 'exit'">
           <ModalActionButton style="width: 133px; height: 67px" @click="handleResumeGame">
             <span class="action-button-title">Продолжить</span>
           </ModalActionButton>
@@ -112,6 +178,9 @@ onUnmounted(() => {
 .game-container-wrapper {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   #game-container {
     width: 100%;
@@ -164,9 +233,9 @@ onUnmounted(() => {
     color: white;
     display: flex;
     text-shadow: -3px 3px 0 rgba(57, 34, 0, 1),
-    3px 3px 0 rgba(57, 34, 0, 1),
-    3px -3px 0 rgba(57, 34, 0, 1),
-    -3px -3px 0 rgba(57, 34, 0, 1);
+    2px 2px 0 rgba(57, 34, 0, 1),
+    3px -2px 0 rgba(57, 34, 0, 1),
+    -2px -2px 0 rgba(57, 34, 0, 1);
   }
 
   .game-modal-content-wrapper {
@@ -222,5 +291,34 @@ onUnmounted(() => {
       color: white;
     }
   }
+}
+
+.mystery-box-result {
+  position: absolute;
+  left: 10px;
+  bottom: 90px;
+
+  .box-result-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .text-info {
+      font-family: 'SuperSquadRus', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24.7px;
+      text-align: left;
+      color: white;
+      text-shadow: -3px 3px 0 rgba(57, 34, 0, 1),
+      3px 3px 0 rgba(57, 34, 0, 1),
+      3px -3px 0 rgba(57, 34, 0, 1),
+      -3px -3px 0 rgba(57, 34, 0, 1);
+    }
+  }
+}
+
+.speed-bg {
+  background: rgba(57, 34, 0, 1);
 }
 </style>

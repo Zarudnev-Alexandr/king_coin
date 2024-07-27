@@ -14,10 +14,17 @@ export const useUserStore = defineStore('userStore', () => {
     user.value = us;
   }
 
+  const moneyPlus = (money: number) => {
+    if (user.value) {
+      user.value.money += money;
+    }
+  }
+
   return {
     isAuth,
     setAuth,
     user,
-    setUser
+    setUser,
+    moneyPlus,
   };
 });
