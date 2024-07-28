@@ -30,6 +30,7 @@ class User(Base):
     last_login: Mapped[DateTime] = mapped_column(DateTime)
     received_last_daily_reward: Mapped[DateTime] = mapped_column(DateTime)
     days_in_row: Mapped[int] = mapped_column(Integer, default=0)
+    last_check_time: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
 
     invited_by: Mapped["User"] = relationship("User", remote_side=[tg_id], lazy='selectin')
     upgrades: Mapped[list["UserUpgrades"]] = relationship("UserUpgrades", back_populates="user", lazy='selectin')
