@@ -1,4 +1,5 @@
 from asyncio import current_task
+from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 import asyncpg
@@ -73,4 +74,18 @@ async def get_db() -> AsyncIterator[AsyncSession]:
         raise
     finally:
         # Closing the session after use...
+        await session.close()
+
+
+@asynccontextmanager
+async def get_db_for_websockets() -> AsyncIterator[AsyncSession]:
+    session = sessionmanager.session()
+    if session is None:
+        raise Exception("DatabaseSessionManager is not initialized")
+    try:
+        yield session
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
         await session.close()
