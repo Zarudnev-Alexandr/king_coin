@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
     get_boost_by_lvl, get_next_boost, upgrade_user_boost, get_user_bool, get_daily_reward, add_daily_reward, \
     update_user_level, get_daily_reward_all
+from ..api.added_funcs import decode_init_data
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
@@ -59,8 +60,8 @@ user_route = APIRouter()
 #     await producer.start()
 #
 #     try:
-#         db_user = await get_user(db, tg_id=user.tg_id)
-#         if db_user:
+#         user = await get_user(db, tg_id=user.tg_id)
+#         if user:
 #             raise HTTPException(status_code=400, detail="User already registered")
 #
 #         # Собираем сообщение для Kafka
@@ -105,8 +106,8 @@ user_route = APIRouter()
 
 # @user_route.post('/user')
 # async def register_send(user: UserCreate, db: AsyncSession = Depends(get_db)):
-#     db_user = await get_user(db, tg_id=user.tg_id)
-#     if db_user:
+#     user = await get_user(db, tg_id=user.tg_id)
+#     if user:
 #         raise HTTPException(status_code=400, detail="User already registered")
 #
 #     message = {
@@ -216,12 +217,12 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=400, detail="User ID is required")
 
     # Пытаемся найти пользователя по tg_id
-    db_user = await get_user(db, tg_id)
+    user = await get_user(db, tg_id)
 
-    if db_user:
+    if user:
         # Пользователь найден, выполняем вход
         current_time = datetime.utcnow()
-        last_login = db_user.last_login or current_time
+        last_login = user.last_login or current_time
         time_diff = current_time - last_login
 
         hours_passed = min(time_diff.total_seconds() / 3600, 3)
@@ -238,8 +239,8 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
 
         total_income = total_hourly_income * hours_passed
 
-        db_user.money += total_income
-        db_user.last_login = current_time
+        user.money += total_income
+        user.last_login = current_time
 
         user_boost = await get_user_boost(db, tg_id)
         if user_boost:
@@ -277,24 +278,24 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             next_boost_data = None
 
         await db.commit()
-        await db.refresh(db_user)
-        next_level = await update_user_level(db, db_user)
+        await db.refresh(user)
+        next_level = await update_user_level(db, user)
 
         next_level_data = {
             "lvl": next_level.lvl if next_level else None,
             "required_money": next_level.required_money if next_level else None,
             "taps_for_level": next_level.taps_for_level if next_level else None,
-            "money_to_get_the_next_boost": next_level.required_money - db_user.money if next_level and next_level.required_money else None
+            "money_to_get_the_next_boost": next_level.required_money - user.money if next_level and next_level.required_money else None
         } if next_level else {}
 
         user_data = {
-            "tg_id": db_user.tg_id,
-            "username": db_user.username,
-            "fio": db_user.fio,
-            "last_login": db_user.last_login,
-            "money": db_user.money,
-            "user_lvl": db_user.lvl,
-            "taps_for_level": db_user.taps_for_level,
+            "tg_id": user.tg_id,
+            "username": user.username,
+            "fio": user.fio,
+            "last_login": user.last_login,
+            "money": user.money,
+            "user_lvl": user.lvl,
+            "taps_for_level": user.taps_for_level,
             "earnings_per_hour": total_hourly_income,
             "total_income": total_income,
             "boost": boost_data,
@@ -394,19 +395,11 @@ async def create_upgrade(boost_create: BoostCreateSchema,
 
 @user_route.post('/upgrade-boost')
 async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
-    try:
-        decoded_data = json.loads(initData)
-        data = decoded_data
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-
-    tg_id = data.get("id")
-    if not tg_id:
-        raise HTTPException(status_code=400, detail="User ID is required")
-
-    user = await get_user(db, tg_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    """
+    Улучшаем буст
+    """
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
     user_boost = await get_user_boost(db, user.tg_id)
     if not user_boost:
@@ -450,14 +443,13 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
     return response
 
 
-@user_route.get("/next-upgrade/{user_id}")
-async def get_next_upgrade_func(user_id: int = Path(..., description="user id"),
+@user_route.get("/next-upgrade")
+async def get_next_upgrade_func(initData: str = Header(...),
                                   db: AsyncSession = Depends(get_db)) -> BoostCreateSchema:
-    user = await get_user(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
-    user_boost = await get_user_boost(db, user_id)
+    user_boost = await get_user_boost(db, user.tg_id)
 
     if not user_boost:
         raise HTTPException(status_code=404, detail="User boost not found")
@@ -479,22 +471,10 @@ async def get_next_upgrade_func(user_id: int = Path(..., description="user id"),
 @user_route.post('/claim-daily-reward', response_model=DailyRewardResponse)
 async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     """
-        Получаем дневную награду
-        """
-    try:
-        decoded_data = json.loads(initData)
-
-        data = decoded_data
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-
-    user_id = data.get("id")
-    if not user_id:
-        raise HTTPException(status_code=400, detail="User ID is required")
-
-    user = await get_user(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    Получаем дневную награду
+    """
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
     current_time = datetime.utcnow()
     received_last_daily_reward = user.received_last_daily_reward or current_time
@@ -564,22 +544,11 @@ async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = D
     """
     Получаем все дневные награды
     """
-    try:
-        decoded_data = json.loads(initData)
-        data = decoded_data
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
-    tg_id = data.get("id")
-    if not tg_id:
-        raise HTTPException(status_code=400, detail="User ID is required")
-
-    db_user = await get_user(db, tg_id)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    last_received = db_user.received_last_daily_reward
-    days_in_row = db_user.days_in_row
+    last_received = user.received_last_daily_reward
+    days_in_row = user.days_in_row
 
     # Получаем текущую дату
     today = datetime.utcnow()
@@ -604,46 +573,16 @@ async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = D
         "is_collect": is_collect
     }
 
-    # daily_rewards = await get_daily_reward_all(db)
-    # if not daily_rewards:
-    #     raise HTTPException(status_code=404, detail="User not found")
-    #
-    # daily_tasks = {"rewards": []}
-    #
-    # for daily_reward in daily_rewards:
-    #     daily_tasks["rewards"].append(
-    #         {
-    #             "day": daily_reward.day,
-    #             "reward": daily_reward.reward,
-    #             "is_collect": True if db_user.days_in_row >= daily_reward.day else False
-    #         }
-    #     )
-    # daily_tasks["user_days_in_row"] = db_user.days_in_row
-    #
-    # return daily_tasks
-
 
 @user_route.get('/get-referral-link')
 async def get_referral_link_api(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     """
     Получаем реферальную ссылку
     """
-    try:
-        decoded_data = json.loads(initData)
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
-        data = decoded_data
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-
-    tg_id = data.get("id")
-    if not tg_id:
-        raise HTTPException(status_code=400, detail="User ID is required")
-
-    db_user = await get_user(db, tg_id)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    referral_link = f"https://t.me/KingCoin_ebot?start=ref_{tg_id}"
+    referral_link = f"https://t.me/KingCoin_ebot?start=ref_{user.tg_id}"
     return {"referral_link": referral_link}
 
 
@@ -654,20 +593,8 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     """
     Получаем результаты игры
     """
-    try:
-        decoded_data = json.loads(initData)
-
-        data = decoded_data
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-
-    tg_id = data.get("id")
-    if not tg_id:
-        raise HTTPException(status_code=400, detail="User ID is required")
-
-    db_user = await get_user(db, tg_id)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
     # В будущем тут будет шифрование
 
@@ -676,8 +603,8 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     # }
     earned_coins = int(encrypted_information.encrypted_information)
 
-    db_user.money += earned_coins
+    user.money += earned_coins
     await db.commit()
-    await db.refresh(db_user)
+    await db.refresh(user)
 
-    return {"money_added": earned_coins, "users_money": db_user.money}
+    return {"money_added": earned_coins, "users_money": user.money}

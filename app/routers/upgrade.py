@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path, UploadFile, 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.added_funcs import decode_init_data
 from app.cruds.upgrade import get_upgrade_category_by_name, create_upgrade_category, get_upgrade_category_by_id, \
     get_upgrade_by_name, add_upgrade, get_upgrade_by_id, get_all_upgrades_in_shop, get_all_upgrades, \
     get_all_upgrade_category, get_upgrade_level, add_upgrade_level, get_user_upgrades_by_upgrade_id, add_bought_upgrade, \
@@ -25,9 +26,6 @@ async def create_upgrade_category_func(upgrade_category_create: UpgradeCategoryB
                                        db: AsyncSession = Depends(get_db)) -> UpgradeCategoryBaseSchemaWithId:
     """
     Добавление категории, в которой хранятся апгрейды (Crypto, например) в БД
-    :param upgrade_category_create:
-    :param db:
-    :return:
     """
     user_data = {
         "category": upgrade_category_create.category
@@ -49,22 +47,9 @@ async def get_upgrade_category_all(initData: str = Header(...),
                                    db: AsyncSession = Depends(get_db)) -> list[UpgradeCategorySchema]:
     """
     Все категории со всеми карточками для конкретного пользователя
-    :param initData:
-    :param db:
-    :return:
     """
-    try:
-        data = json.loads(initData)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-
-    tg_id = data.get("id")
-    if not tg_id:
-        raise HTTPException(status_code=400, detail="User ID is required")
-
-    user = await get_user(db, tg_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
     all_upgrade_categories = await get_all_upgrade_category(db)
     if not all_upgrade_categories:
@@ -74,7 +59,9 @@ async def get_upgrade_category_all(initData: str = Header(...),
     for upgrade_category_inc in all_upgrade_categories:
 
         upgrade_category = await get_upgrade_category_by_id(db, upgrade_category_id=upgrade_category_inc.id)
-        user_upgrades_in_this_category = await get_user_upgrades_in_this_category(tg_id, upgrade_category_inc.id, db)
+        user_upgrades_in_this_category = await get_user_upgrades_in_this_category(user.tg_id,
+                                                                                  upgrade_category_inc.id,
+                                                                                  db)
         user_upgrades_dict = {upgrade.upgrade_id: upgrade for upgrade in user_upgrades_in_this_category}
 
         filtered_upgrades = []
@@ -114,120 +101,67 @@ async def get_upgrade_category_all(initData: str = Header(...),
 
         print('🤑🤑', i.__dict__)
     return all_categories_with_upgrades
-    # upgrade_categories_all = await get_upgrade_category_all_func(db)
-
-    #
-    # user_upgrades_in_all_categories = await get_user_upgrades_in_all_categories(tg_id, db)
-    # print('😺', user_upgrades_in_all_categories[0].__dict__)
-    # print('🤡', upgrade_categories_all)
-    # print('😻', upgrade_categories_all[0].__dict__)
-    #
-    # user_upgrades_dict = {upgrade.upgrade_id: upgrade for upgrade in user_upgrades_in_all_categories}
-    # print('👨', user_upgrades_dict)
-    #
-    # filtered_upgrades = []
-    # for upgrade_category in upgrade_categories_all:
-    #     for upgrade in upgrade_category.upgrades:
-    #         if not upgrade.is_in_shop:
-    #             continue
-    #
-    #         current_level = user_upgrades_dict.get(upgrade.id, None)
-    #         if current_level:
-    #             upgrade.lvl = current_level.lvl
-    #             upgrade.is_bought = True
-    #         else:
-    #             upgrade.lvl = 0
-    #             upgrade.is_bought = False
-    #
-    #         print('😈', upgrade.__dict__)
-    #         next_upgrade_level = await db.execute(
-    #             select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl + 1)
-    #         )
-    #         next_upgrade_level = next_upgrade_level.scalars().first()
-    #         print('🥶', next_upgrade_level.__dict__)
-    #         #
-    #         # current_upgrade_level = await db.execute(
-    #         #     select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl)
-    #         # )
-    #         # current_upgrade_level = current_upgrade_level.scalars().first()
-    #         # upgrade.factor = current_upgrade_level.factor if current_upgrade_level else None
-    #         # upgrade.factor_at_new_lvl = next_upgrade_level.factor if next_upgrade_level else None
-    #         #
-    #         # upgrade.price_of_next_lvl = next_upgrade_level.price if next_upgrade_level else None
-    #         #
-    #         # filtered_upgrades.append(upgrade)
-    #
-    #     upgrade_category.upgrades = filtered_upgrades
-    #
-    # return upgrade_categories_all
 
 
-    # print('👽', upgrade_categories_all)
-
-    # if not upgrade_categories:
-    #     raise HTTPException(status_code=404, detail="upgrades categories not found")
-    # return upgrade_categories
-
-
-@upgrade_route.get('/upgrade-category/{identifier}/{user_id}')
-async def get_upgrade_category(identifier: str = Path(..., description="Upgrade category id or name"),
-                               user_id: int = Path(..., description="user id"),
-                               db: AsyncSession = Depends(get_db)) -> UpgradeCategorySchema:
-    """
-    Все карточки одной выбранной категории для конкретного прользователя
-    :param identifier:
-    :param user_id:
-    :param db:
-    :return:
-    """
-    user = await get_user_bool(db=db, tg_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if identifier.isdigit():
-        upgrade_category = await get_upgrade_category_by_id(db, upgrade_category_id=int(identifier))
-    else:
-        upgrade_category = await get_upgrade_category_by_name(db, upgrade_category_name=identifier)
-
-    if not upgrade_category:
-        raise HTTPException(status_code=404, detail="Upgrade category not found")
-
-    user_upgrades_in_this_category = await get_user_upgrades_in_this_category(user_id, upgrade_category.id, db)
-
-    user_upgrades_dict = {upgrade.upgrade_id: upgrade for upgrade in user_upgrades_in_this_category}
-
-    filtered_upgrades = []
-    for upgrade in upgrade_category.upgrades:
-        if not upgrade.is_in_shop:
-            continue
-
-        current_level = user_upgrades_dict.get(upgrade.id, None)
-        if current_level:
-            upgrade.lvl = current_level.lvl
-            upgrade.is_bought = True
-        else:
-            upgrade.lvl = 0
-            upgrade.is_bought = False
-
-        next_upgrade_level = await db.execute(
-            select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl + 1)
-        )
-        next_upgrade_level = next_upgrade_level.scalars().first()
-
-        current_upgrade_level = await db.execute(
-            select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl)
-        )
-        current_upgrade_level = current_upgrade_level.scalars().first()
-        upgrade.factor = current_upgrade_level.factor if current_upgrade_level else None
-        upgrade.factor_at_new_lvl = next_upgrade_level.factor if next_upgrade_level else None
-
-        upgrade.price_of_next_lvl = next_upgrade_level.price if next_upgrade_level else None
-
-        filtered_upgrades.append(upgrade)
-
-    upgrade_category.upgrades = filtered_upgrades
-
-    return upgrade_category
+# @upgrade_route.get('/upgrade-category/{identifier}/{user_id}')
+# async def get_upgrade_category(identifier: str = Path(..., description="Upgrade category id or name"),
+#                                user_id: int = Path(..., description="user id"),
+#                                db: AsyncSession = Depends(get_db)) -> UpgradeCategorySchema:
+#     """
+#     Все карточки одной выбранной категории для конкретного прользователя
+#     :param identifier:
+#     :param user_id:
+#     :param db:
+#     :return:
+#     """
+#     user = await get_user_bool(db=db, tg_id=user_id)
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+#
+#     if identifier.isdigit():
+#         upgrade_category = await get_upgrade_category_by_id(db, upgrade_category_id=int(identifier))
+#     else:
+#         upgrade_category = await get_upgrade_category_by_name(db, upgrade_category_name=identifier)
+#
+#     if not upgrade_category:
+#         raise HTTPException(status_code=404, detail="Upgrade category not found")
+#
+#     user_upgrades_in_this_category = await get_user_upgrades_in_this_category(user_id, upgrade_category.id, db)
+#
+#     user_upgrades_dict = {upgrade.upgrade_id: upgrade for upgrade in user_upgrades_in_this_category}
+#
+#     filtered_upgrades = []
+#     for upgrade in upgrade_category.upgrades:
+#         if not upgrade.is_in_shop:
+#             continue
+#
+#         current_level = user_upgrades_dict.get(upgrade.id, None)
+#         if current_level:
+#             upgrade.lvl = current_level.lvl
+#             upgrade.is_bought = True
+#         else:
+#             upgrade.lvl = 0
+#             upgrade.is_bought = False
+#
+#         next_upgrade_level = await db.execute(
+#             select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl + 1)
+#         )
+#         next_upgrade_level = next_upgrade_level.scalars().first()
+#
+#         current_upgrade_level = await db.execute(
+#             select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl)
+#         )
+#         current_upgrade_level = current_upgrade_level.scalars().first()
+#         upgrade.factor = current_upgrade_level.factor if current_upgrade_level else None
+#         upgrade.factor_at_new_lvl = next_upgrade_level.factor if next_upgrade_level else None
+#
+#         upgrade.price_of_next_lvl = next_upgrade_level.price if next_upgrade_level else None
+#
+#         filtered_upgrades.append(upgrade)
+#
+#     upgrade_category.upgrades = filtered_upgrades
+#
+#     return upgrade_category
 
 
 @upgrade_route.post('/upgrade')
@@ -441,9 +375,6 @@ async def create_daily_combo(daily_combo_create: CreateDailyComboSchema,
     """
     Создание дневного комбо. Комбо не обязательно работает один день, просто подразумевается, что менять его будут
     раз в день) Вносим сюда 3 разных апгрейда и награду
-    :param daily_combo_create:
-    :param db:
-    :return:
     """
 
     user_data = {
@@ -462,24 +393,15 @@ async def get_user_combo_progress(initData: str = Header(...),
     """
     Получение информации о текущем состоянии дневного комбо конкретного пользователя
     """
-    try:
-        decoded_data = json.loads(initData)
-        data = decoded_data
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-
-    user_id = data.get("id")
-
-    user = await get_user_bool(db=db, tg_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
     latest_combo = await get_latest_user_combo(db)
 
     if not latest_combo:
         raise HTTPException(status_code=404, detail="Daily combo not found")
 
-    user_combo = await get_user_combo(db, user_id, latest_combo)
+    user_combo = await get_user_combo(db, user.tg_id, latest_combo)
 
     if not user_combo:
         raise HTTPException(status_code=200, detail="User didn't buy any cards from combo today")
@@ -498,7 +420,7 @@ async def get_user_combo_progress(initData: str = Header(...),
     )
 
     return UserDailyComboSchema(
-        user_id=user_id,
+        user_id=user.tg_id,
         combo_id=latest_combo.id,
         upgrade_1=UpgradeInfoSchema(
             is_bought=user_combo.upgrade_1_bought,
@@ -527,10 +449,6 @@ async def get_user_combo_progress(initData: str = Header(...),
 async def upload_image(upgrade_id: int, file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
     """
     Добавление изображения к апгрейдам
-    :param upgrade_id:
-    :param file:
-    :param db:
-    :return:
     """
     # Проверка, существует ли апгрейд
     upgrade = await db.get(Upgrades, upgrade_id)

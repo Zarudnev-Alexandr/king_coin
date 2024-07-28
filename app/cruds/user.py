@@ -26,14 +26,14 @@ async def create_user(db: AsyncSession, **kwargs):
     user_data['received_last_daily_reward'] = datetime.datetime.now() - datetime.timedelta(days=1)
 
     # Создаем пользователя
-    db_user = models.User(**user_data)
-    db.add(db_user)
+    user = models.User(**user_data)
+    db.add(user)
     await db.commit()
-    await db.refresh(db_user)
+    await db.refresh(user)
 
     # Создаем объект UserBoost для нового пользователя
     user_boost_data = {
-        "user_id": db_user.tg_id,
+        "user_id": user.tg_id,
         "boost_id": 0
     }
     user_boost = UserBoost(**user_boost_data)
