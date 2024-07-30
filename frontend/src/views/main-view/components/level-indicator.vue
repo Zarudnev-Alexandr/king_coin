@@ -5,6 +5,10 @@ import {computed} from "vue";
 const {user} = useUserStore();
 
 const percent = computed(() => {
+  if (!user?.next_level_data.next_lvl) {
+    return 100;
+  }
+
   if (user === null || user.next_level_data.required_money === 0) {
     return 0;
   }
