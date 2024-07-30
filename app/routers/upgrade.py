@@ -17,6 +17,7 @@ from app.schemas import UpgradeCategorySchema, CreateUpgradeSchema, UpgradeSchem
     UpgradeLevelSchema, UpgradeWithLevelsSchema, UserUpgradeCreateSchema, UserUpgradeSchema, CreateDailyComboSchema, \
     DailyComboSchema, UserDailyComboSchema, UpgradeCategoryBaseSchema, \
     UpgradeCategoryBaseSchemaWithId, ImageUploadResponse, UpgradeInfoSchema
+from app.websockets.settings import ws_manager
 
 upgrade_route = APIRouter()
 
@@ -100,75 +101,11 @@ async def get_upgrade_category_all(initData: str = Header(...),
     return all_categories_with_upgrades
 
 
-# @upgrade_route.get('/upgrade-category/{identifier}/{user_id}')
-# async def get_upgrade_category(identifier: str = Path(..., description="Upgrade category id or name"),
-#                                user_id: int = Path(..., description="user id"),
-#                                db: AsyncSession = Depends(get_db)) -> UpgradeCategorySchema:
-#     """
-#     Все карточки одной выбранной категории для конкретного прользователя
-#     :param identifier:
-#     :param user_id:
-#     :param db:
-#     :return:
-#     """
-#     user = await get_user_bool(db=db, tg_id=user_id)
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
-#
-#     if identifier.isdigit():
-#         upgrade_category = await get_upgrade_category_by_id(db, upgrade_category_id=int(identifier))
-#     else:
-#         upgrade_category = await get_upgrade_category_by_name(db, upgrade_category_name=identifier)
-#
-#     if not upgrade_category:
-#         raise HTTPException(status_code=404, detail="Upgrade category not found")
-#
-#     user_upgrades_in_this_category = await get_user_upgrades_in_this_category(user_id, upgrade_category.id, db)
-#
-#     user_upgrades_dict = {upgrade.upgrade_id: upgrade for upgrade in user_upgrades_in_this_category}
-#
-#     filtered_upgrades = []
-#     for upgrade in upgrade_category.upgrades:
-#         if not upgrade.is_in_shop:
-#             continue
-#
-#         current_level = user_upgrades_dict.get(upgrade.id, None)
-#         if current_level:
-#             upgrade.lvl = current_level.lvl
-#             upgrade.is_bought = True
-#         else:
-#             upgrade.lvl = 0
-#             upgrade.is_bought = False
-#
-#         next_upgrade_level = await db.execute(
-#             select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl + 1)
-#         )
-#         next_upgrade_level = next_upgrade_level.scalars().first()
-#
-#         current_upgrade_level = await db.execute(
-#             select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl)
-#         )
-#         current_upgrade_level = current_upgrade_level.scalars().first()
-#         upgrade.factor = current_upgrade_level.factor if current_upgrade_level else None
-#         upgrade.factor_at_new_lvl = next_upgrade_level.factor if next_upgrade_level else None
-#
-#         upgrade.price_of_next_lvl = next_upgrade_level.price if next_upgrade_level else None
-#
-#         filtered_upgrades.append(upgrade)
-#
-#     upgrade_category.upgrades = filtered_upgrades
-#
-#     return upgrade_category
-
-
 @upgrade_route.post('/upgrade')
 async def create_upgrade(upgrade_create: CreateUpgradeSchema,
                          db: AsyncSession = Depends(get_db)) -> UpgradeSchema:
     """
     Добавление апгрейда в БД
-    :param upgrade_create:
-    :param db:
-    :return:
     """
     user_data = {
         "name": upgrade_create.name,
@@ -190,42 +127,11 @@ async def create_upgrade(upgrade_create: CreateUpgradeSchema,
         raise HTTPException(status_code=400, detail="failed to create upgrade")
 
 
-# @upgrade_route.get('/upgrade/all')
-# async def get_upgrade_category_all(category_id: int = Query(default=None),
-#                                    is_in_shop: bool = Query(default=False),
-#                                    db: AsyncSession = Depends(get_db)) -> list[UpgradeSchema]:
-#     if is_in_shop:
-#         upgrades = await get_all_upgrades_in_shop(category_id, db)
-#     else:
-#         upgrades = await get_all_upgrades(category_id, db)
-#
-#     if not upgrades:
-#         raise HTTPException(status_code=404, detail="upgrades not found")
-#     return upgrades
-
-
-# @upgrade_route.get('/upgrade/{identifier}')
-# async def get_upgrade_category(identifier: str = Path(..., description="Upgrade id or name"),
-#                                db: AsyncSession = Depends(get_db)) -> UpgradeWithLevelsSchema:
-#     if identifier.isdigit():
-#         upgrade = await get_upgrade_by_id(db, upgrade_id=int(identifier))
-#     else:
-#         upgrade = await get_upgrade_by_name(db, upgrade_name=identifier)
-#
-#     if upgrade:
-#         return upgrade
-#     else:
-#         raise HTTPException(status_code=404, detail="Upgrade not found")
-
-
 @upgrade_route.post('/upgrade-level')
 async def create_upgrade(upgrade_level_create: UpgradeLevelSchema,
                          db: AsyncSession = Depends(get_db)) -> UpgradeLevelSchema:
     """
     Добавление уровней для апгрейдов в БД
-    :param upgrade_level_create:
-    :param db:
-    :return:
     """
     user_data = {
         "upgrade_id": upgrade_level_create.upgrade_id,
@@ -260,9 +166,6 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     """
     Покупка апгрейда пользователем. Если апгрейд вообще не куплен, то выдается 1 уровень, если первый уровень есть,
     то просто идет прокачка
-    :param user_upgrade_create:
-    :param db:
-    :return:
     """
     user_id = user_upgrade_create.user_id
     upgrade_id = user_upgrade_create.upgrade_id
@@ -363,6 +266,27 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
         "combo_status": combo_status if latest_combo else {}  # Only include combo_status if there's a combo
     }
 
+    await ws_manager.notify_user(user.tg_id, {
+        "event": "buy_upgrade",
+        "data": {
+            "user_remaining_money": user.money,
+            "upgrade_id": upgrade.id,
+            "current_lvl": current_upgrade_level.lvl if current_upgrade_level else None,
+            "current_factor": current_upgrade_level.factor if current_upgrade_level else None,
+            "factor_at_new_lvl": next_upgrade_level.factor if next_upgrade_level else None,
+            "price_of_next_lvl": next_upgrade_level.price if next_upgrade_level else None,
+            "next_lvl": next_upgrade_level.lvl if next_upgrade_level else None,
+            "combo_status": {
+                "new_combo_created": combo_status["new_combo_created"],
+                "upgrade_1_purchased": combo_status["upgrade_1_purchased"],
+                "upgrade_2_purchased": combo_status["upgrade_2_purchased"],
+                "upgrade_3_purchased": combo_status["upgrade_3_purchased"],
+                "combo_completed": combo_status["combo_completed"],
+                "reward_claimed": combo_status["reward_claimed"]
+            } if latest_combo else {}
+        }
+    })
+
     return return_data
 
 
@@ -403,10 +327,23 @@ async def get_user_combo_progress(initData: str = Header(...),
     if not user_combo:
         raise HTTPException(status_code=200, detail="User didn't buy any cards from combo today")
 
-    # Get upgrade info with image URLs
-    upgrade_1 = await get_upgrade_by_id(db, latest_combo.upgrade_1_id)
-    upgrade_2 = await get_upgrade_by_id(db, latest_combo.upgrade_2_id)
-    upgrade_3 = await get_upgrade_by_id(db, latest_combo.upgrade_3_id)
+    # Функция для получения данных об улучшении или None
+    async def get_upgrade_info(upgrade_id, is_bought):
+        if is_bought:
+            upgrade = await get_upgrade_by_id(db, upgrade_id)
+            return UpgradeInfoSchema(
+                is_bought=is_bought,
+                image_url=upgrade.image_url if upgrade else None,
+                name=upgrade.name if upgrade else None,
+                id=upgrade.id if upgrade else None
+            )
+        else:
+            return UpgradeInfoSchema(is_bought=is_bought)
+
+    # Получение информации об улучшениях
+    upgrade_1_info = await get_upgrade_info(latest_combo.upgrade_1_id, user_combo.upgrade_1_bought)
+    upgrade_2_info = await get_upgrade_info(latest_combo.upgrade_2_id, user_combo.upgrade_2_bought)
+    upgrade_3_info = await get_upgrade_info(latest_combo.upgrade_3_id, user_combo.upgrade_3_bought)
 
     combo_data = DailyComboSchema(
         id=latest_combo.id,
@@ -419,24 +356,9 @@ async def get_user_combo_progress(initData: str = Header(...),
     return UserDailyComboSchema(
         user_id=user.tg_id,
         combo_id=latest_combo.id,
-        upgrade_1=UpgradeInfoSchema(
-            is_bought=user_combo.upgrade_1_bought,
-            image_url=upgrade_1.image_url if upgrade_1 else None,
-            name=upgrade_1.name if upgrade_1 else None,
-            id=upgrade_1.id if upgrade_1 else None
-        ),
-        upgrade_2=UpgradeInfoSchema(
-            is_bought=user_combo.upgrade_2_bought,
-            image_url=upgrade_2.image_url if upgrade_2 else None,
-            name=upgrade_2.name if upgrade_2 else None,
-            id=upgrade_2.id if upgrade_2 else None
-        ),
-        upgrade_3=UpgradeInfoSchema(
-            is_bought=user_combo.upgrade_3_bought,
-            image_url=upgrade_3.image_url if upgrade_3 else None,
-            name=upgrade_3.name if upgrade_3 else None,
-            id=upgrade_3.id if upgrade_3 else None
-        ),
+        upgrade_1=upgrade_1_info,
+        upgrade_2=upgrade_2_info,
+        upgrade_3=upgrade_3_info,
         reward_claimed=user_combo.reward_claimed,
         combo=combo_data
     )

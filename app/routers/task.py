@@ -11,6 +11,7 @@ from app.cruds.user import get_user
 from app.database import get_db
 from app.models import TaskType
 from app.schemas import TaskCreateSchema, TaskBaseSchema, TaskResponseSchema
+from app.websockets.settings import ws_manager
 
 task_route = APIRouter()
 
@@ -96,6 +97,9 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
 
     await db.refresh(user)
     await db.refresh(task)
+    await ws_manager.notify_user(user.tg_id, {"event": "complete_task", "data": {"money_received": task.reward,
+                                                                                 "users_money": user.money,
+                                                                                 "task_name": task.name}})
     return {"status": "Task checked and updated",
             "money_received": task.reward,
             "current_user_money": user.money}

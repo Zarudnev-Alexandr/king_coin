@@ -282,6 +282,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
         await db.commit()
         await db.refresh(user)
         next_level = await update_user_level(db, user)
+        await db.refresh(next_level)
 
         next_level_data = {
             "lvl": next_level.lvl if next_level else None,
@@ -451,8 +452,27 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
         "boost_at_max_level": next_boost_after_bought is None
     }
 
-    return response
+    await ws_manager.notify_user(user.tg_id, {"event": "upgrade_boost", "data": {"lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
+                                                                                 "price":
+                                                                                     next_boost_after_bought.price if next_boost_after_bought else None,
+                                                                                 "tap_boost":
+                                                                                     next_boost_after_bought.tap_boost if next_boost_after_bought else None,
+                                                                                 "one_tap":
+                                                                                     next_boost_after_bought.one_tap if next_boost_after_bought else None,
+                                                                                 "pillars_10":
+                                                                                     next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
+                                                                                 "pillars_30":
+                                                                                     next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
+                                                                                 "pillars_100":
+                                                                                     next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
+                                                                                 "user_id": user_boost.user_id,
+                                                                                 "boost_id": user_boost.boost_id,
+                                                                                 "user_money": user.money,
+                                                                                 "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
+                                                                                 "boost_at_max_level": next_boost_after_bought is None
+                                                                                 }})
 
+    return response
 
 
 @user_route.get("/next-upgrade")
@@ -523,6 +543,10 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
     await db.commit()
     await db.refresh(user)
     await db.refresh(daily_reward)
+
+    await ws_manager.notify_user(user.tg_id, {"event": "claim_daily_reward", "data": {"day": daily_reward.day,
+                                                                                      "reward": daily_reward.reward,
+                                                                                      "users_money": user.money}})
 
     return DailyRewardResponse(
         day=daily_reward.day,
@@ -620,7 +644,8 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     await db.refresh(user)
 
     # Отправка уведомления через WebSocket
-    await ws_manager.notify_user(user.tg_id, {"event": "game_result", "money_added": earned_coins, "users_money": user.money})
+    await ws_manager.notify_user(user.tg_id, {"event": "game_result", "data": {"money_added": earned_coins,
+                                                                               "users_money": user.money}})
 
     return {"money_added": earned_coins, "users_money": user.money}
 
