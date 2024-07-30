@@ -91,6 +91,8 @@ async def update_user_level(db: AsyncSession, user):
 async def get_next_boost(db: AsyncSession, current_lvl: int):
     next_boost = await db.execute(select(Boost).where(Boost.lvl == current_lvl + 1))
     next_boost = next_boost.scalars().first()
+    # if next_boost:
+    #     await db.refresh(next_boost)  # Обновляем объект из базы данных
     return next_boost
 
 
@@ -109,6 +111,7 @@ async def upgrade_user_boost(db, user_boost, user, next_boost):
     user.money -= next_boost.price
 
     await db.commit()
+    await db.refresh(user_boost)
     return user_boost
 
 

@@ -22,9 +22,10 @@
     <p>Money: <span id="money">0</span></p>
 
     <script>
-        const userId = 53;  // ID юзера
+        const userId = 52;  // ID юзера
         document.getElementById("user-id").innerText = userId;
 
+        // const ws = new WebSocket(`wss://king-coin.online/api/ws/${userId}`);
         const ws = new WebSocket(`ws://localhost:8000/api/ws/${userId}`);
 
         ws.onopen = () => {
