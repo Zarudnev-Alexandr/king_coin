@@ -57,6 +57,9 @@ async def complete_user_task(db: AsyncSession, user: User, task: Task, user_task
     if not user_task:
         user_task = await create_user_task(db, task.id, user.tg_id)
 
+    await db.refresh(user)
+    await db.refresh(task)
+
     user.money += task.reward
     user_task.completed = True
     user_task.completion_date = func.now()
