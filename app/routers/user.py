@@ -18,6 +18,7 @@ from ..database import get_db
 from ..models import DailyReward
 from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
     InitDataSchema, GameResultsSchema
+from ..websockets.settings import ws_manager
 
 user_route = APIRouter()
 
@@ -412,17 +413,25 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
 
     next_boost = await get_next_boost(db, current_boost.lvl)
     if not next_boost:
-        next_boost = None
+        # Если следующего буста нет, возвращаем текущий статус с флагом "буст на максимальном уровне"
+        response = {
+            "user_id": user_boost.user_id,
+            "boost_id": user_boost.boost_id,
+            "user_money": user.money,
+            "next_boost": None,
+            "boost_at_max_level": True
+        }
+        return response
 
-    if user.money < (next_boost.price if next_boost else float('inf')):
+    if user.money < next_boost.price:
         raise HTTPException(status_code=400, detail="Not enough money to upgrade boost")
 
     new_user_boost = await upgrade_user_boost(db, user_boost, user, next_boost)
     if not new_user_boost:
-        raise HTTPException(status_code=500, detail="failed to improve boost")
+        raise HTTPException(status_code=500, detail="Failed to improve boost")
 
     # Получаем следующий уровень буста после обновления
-    next_boost_after_bought = await get_next_boost(db, next_boost.lvl if next_boost else current_boost.lvl)
+    next_boost_after_bought = await get_next_boost(db, next_boost.lvl)
 
     next_boost_after_bought_dict = {
         "lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
@@ -438,10 +447,12 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
         "user_id": user_boost.user_id,
         "boost_id": user_boost.boost_id,
         "user_money": user.money,
-        "next_boost": next_boost_after_bought_dict
+        "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
+        "boost_at_max_level": next_boost_after_bought is None
     }
 
     return response
+
 
 
 @user_route.get("/next-upgrade")
@@ -607,6 +618,9 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     user.money += earned_coins
     await db.commit()
     await db.refresh(user)
+
+    # Отправка уведомления через WebSocket
+    await ws_manager.notify_user(user.tg_id, {"event": "game_result", "money_added": earned_coins, "users_money": user.money})
 
     return {"money_added": earned_coins, "users_money": user.money}
 

@@ -1,39 +1,33 @@
+import asyncio
+
 from fastapi import WebSocket
 
 
 class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[int, WebSocket] = {}
+        self.tasks: dict[int, asyncio.Task] = {}
 
     async def connect(self, user_id: int, websocket: WebSocket):
-        # Если уже есть активное соединение, закрываем его
-        if user_id in self.active_connections:
-            await self.disconnect(user_id)
+        # Закрыть существующее соединение, если оно уже есть
+        if existing_websocket := self.active_connections.get(user_id):
+            await existing_websocket.close()
+
         await websocket.accept()
         self.active_connections[user_id] = websocket
 
-    async def disconnect(self, user_id: int):
-        websocket = self.active_connections.pop(user_id, None)
-        if websocket:
-            try:
-                await websocket.close()
-            except Exception as e:
-                print(f"Error closing websocket: {e}")
+    def disconnect(self, user_id: int):
+        # Отменить существующую задачу, если она есть
+        if task := self.tasks.pop(user_id, None):
+            task.cancel()
+        self.active_connections.pop(user_id, None)
 
     async def send_message(self, message: dict, user_id: int):
-        if user_id in self.active_connections:
-            websocket = self.active_connections[user_id]
-            try:
-                await websocket.send_json(message)
-            except RuntimeError as e:
-                # Обработка исключения при попытке отправить данные через закрытое соединение
-                print(f"Error sending message: {e}")
-                await self.disconnect(user_id)
+        if websocket := self.active_connections.get(user_id):
+            await websocket.send_json(message)
 
-    async def receive_message(self, user_id: int):
-        if user_id in self.active_connections:
-            websocket = self.active_connections[user_id]
-            return await websocket.receive_json()
+    async def notify_user(self, user_id: int, message: dict):
+        await self.send_message(message, user_id)
 
 
 ws_manager = ConnectionManager()
