@@ -33,6 +33,11 @@ const router = createRouter(
         path: '/rating',
         name: 'Rating',
         component: () => import('@/views/rating-view/RatingView.vue')
+      },
+      {
+        path: '/levels',
+        name: 'Levels',
+        component: () => import('@/views/levels-view/levels-view.vue')
       }
     ]
   }

@@ -79,7 +79,6 @@ const getTextMysteryBox = () => {
     return;
   }
 
-
   if (gameStore.mysteryBox! === MysteryBoxType['5X'] || gameStore.mysteryBox! === MysteryBoxType['10X']) {
     return 'Прибыль';
   } else if (gameStore.mysteryBox === MysteryBoxType['100COIN']) {

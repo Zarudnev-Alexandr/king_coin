@@ -12,6 +12,7 @@ const images: Ref<{ url: string, name: string }[]> = ref([]);
 
 onMounted(async () => {
   if (improvementsStore.combo) {
+    updateImages();
     return;
   }
 
@@ -22,24 +23,35 @@ onMounted(async () => {
 })
 
 
-watch(() => improvementsStore.combo, (newReward) => {
+watch(() => improvementsStore.combo, (newReward, _) => {
   if (!newReward) {
-    images.value.length = 0;
+    images.value = [];
     return
   }
 
-  if (newReward?.upgrade_1.is_bought) {
-    images.value.push({url: newReward.upgrade_1.image_url!, name: newReward.upgrade_1.name})
+  updateImages();
+}, {deep: true});
+
+const updateImages = () => {
+  if (!improvementsStore.combo) {
+    return;
   }
 
-  if (newReward?.upgrade_2.is_bought) {
-    images.value.push({url: newReward.upgrade_2.image_url!, name: newReward.upgrade_2.name})
+  let imgTemp = []
+
+  if (improvementsStore.combo?.upgrade_1.is_bought) {
+    imgTemp.push({url: improvementsStore.combo.upgrade_1.image_url!, name: improvementsStore.combo.upgrade_1.name})
   }
 
-  if (newReward?.upgrade_3.is_bought) {
-    images.value.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
+  if (improvementsStore.combo?.upgrade_2.is_bought) {
+    imgTemp.push({url: improvementsStore.combo.upgrade_2.image_url!, name: improvementsStore.combo.upgrade_2.name})
   }
-});
+
+  if (improvementsStore.combo?.upgrade_3.is_bought) {
+    imgTemp.push({url: improvementsStore.combo.upgrade_3.image_url!, name: improvementsStore.combo.upgrade_3.name})
+  }
+  images.value = imgTemp;
+}
 </script>
 
 <template>

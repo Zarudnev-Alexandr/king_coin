@@ -2,7 +2,7 @@
 
 import FloatButton from "@/components/FloatButton.vue";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
-import {ref, Ref, watch} from "vue";
+import {computed, ref, Ref, watch} from "vue";
 
 const {setComboNotify} = useImprovementsStore();
 const improvementsStore = useImprovementsStore();
@@ -12,23 +12,36 @@ const handleConfirm = () => {
   setComboNotify(false);
 }
 
-watch(() => improvementsStore.combo, (newReward) => {
+watch(() => improvementsStore.combo, (newReward, _) => {
   if (!newReward) {
-    images.value.length = 0;
+    images.value = [];
     return
   }
+  let imgTemp = [];
 
   if (newReward?.upgrade_1.is_bought) {
-    images.value.push({url: newReward.upgrade_1.image_url!, name: newReward.upgrade_1.name})
+    imgTemp.push({url: newReward.upgrade_1.image_url!, name: newReward.upgrade_1.name})
   }
 
   if (newReward?.upgrade_2.is_bought) {
-    images.value.push({url: newReward.upgrade_2.image_url!, name: newReward.upgrade_2.name})
+    imgTemp.push({url: newReward.upgrade_2.image_url!, name: newReward.upgrade_2.name})
   }
 
   if (newReward?.upgrade_3.is_bought) {
-    images.value.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
+    imgTemp.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
   }
+  console.log("img Temp", imgTemp)
+  images.value = imgTemp;
+
+  console.log("images length", images.value.length);
+}, {deep: true});
+
+const getButtonText = computed(() => {
+  return images.value.length > 2 ? 'Получить Бонус' : 'Нужно ещё!'
+});
+
+const getDescriptionText = computed(() => {
+  return images.value.length > 2 ? 'Ты успешно подобрал все карточки! Забирай бонус' : `Ты собрал ${images.value.length} из 3 комбо-карточек`
 });
 </script>
 
@@ -36,11 +49,9 @@ watch(() => improvementsStore.combo, (newReward) => {
   <div class="combo-notify-wrapper" v-if="improvementsStore.visibleComboNotify">
     <div class="combo-info-wrapper">
       <span class="title">Комбо!</span>
-      <span class="info sf-pro-font">{{
-          images.length > 2 ? 'Ты успешно подобрал все карточки! Забирай бонус' : `Ты собрал ${images.length} из 3 комбо-карточек`
-        }}</span>
+      <span class="info sf-pro-font">{{ getDescriptionText}}</span>
       <FloatButton style="width: 175px; height: 65px;" @click="handleConfirm">
-        <span class="button-text">{{ images.length > 2 ? 'Получить Бонус' : 'НУжно ещё!' }}</span>
+        <span class="button-text">{{ getButtonText }}</span>
       </FloatButton>
     </div>
     <div style="display: flex; position:relative;">

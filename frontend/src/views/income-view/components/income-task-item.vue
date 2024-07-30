@@ -11,7 +11,7 @@ const appStore = useAppStore();
 const props: Props = defineProps<Props>();
 
 const handleClick = () => {
-  if (props.taskItem.type === 'invite' || props.taskItem.completed) {
+  if (props.taskItem.type === 'invite') {
     return;
   }
   appStore.setSelectTaskForFulfill(props.taskItem);

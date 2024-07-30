@@ -23,7 +23,7 @@ const handleClose = () => {
 const handleAccept = () => {
   if (appStore.selectTaskForFulfill?.type === 'daily' && !taskStore.dailyTask?.is_collect) {
     claimDailyReward();
-  } else {
+  } else if (!appStore.selectTaskForFulfill?.completed) {
     if (isReady.value) {
       checkTask();
     } else {

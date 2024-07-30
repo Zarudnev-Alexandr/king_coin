@@ -43,6 +43,10 @@ const handleAccept = async () => {
     return;
   }
 
+  if (userStore.user.money < (improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0)) {
+    return;
+  }
+
   const res = await coinApiService.upgradeCoin(improvementsStore.selectCoinForImpro.id, userStore.user.tg_id); // todo поправить после исправление в бэке
   if (res.right) {
     userStore.user.money -= improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0;

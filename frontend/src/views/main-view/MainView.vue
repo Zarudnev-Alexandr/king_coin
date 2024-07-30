@@ -79,6 +79,10 @@ const upgradeBoost = async () => {
     visibleBoostModal.value = false;
   }
 }
+
+const goToLevels = () => {
+  router.push({name: 'Levels'});
+}
 </script>
 
 <template>
@@ -116,9 +120,11 @@ const upgradeBoost = async () => {
           </AppIconButton>
         </div>
         <div class="current-level-wrapper">
-          <span class="text-lvl sf-pro-font">Lvl: </span>
-          <span class="app-text-gradient text-current-level sf-pro-font">{{ user?.user_lvl }}</span>
-          <img src="@/assets/svg/right-arrow.svg" alt="">
+          <div class="current-level-left-block" @click="goToLevels">
+            <span class="text-lvl sf-pro-font">Lvl: </span>
+            <span class="app-text-gradient text-current-level sf-pro-font">{{ user?.user_lvl }}</span>
+            <img src="@/assets/svg/right-arrow.svg" alt="">
+          </div>
           <level-indicator style="flex: 1"/>
         </div>
         <div style="height: 65px;"/>
@@ -324,6 +330,11 @@ const upgradeBoost = async () => {
         align-items: center;
         padding: 20px 0;
         gap: 5px;
+
+        .current-level-left-block {
+          display: flex;
+          gap: 5px;
+        }
 
         .text-lvl {
           font-size: 15px;
