@@ -7,22 +7,47 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
             text-align: center;
-            margin-top: 50px;
+            padding: 20px;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .info-box {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            padding: 20px;
+            margin: 10px 0;
+            width: 300px;
+        }
+        .info {
+            font-size: 18px;
+            margin: 10px 0;
         }
         #money {
             font-size: 24px;
-            color: green;
+            font-weight: bold;
+            color: #4CAF50;
         }
     </style>
 </head>
 <body>
     <h1>Live Money Update</h1>
-    <p>User ID: <span id="user-id"></span></p>
-    <p>Money: <span id="money">0</span></p>
+    <div class="info-box">
+        <p>User ID: <span id="user-id"></span></p>
+        <p>Money: <span id="money">0</span></p>
+    </div>
+    <div class="info-box">
+        <p class="info">Hourly Income: <span id="hourly-income">0</span></p>
+        <p class="info">Money to Next Level: <span id="money-to-next-level">0</span></p>
+    </div>
 
     <script>
-        const userId = 52;  // ID юзера
+        const userId = 71;  // ID юзера
         document.getElementById("user-id").innerText = userId;
 
         // const ws = new WebSocket(`wss://king-coin.online/api/ws/${userId}`);
@@ -34,7 +59,15 @@
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            document.getElementById("money").innerText = data.money;
+
+            if (data.event === 'update') {
+                document.getElementById("money").innerText = data.data.money;
+                document.getElementById("hourly-income").innerText = data.data.hourly_income;
+                document.getElementById("money-to-next-level").innerText = data.data.money_to_next_level;
+            } else if (data.event === 'new_lvl') {
+                // Handle level-up event if needed
+                console.log('Level up!', data.data);
+            }
         };
 
         ws.onclose = () => {

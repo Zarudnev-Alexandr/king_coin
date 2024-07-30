@@ -522,7 +522,7 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
 
     await db.commit()
     await db.refresh(user)
-    await update_user_level(db, user)
+    await db.refresh(daily_reward)
 
     return DailyRewardResponse(
         day=daily_reward.day,

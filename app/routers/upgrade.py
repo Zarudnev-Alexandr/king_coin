@@ -97,9 +97,6 @@ async def get_upgrade_category_all(initData: str = Header(...),
 
         all_categories_with_upgrades.append(upgrade_category)
 
-    for i in all_categories_with_upgrades:
-
-        print('🤑🤑', i.__dict__)
     return all_categories_with_upgrades
 
 

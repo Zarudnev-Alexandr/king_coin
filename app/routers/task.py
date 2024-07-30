@@ -58,6 +58,7 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
         raise HTTPException(status_code=400, detail="Task timed out")
 
     user_task = await get_user_task(db, task_id, user.tg_id)
+    # print('🤑 user_task 🤑', user_task.__dict__)
     if user_task and user_task.completed:
         raise HTTPException(status_code=400, detail="Task already completed")
 
@@ -94,6 +95,7 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
         await complete_user_task(db, user, task, user_task)
 
     await db.refresh(user)
+    await db.refresh(task)
     return {"status": "Task checked and updated",
             "money_received": task.reward,
             "current_user_money": user.money}
