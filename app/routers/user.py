@@ -213,6 +213,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
     first_name = data.get("first_name", "")
     last_name = data.get("last_name", "")
     invited_tg_id = data.get("invited_tg_id", None)
+    is_premium = data.get("is_premium", False)
 
     if not tg_id:
         raise HTTPException(status_code=400, detail="User ID is required")
@@ -313,8 +314,9 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             db,
             tg_id=tg_id,
             username=username,
-            fio=first_name,  # Ваша схема использует 'fio', но в данных 'first_name'
-            invited_tg_id=invited_tg_id
+            fio=first_name + ' ' + last_name,  # Ваша схема использует 'fio', но в данных 'first_name'
+            invited_tg_id=invited_tg_id,
+            is_premium=is_premium  # Добавляем флаг Telegram Premium
         )
         if not new_user:
             raise HTTPException(status_code=500, detail="Error creating user")
@@ -368,6 +370,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
 
         await db.close()
         return user_data
+
 
 
 @user_route.post('/boost')

@@ -16,7 +16,6 @@ async def select_user(user_id: int) -> Optional[dict]:
 
 
 async def check_args(args, user_id: int):
-    print('👾👾🤖💩👾👾🤖💩')
     if args == '':
         args = '0'
         return args
