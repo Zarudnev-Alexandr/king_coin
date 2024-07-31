@@ -40,7 +40,6 @@ async def command_start_process(message: types.Message,
                                 command: CommandObject):
     inviter_id = command.args.split("_")[1] if command.args else ''
     checked_inviter_id = await check_args(inviter_id, message.from_user.id)
-    print('👾👾🤖💩', checked_inviter_id, flush=True)
 
     # Собираем данные для регистрации
     init_data = {
@@ -76,6 +75,48 @@ async def command_start_process(message: types.Message,
     builder = InlineKeyboardBuilder()
     builder.add(
         InlineKeyboardButton(text=f'Играть {checked_inviter_id}', web_app=types.WebAppInfo(url='https://king-coin.online:444/'))
+    )
+
+    await message.answer(
+        "🌟 Добро пожаловать!",
+        reply_markup=builder.as_markup()
+    )
+
+
+@dp.message(CommandStart())
+async def command_start_no_referral(message: types.Message):
+    # Собираем данные для регистрации без реферала
+    init_data = {
+        "id": message.from_user.id,
+        "username": message.from_user.username or "",
+        "first_name": message.from_user.first_name or "",
+        "last_name": message.from_user.last_name or "",
+        "invited_tg_id": None,
+        "is_premium": message.from_user.is_premium  # Если у пользователя есть Telegram Premium
+    }
+
+    url = f'{API_URL}users/logreg'
+
+    # Преобразуем init_data в строку JSON
+    init_data_json = json.dumps(init_data)
+
+    # Создаем заголовки
+    headers = {
+        'Content-Type': 'application/json',
+        'initData': init_data_json
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, headers=headers) as resp:
+            if resp.status == 200:
+                user_data = await resp.json()
+                print("User registered:", user_data)
+            else:
+                print("Error registering user:", await resp.text())
+
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        InlineKeyboardButton(text='Играть', web_app=types.WebAppInfo(url='https://king-coin.online:444/'))
     )
 
     await message.answer(
