@@ -10,6 +10,25 @@ import SocketEventUpdate from "@/shared/api/types/socket-event-update.ts";
 const userStore = useUserStore();
 const userApiService = new UserApiService(axiosInstance, errorHandler);
 
+const updateEachSecond = () => {
+  let deltaMoney = 0;
+
+  setInterval(() => {
+    if (userStore.user === null) {
+      return;
+    }
+
+    const moneyOnSec = userStore.user.earnings_per_hour / 3600;
+    deltaMoney += moneyOnSec;
+
+    if (deltaMoney >= 1) {
+      userStore.moneyPlus(Math.floor(deltaMoney));
+      deltaMoney = 0;
+    }
+
+  }, 1000);
+}
+
 onMounted(async () => {
   Telegram.WebApp.expand();
 
@@ -20,6 +39,7 @@ onMounted(async () => {
 
   userStore.setUser(response.right!);
   userStore.setAuth(true);
+  updateEachSecond();
 
   const socket = new WebSocket(`wss://king-coin.online/api/ws/${userStore.user?.tg_id}`);
   socket.onopen = () => {

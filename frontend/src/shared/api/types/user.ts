@@ -22,7 +22,7 @@ export interface User {
   taps_for_level: number,
   boost: UserBoost,
   next_level_data: {
-    next_lvl: number,
+    lvl: number,
     required_money: number,
     taps_for_level: number,
     money_to_get_the_next_boost: number,

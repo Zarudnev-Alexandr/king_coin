@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import {useGameStore} from "@/shared/pinia/game-store.ts";
-import {useUserStore} from "@/shared/pinia/user-store.ts";
-import {MysteryBoxType} from "@/shared/api/types/enums.ts";
+import { useGameStore } from "@/shared/pinia/game-store.ts";
+import { useUserStore } from "@/shared/pinia/user-store.ts";
+import { MysteryBoxType } from "@/shared/api/types/enums.ts";
 
 export default class Player extends Phaser.GameObjects.Sprite {
   gameStore = useGameStore();
@@ -17,6 +17,13 @@ export default class Player extends Phaser.GameObjects.Sprite {
     if (this.body && this.body instanceof Phaser.Physics.Arcade.Body) {
       this.body.setGravityY(500);
       this.body.setCollideWorldBounds(true);
+
+      // Устанавливаем круговую форму тела коллизии
+      const radius = 350;
+      this.body.setCircle(radius, 200, 120);
+
+      // Устанавливаем цвет отладки тела
+      this.body.debugBodyColor = 0xff0000; // Красный цвет
 
       // Добавляем прослушивание события 'worldbounds'
       this.body.onWorldBounds = true;

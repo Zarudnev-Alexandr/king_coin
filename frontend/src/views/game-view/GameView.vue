@@ -95,6 +95,15 @@ const sendGameResult = async () => {
   }
 }
 
+const handleClose = () => {
+  if (gameStore.currentActiveModal === 'pause' || gameStore.currentActiveModal === 'exit') {
+    handleResumeGame();
+  } else if (gameStore.currentActiveModal === 'game-over') {
+    handleRestart();
+  }
+}
+
+
 watch(() => gameStore.currentActiveModal, (newVal, _) => {
   if (newVal === 'game-over') {
     sendGameResult();
@@ -135,7 +144,7 @@ onUnmounted(() => {
     </div>
     <div ref="phaserRef" id="game-container"/>
 
-    <ActionModal v-if="gameStore.currentActiveModal !== ''">
+    <ActionModal v-if="gameStore.currentActiveModal !== ''" @close="handleClose">
       <div class="game-modal-content-wrapper">
         <div class="content-header">
           <span v-if="gameStore.currentActiveModal === 'game-over'" class="header-text">Game over</span>

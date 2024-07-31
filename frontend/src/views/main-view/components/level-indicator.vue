@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import {useUserStore} from "@/shared/pinia/user-store.ts";
-import {computed} from "vue";
+import {ref, watch} from "vue";
 
 const {user} = useUserStore();
+const userStore = useUserStore();
+const percent = ref(0);
 
-const percent = computed(() => {
-  if (!user?.next_level_data.next_lvl) {
+const calcPercent = () => {
+  if (!user?.next_level_data.lvl) {
     return 100;
   }
 
-  if (user === null || user.next_level_data.required_money === 0) {
+  if (user.next_level_data.required_money === 0) {
     return 0;
   }
 
   return (user.money / user.next_level_data.required_money) * 100;
+}
+
+watch(() => userStore.user?.money, (_) => {
+  percent.value = calcPercent();
 });
 </script>
 
