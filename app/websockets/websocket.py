@@ -32,7 +32,7 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
         print('😙😙😙', total_hourly_income, flush=True)
 
         # Доход за каждые 5 секунд (1/720 от часового дохода)
-        income_per_interval = total_hourly_income / 720
+        income_per_interval = total_hourly_income / 360
 
         user.money += income_per_interval
         await db.commit()
@@ -76,7 +76,7 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
         )
 
         # Ожидание 5 секунд перед следующей отправкой
-        await asyncio.sleep(5)
+        await asyncio.sleep(10)
 
 
 @websocket_router.websocket("/{user_id}")
