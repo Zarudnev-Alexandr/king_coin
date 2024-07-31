@@ -30,10 +30,8 @@ watch(() => improvementsStore.combo, (newReward, _) => {
   if (newReward?.upgrade_3.is_bought) {
     imgTemp.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
   }
-  console.log("img Temp", imgTemp)
   images.value = imgTemp;
 
-  console.log("images length", images.value.length);
 }, {deep: true});
 
 const getButtonText = computed(() => {

@@ -4,6 +4,8 @@ import AppIconButton from "@/components/AppIconButton.vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import UserApiService from "@/shared/api/services/user-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
+import log from 'loglevel';
+import SocketEventUpdate from "@/shared/api/types/socket-event-update.ts";
 
 const userStore = useUserStore();
 const userApiService = new UserApiService(axiosInstance, errorHandler);
@@ -12,10 +14,35 @@ onMounted(async () => {
   Telegram.WebApp.expand();
 
   const response = await userApiService.getCurrentUser();
-  if (response.right) {
-    userStore.setUser(response.right);
-    userStore.setAuth(true);
+  if (response.left) {
+    return;
   }
+
+  userStore.setUser(response.right!);
+  userStore.setAuth(true);
+
+  const socket = new WebSocket(`wss://king-coin.online/api/ws/${userStore.user?.tg_id}`);
+  socket.onopen = () => {
+    log.info('Соединение установлено');
+  };
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log("Socket DAta", data);
+    if (data.event === 'update') {
+      const moneyData = data.data as SocketEventUpdate;
+      userStore.setMoney(moneyData.money ?? 0);
+    }
+  };
+
+  socket.onclose = (event) => {
+    if (event.wasClean) {
+      log.info('Соединение закрыто чисто');
+    } else {
+      log.info('Обрыв соединения');
+    }
+    log.info(`Код: ${event.code} | Причина: ${event.reason}`);
+  };
 })
 </script>
 

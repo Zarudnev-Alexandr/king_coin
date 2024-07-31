@@ -12,12 +12,12 @@ class BackgroundTile extends Phaser.GameObjects.TileSprite {
     scene.add.existing(this);
 
     // Масштабируем изображение по высоте
-    const originalHeight = 650;
+    const originalHeight = 350;
     this.setScale(height / originalHeight);
   }
 
   update() {
-    this.tilePositionX += 1; // Скорость прокрутки фона
+    this.tilePositionX += 0.5; // Скорость прокрутки фона
   }
 }
 

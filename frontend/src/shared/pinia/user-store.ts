@@ -20,6 +20,12 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
+  const setMoney = (money: number) => {
+    if (user.value) {
+      user.value.money = money;
+    }
+  }
+
   const updateBoostData = (nextBoost: UserBoost) => {
     if (user.value) {
       user.value.boost = user.value.next_boost;
@@ -34,5 +40,6 @@ export const useUserStore = defineStore('userStore', () => {
     setUser,
     moneyPlus,
     updateBoostData,
+    setMoney,
   };
 });
