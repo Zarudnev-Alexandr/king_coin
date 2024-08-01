@@ -109,7 +109,7 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
         # Отправка обновленного значения денег и информации о доходах пользователю
         await ws_manager.send_message(
             {"event": "update",
-             "data": {"money": user.money,
+             "data": {"money": int(user.money),
                       "hourly_income": total_hourly_income,
                       "money_to_next_level": money_to_next_level}},
             user_id
