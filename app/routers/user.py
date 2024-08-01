@@ -243,7 +243,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
 
         user.money += total_income
         user.last_login = current_time
-        #user.last_check_time = current_time
+        # user.last_check_time = current_time
 
         user_boost = await get_user_boost(db, tg_id)
         if user_boost:
@@ -321,6 +321,17 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
         if not new_user:
             raise HTTPException(status_code=500, detail="Error creating user")
 
+        # Начисление бонусных монет
+        bonus = 25000 if is_premium else 10000
+        new_user.user.money += bonus
+
+        if invited_tg_id:
+            inviter = await get_user(db, invited_tg_id)
+            if inviter:
+                inviter.money += bonus
+                await db.commit()
+                await db.refresh(inviter)
+
         boost_data = {
             "boost_id": new_user.boost.lvl,
             "name": new_user.boost.name,
@@ -370,6 +381,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
 
         await db.close()
         return user_data
+
 
 
 

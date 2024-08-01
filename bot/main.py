@@ -82,6 +82,7 @@ async def command_start_process(message: types.Message,
         reply_markup=builder.as_markup()
     )
 
+
 @dp.message(CommandStart())
 async def command_start_no_referral(message: types.Message):
     # Собираем данные для регистрации без реферала
