@@ -690,12 +690,16 @@ async def get_invited_users(initData: str = Header(...), db: AsyncSession = Depe
             for user_upgrade, upgrade in zip(user_upgrades, upgrades)
         )
 
+        # Подсчет количества приглашенных пользователей
+        invited_count = await db.scalar(select(func.count()).where(User.invited_tg_id == invited_user.tg_id))
+
         invited_users_data.append({
             "tg_id": invited_user.tg_id,
             "username": invited_user.username,
             "lvl": invited_user.lvl,
             "money": invited_user.money,
-            "total_hourly_income": total_hourly_income
+            "total_hourly_income": total_hourly_income,
+            "invited_count": invited_count
         })
 
     return {"invited_users": invited_users_data}
