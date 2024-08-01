@@ -24,7 +24,7 @@ class User(Base):
     taps_for_level: Mapped[int] = mapped_column(Integer, default=0)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
-    money: Mapped[int] = mapped_column(BigInteger, default=0)
+    money: Mapped[float] = mapped_column(Float, default=0)
     current_factor: Mapped[float] = mapped_column(Float, default=0)
     invited_tg_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('user.tg_id'), nullable=True)
     last_login: Mapped[DateTime] = mapped_column(DateTime)
