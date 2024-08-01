@@ -261,7 +261,6 @@ const goToLevels = () => {
       flex-direction: column;
       justify-content: flex-start;
       box-sizing: border-box;
-      padding-bottom: 50px;
       position: relative;
       z-index: 12;
 
