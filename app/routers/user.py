@@ -15,7 +15,7 @@ from ..api.added_funcs import decode_init_data
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
-from ..models import DailyReward
+from ..models import DailyReward, User
 from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
     InitDataSchema, GameResultsSchema
 from ..websockets.settings import ws_manager
@@ -283,7 +283,8 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
         await db.commit()
         await db.refresh(user)
         next_level = await update_user_level(db, user)
-        await db.refresh(next_level)
+        if next_level:
+            await db.refresh(next_level)
 
         next_level_data = {
             "lvl": next_level.lvl if next_level else None,
@@ -358,6 +359,9 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
         } if next_boost else None
 
         next_level = await update_user_level(db, new_user.user)
+        if next_level:
+            await db.refresh(next_level)
+        await db.refresh(new_user)
         next_level_data = {
             "next_lvl": next_level.lvl if next_level else None,
             "required_money": next_level.required_money if next_level else None,
@@ -376,7 +380,8 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             "earnings_per_hour": 0,
             "boost": boost_data,
             "next_boost": next_boost_data,
-            "next_level_data": next_level_data
+            "next_level_data": next_level_data,
+            "is_registred": True
         }
 
         await db.close()
@@ -663,6 +668,37 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
                                                                                "users_money": user.money}})
 
     return {"money_added": earned_coins, "users_money": user.money}
+
+
+@user_route.get('/invited-users')
+async def get_invited_users(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
+
+    invited_users = await db.execute(select(User).where(User.invited_tg_id == user.tg_id))
+    invited_users = invited_users.scalars().all()
+
+    invited_users_data = []
+    for invited_user in invited_users:
+        user_upgrades = await get_user_upgrades(invited_user.tg_id, db)
+        upgrades = await asyncio.gather(
+            *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+        )
+
+        total_hourly_income = sum(
+            next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+            for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+        )
+
+        invited_users_data.append({
+            "tg_id": invited_user.tg_id,
+            "username": invited_user.username,
+            "lvl": invited_user.lvl,
+            "money": invited_user.money,
+            "total_hourly_income": total_hourly_income
+        })
+
+    return {"invited_users": invited_users_data}
 
 
 
