@@ -42,18 +42,14 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
             next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
             for user_upgrade, upgrade in zip(user_upgrades, upgrades)
         )
-        print('😙😙😙 Total hourly income:', total_hourly_income, flush=True)
 
         # Доход за каждые 5 секунд (1/720 от часового дохода)
         income_per_interval = total_hourly_income / 360
-        print('😙😙😙 Income per interval:', income_per_interval, flush=True)
 
         # Обновление денег пользователя
         user.money += income_per_interval
-        print('😙😙😙 Updated money:', user.money, flush=True)
         await db.commit()
         await db.refresh(user)
-        print('😙😙😙 Money after commit:', user.money, flush=True)
 
         # Проверка на достижение новых уровней
         new_levels = []
@@ -69,24 +65,20 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
                 # Начисление бонусов пригласившему
                 if user.invited_tg_id:
                     inviter = await get_user(db, user.invited_tg_id)
-                    print('😀 Inviter:', inviter.__dict__, flush=True)
                     if inviter:
                         reward = referral_rewards.get(user.lvl, {}).get("premium" if user.is_premium else "no_premium", 0)
                         inviter.money += reward
                         await db.commit()
                         await db.refresh(inviter)
-                        print('😀😁 Inviter after reward:', inviter.__dict__, flush=True)
 
                         try:
-                            print('Attempting to send referral reward message', flush=True)
                             await db.refresh(user)
                             await ws_manager.send_message(
                                 {"event": "referral_reward", "data": {"referral_level": user.lvl, "reward": reward}},
                                 inviter.tg_id
                             )
-                            print('Successfully sent referral reward message', flush=True)
                         except Exception as e:
-                            print('Failed to send referral reward message:', str(e), flush=True)
+                            pass
 
                 await ws_manager.send_message(
                     {"event": "new_lvl", "data": {"old_lvl": old_lvl,
