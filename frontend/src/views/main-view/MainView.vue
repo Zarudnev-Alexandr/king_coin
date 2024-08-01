@@ -127,7 +127,7 @@ const goToLevels = () => {
           </div>
           <level-indicator style="flex: 1"/>
         </div>
-        <div style="height: 65px;"/>
+        <h1></h1>
       </div>
     </div>
     <action-modal v-if="visibleBoostModal" @close="() => visibleBoostModal = false"
