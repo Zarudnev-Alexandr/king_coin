@@ -41,9 +41,9 @@ class Gameplay extends Phaser.Scene {
     this.player = new Player(this, 100, this.scale.height / 2);
 
     // Обработка столкновений игрока с препятствиями
-    this.physics.add.overlap(this.player, this.obstacleManager.obstacles, this.handleCollision, undefined, this.player);
-    this.physics.add.overlap(this.player, this.obstacleManager.rewards, this.handleRewardCollision, undefined, this.player);
-    this.physics.add.overlap(this.player, this.obstacleManager.mysteryBoxes, this.handleMysteryBoxCollision, undefined, this.player);
+    this.physics.add.overlap(this.player, this.obstacleManager.obstacles, this.handleCollision, undefined, this);
+    this.physics.add.overlap(this.player, this.obstacleManager.rewards, this.handleRewardCollision, undefined, this);
+    this.physics.add.overlap(this.player, this.obstacleManager.mysteryBoxes, this.handleMysteryBoxCollision, undefined, this);
 
     this.disablePhysics();
   }
