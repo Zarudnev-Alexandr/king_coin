@@ -6,10 +6,20 @@ import FloatButton from "@/components/FloatButton.vue";
 import {friendsList} from "@/shared/constants/friends-list.ts";
 import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
 import FriendItem from "@/views/friends-view/components/friend-item.vue";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
+import FriendsApiService from "@/shared/api/services/friends-api-service.ts";
+import {onMounted} from "vue";
+
+const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 
 const sumAllProfits = () => {
   return friendsList.reduce((acc: number, friend: any) => acc + friend.profit, 0);
 }
+
+onMounted(async () => {
+  const res = await friendApiService.getRefLink();
+  console.log(res);
+});
 </script>
 
 <template>

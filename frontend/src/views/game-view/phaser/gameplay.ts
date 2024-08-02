@@ -18,6 +18,7 @@ class Gameplay extends Phaser.Scene {
   private player?: Player;
   private gameStore = useGameStore();
   private obstacleManager: ObstacleManager | null = null;
+  private timeoutIds: number[] = [];
   static instance: Gameplay | null = null;
 
   constructor() {
@@ -37,7 +38,6 @@ class Gameplay extends Phaser.Scene {
   create() {
     this.background = new BackgroundSprite(this, 0, 0, this.scale.height);
     this.obstacleManager = new ObstacleManager(this);
-    // this.background.setOrigin(0, 0);
     this.player = new Player(this, 100, this.scale.height / 2);
 
     // Обработка столкновений игрока с препятствиями
@@ -64,6 +64,7 @@ class Gameplay extends Phaser.Scene {
   public disablePhysics() {
     this.player?.disablePhysics();
     this.obstacleManager?.setVelocityX(0);
+    this.clearAllTimeouts();
   }
 
   public enablePhysics() {
@@ -74,6 +75,7 @@ class Gameplay extends Phaser.Scene {
   handleCollision() {
     this.gameStore.setPause(true);
     this.gameStore.setCurrentActiveModal('game-over');
+    this.clearAllTimeouts();
   }
 
   public setSpeed(velocity: number) {
@@ -97,27 +99,41 @@ class Gameplay extends Phaser.Scene {
       if (object2.type === MysteryBoxType['100COIN']) {
         this.gameStore.setScore(this.gameStore.score + 100);
 
-        setTimeout(() => {
+        const timeoutId = window.setTimeout(() => {
           this.gameStore.setMysteryBox(null);
         }, 2000);
 
+        this.addTimeout(timeoutId);
+
         return;
       } else if (object2.type === MysteryBoxType['SPEED_X2.5']) {
-
         Gameplay.instance?.setSpeed(-300);
 
-        setTimeout(() => {
+        const timeoutId = window.setTimeout(() => {
           if (!this.gameStore.isPaused) Gameplay.instance?.setSpeed(-120);
           this.gameStore.setMysteryBox(null);
         }, 5000);
 
+        this.addTimeout(timeoutId);
+
         return;
       }
 
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         this.gameStore.setMysteryBox(null);
       }, 5000);
+
+      this.addTimeout(timeoutId);
     }
+  }
+
+  private addTimeout(timeoutId: number) {
+    this.timeoutIds.push(timeoutId);
+  }
+
+  private clearAllTimeouts() {
+    this.timeoutIds.forEach(clearTimeout);
+    this.timeoutIds = [];
   }
 }
 
