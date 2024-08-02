@@ -4,7 +4,7 @@ import PlayerImage from "@/assets/img/game/player.png"
 import Player from "@/views/game-view/phaser/entities/player.ts";
 import TopPipeImage from "@/assets/img/game/top-pipe.png"
 import BottomPipeImage from "@/assets/img/game/bottom-pipe.png"
-import CoinRewardImage from "@/assets/img/game/mystery-box.png"
+import CoinRewardImage from "@/assets/img/game/coin.png"
 import MysteryBoxImage from "@/assets/img/game/mystery-box.png"
 import Background1 from "@/assets/img/game/background1.png"
 import Background2 from "@/assets/img/game/background2.png"
@@ -79,6 +79,7 @@ class Gameplay extends Phaser.Scene {
     this.gameStore.setPause(true);
     this.gameStore.setCurrentActiveModal('game-over');
     this.clearAllTimeouts();
+    this.gameStore.setMysteryBox(null);
   }
 
   public setSpeed(velocity: number) {
@@ -134,7 +135,7 @@ class Gameplay extends Phaser.Scene {
     this.timeoutIds.push(timeoutId);
   }
 
-  private clearAllTimeouts() {
+  public clearAllTimeouts() {
     this.timeoutIds.forEach(clearTimeout);
     this.timeoutIds = [];
   }

@@ -1,7 +1,8 @@
 import Phaser from "phaser";
-import { useGameStore } from "@/shared/pinia/game-store.ts";
-import { useUserStore } from "@/shared/pinia/user-store.ts";
-import { MysteryBoxType } from "@/shared/api/types/enums.ts";
+import {useGameStore} from "@/shared/pinia/game-store.ts";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
+import {MysteryBoxType} from "@/shared/api/types/enums.ts";
+import Gameplay from "@/views/game-view/phaser/gameplay.ts";
 
 export default class Player extends Phaser.GameObjects.Sprite {
   gameStore = useGameStore();
@@ -75,5 +76,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
   private handleWorldBoundsCollision() {
     this.gameStore.setPause(true);
     this.gameStore.setCurrentActiveModal('game-over');
+    this.gameStore.setMysteryBox(null);
+    Gameplay.instance?.clearAllTimeouts();
   }
 }

@@ -49,7 +49,6 @@ class ObstacleManager {
     if (this.obstacleCount === 9 || this.obstacleCount === 29 || this.obstacleCount === 99) {
       let reward = 200;
 
-
       if (this.obstacleCount === 9 && this.userStore.user) {
         reward = this.userStore.user?.boost.pillars_10;
       } else if (this.obstacleCount === 29 && this.userStore.user) {
@@ -115,7 +114,7 @@ class ObstacleManager {
     if (this.speed === -300) {
       this.distanceBetweenPairs = 1200;
     } else {
-      this.distanceBetweenPairs = 3000;
+      this.checkLevelUp();
     }
 
     this.obstacles.setVelocityX(this.speed);
