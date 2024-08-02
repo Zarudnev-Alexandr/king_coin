@@ -58,7 +58,7 @@ class ObstacleManager {
       rewardCoin = new CoinReward(this.scene, this.scene.scale.width + (this.distanceBetweenPipesX / 2), rewardY, reward);
     }
 
-    if (this.obstacleCount === 15 || this.obstacleCount === 33 || this.obstacleCount === 78 || this.obstacleCount === 2) {
+    if (this.obstacleCount === 15 || this.obstacleCount === 33 || this.obstacleCount === 78) {
       mysteryBox = new MysteryBox(this.scene, this.scene.scale.width + (this.distanceBetweenPipesX / 2), rewardY);
     }
 
