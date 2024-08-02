@@ -1,11 +1,13 @@
-import BackgroundImage from "@/assets/img/game/background.png"
 import BackgroundSprite from "@/views/game-view/phaser/entities/background-sprite.ts";
+import BackgroundTile from "@/views/game-view/phaser/entities/background-sprite.ts";
 import PlayerImage from "@/assets/img/game/player.png"
 import Player from "@/views/game-view/phaser/entities/player.ts";
 import TopPipeImage from "@/assets/img/game/top-pipe.png"
 import BottomPipeImage from "@/assets/img/game/bottom-pipe.png"
-import CoinRewardImage from "@/assets/img/game/coin.png"
+import CoinRewardImage from "@/assets/img/game/mystery-box.png"
 import MysteryBoxImage from "@/assets/img/game/mystery-box.png"
+import Background1 from "@/assets/img/game/background1.png"
+import Background2 from "@/assets/img/game/background2.png"
 import Obstacle from "@/views/game-view/phaser/entities/obstacle.ts";
 import {useGameStore} from "@/shared/pinia/game-store.ts";
 import ObstacleManager from "@/views/game-view/phaser/entities/obstacle-manager.ts";
@@ -14,12 +16,12 @@ import MysteryBox from "@/views/game-view/phaser/entities/mystery-box.ts";
 import {MysteryBoxType} from "@/shared/api/types/enums.ts";
 
 class Gameplay extends Phaser.Scene {
-  private background?: BackgroundSprite;
   private player?: Player;
   private gameStore = useGameStore();
   private obstacleManager: ObstacleManager | null = null;
   private timeoutIds: number[] = [];
   static instance: Gameplay | null = null;
+  private backgroundManager: BackgroundTile | null = null;
 
   constructor() {
     super('Gameplay');
@@ -27,16 +29,17 @@ class Gameplay extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('background', BackgroundImage);
     this.load.image('player', PlayerImage);
     this.load.image('topPipe', TopPipeImage);
     this.load.image('bottomPipe', BottomPipeImage);
     this.load.image('coin', CoinRewardImage);
     this.load.image('mystery-box', MysteryBoxImage);
+    this.load.image('background1', Background1);
+    this.load.image('background2', Background2);
   }
 
   create() {
-    this.background = new BackgroundSprite(this, 0, 0, this.scale.height);
+    this.backgroundManager = new BackgroundSprite(this, 'background1', 'background2', 1);
     this.obstacleManager = new ObstacleManager(this);
     this.player = new Player(this, 100, this.scale.height / 2);
 
@@ -51,7 +54,7 @@ class Gameplay extends Phaser.Scene {
   update(time: number, delta: number) {
     if (this.gameStore.isPaused || !this.gameStore.gameInitStarted) return;
 
-    this.background?.update();
+    this.backgroundManager?.update();
     this.player?.update();
 
     this.obstacleManager?.obstacles?.getChildren().forEach((obstacle: Phaser.GameObjects.GameObject) => {

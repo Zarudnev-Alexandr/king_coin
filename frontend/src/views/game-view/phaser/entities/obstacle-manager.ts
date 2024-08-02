@@ -49,7 +49,10 @@ class ObstacleManager {
     if (this.obstacleCount === 9 || this.obstacleCount === 29 || this.obstacleCount === 99) {
       let reward = 200;
 
-      if (this.obstacleCount === 29 && this.userStore.user) {
+
+      if (this.obstacleCount === 9 && this.userStore.user) {
+        reward = this.userStore.user?.boost.pillars_10;
+      } else if (this.obstacleCount === 29 && this.userStore.user) {
         reward = this.userStore.user?.boost.pillars_30;
       } else if (this.obstacleCount === 99 && this.userStore.user) {
         reward = this.userStore.user?.boost.pillars_100;
