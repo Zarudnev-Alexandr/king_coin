@@ -7,10 +7,12 @@ const userStore = useUserStore();
 </script>
 
 <template>
-  <SplashView v-if="!userStore.isAuth"/>
-  <MainLayout v-else>
-    <router-view/>
-  </MainLayout>
+  <div v-set-screen-height style="width: 100%; height: 100%">
+    <SplashView v-if="!userStore.isAuth"/>
+    <MainLayout v-else>
+      <router-view/>
+    </MainLayout>
+  </div>
 </template>
 
 <style scoped>

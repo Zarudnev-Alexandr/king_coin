@@ -25,6 +25,7 @@ const {selectTaskForFulfill} = useAppStore();
   align-items: center;
   gap: 15px;
   padding-bottom: 10px;
+  padding-top: 30px;
 
   img {
     border-radius: 10px;

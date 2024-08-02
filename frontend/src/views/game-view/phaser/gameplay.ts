@@ -37,7 +37,7 @@ class Gameplay extends Phaser.Scene {
   create() {
     this.background = new BackgroundSprite(this, 0, 0, this.scale.height);
     this.obstacleManager = new ObstacleManager(this);
-    this.background.setOrigin(0, 0);
+    // this.background.setOrigin(0, 0);
     this.player = new Player(this, 100, this.scale.height / 2);
 
     // Обработка столкновений игрока с препятствиями

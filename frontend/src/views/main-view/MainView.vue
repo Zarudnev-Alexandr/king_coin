@@ -5,7 +5,7 @@ import AppIconButton from "@/components/AppIconButton.vue";
 import HeaderStatisticItem from "@/views/main-view/components/header-statistic-item.vue";
 import {useRouter} from "vue-router";
 import ActionModal from "@/components/ActionModal.vue";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {formatNumber, formatNumberWithSpaces} from "@/helpers/formats.ts";
 import Level1Image from "@/assets/img/level/level-1.png"
@@ -127,7 +127,6 @@ const goToLevels = () => {
           </div>
           <level-indicator style="flex: 1"/>
         </div>
-        <h1></h1>
       </div>
     </div>
     <action-modal v-if="visibleBoostModal" @close="() => visibleBoostModal = false"
@@ -165,6 +164,7 @@ const goToLevels = () => {
   background-size: cover;
   background-position: center;
   position: relative;
+  box-sizing: border-box;
 
   .boost-modal-wrapper {
     display: flex;
@@ -320,7 +320,7 @@ const goToLevels = () => {
     .bottom-data {
       display: flex;
       flex-direction: column;
-      padding: 0 10px;
+      padding: 0 10px 65px 10px;
       position: relative;
       z-index: 12;
 

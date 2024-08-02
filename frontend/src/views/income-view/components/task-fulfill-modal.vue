@@ -75,7 +75,6 @@ const getMainButtonText = () => {
                @close="handleClose"
                @on-accept="handleAccept"
                :main-button-text="getMainButtonText()">
-    >
     <task-fulfill-subribe-content
         v-if="appStore.selectTaskForFulfill.type === 'subscribe_telegram' || appStore.selectTaskForFulfill?.type === 'generic'"/>
     <task-fulfull-daily-content v-if="appStore.selectTaskForFulfill.type === 'daily'"/>

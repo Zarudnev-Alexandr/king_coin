@@ -9,7 +9,8 @@ function formatNumber(num: number): string {
 }
 
 function formatNumberWithSpaces(num: number): string {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    const numFloor = Math.floor(num);
+    return numFloor.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 export {
