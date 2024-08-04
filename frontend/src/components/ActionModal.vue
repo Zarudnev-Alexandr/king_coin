@@ -18,7 +18,7 @@ const handleOnAccept = () => {
 </script>
 
 <template>
-  <div class="action-modal-wrapper">
+  <div class="action-modal-wrapper" @click="closeActionModal">
     <div class="action-modal">
       <svg
           viewBox="0 0 206 206"

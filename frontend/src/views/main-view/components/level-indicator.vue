@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useUserStore} from "@/shared/pinia/user-store.ts";
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 
 const {user} = useUserStore();
 const userStore = useUserStore();
@@ -19,6 +19,10 @@ const calcPercent = () => {
 }
 
 watch(() => userStore.user?.money, (_) => {
+  percent.value = calcPercent();
+});
+
+onMounted(() => {
   percent.value = calcPercent();
 });
 </script>

@@ -96,11 +96,13 @@ class ObstacleManager {
       this.level = 3;
       this.distanceBetweenPipesY = 300;
       this.distanceBetweenPairs = 2500;
-    } else if (this.level === 3 && this.obstacleCount >= 15) {
+    } else if (this.level === 3 && this.obstacleCount === 16) {
+      this.distanceBetweenPipesX = 0;
+      this.distanceBetweenPairs = 3000;
+    } else if (this.level === 3 && this.obstacleCount >= 16) {
       this.level = 4;
       this.distanceBetweenPipesY = 250;
       this.distanceBetweenPairs = 2000;
-      this.distanceBetweenPipesX = 0;
     } else if (this.level === 4 && this.obstacleCount >= 20) {
       this.level = 5;
       this.distanceBetweenPipesY = 200;

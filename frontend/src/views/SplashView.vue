@@ -11,7 +11,6 @@ const userStore = useUserStore();
 const userApiService = new UserApiService(axiosInstance, errorHandler);
 
 const updateEachSecond = () => {
-  let deltaMoney = 0;
 
   setInterval(() => {
     if (userStore.user === null) {
@@ -19,12 +18,7 @@ const updateEachSecond = () => {
     }
 
     const moneyOnSec = userStore.user.earnings_per_hour / 3600;
-    deltaMoney += moneyOnSec;
-
-    if (deltaMoney >= 1) {
-      userStore.moneyPlus(Math.floor(deltaMoney));
-      deltaMoney = 0;
-    }
+    userStore.moneyPlus(moneyOnSec);
 
   }, 1000);
 }

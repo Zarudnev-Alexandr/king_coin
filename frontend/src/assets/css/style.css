@@ -97,47 +97,26 @@ button:focus-visible {
 }
 
 @font-face {
-    font-family: 'SFProText';
-    src: url('@/assets/font/sf-pro-text/SFProText-Regular.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'SFProText';
-    src: url('@/assets/font/sf-pro-text/SFProText-Bold.ttf') format('truetype');
-    font-weight: 700;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'SFProText';
-    src: url('@/assets/font/sf-pro-text/SFProText-Medium.ttf') format('truetype');
-    font-weight: 500;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'SFProText';
-    src: url('@/assets/font/sf-pro-text/SFProText-Semibold.ttf') format('truetype');
-    font-weight: 600;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'SFProText';
-    src: url('@/assets/font/sf-pro-text/SFProText-Light.ttf') format('truetype');
+    font-family: 'MSPlus';
+    src: url('@/assets/font/ms-plus/MPLUS1-Regular.woff') format('woff');
     font-weight: 300;
     font-style: normal;
 }
 
 @font-face {
-    font-family: 'SFProText';
-    src: url('@/assets/font/sf-pro-text/SFProText-Heavy.ttf') format('truetype');
-    font-weight: 800;
+    font-family: 'MSPlus';
+    src: url('@/assets/font/ms-plus/MPLUS1-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'MSPlus';
+    src: url('@/assets/font/ms-plus/MPLUS1-Bold.woff') format('woff');
+    font-weight: 700;
     font-style: normal;
 }
 
 .sf-pro-font {
-    font-family: 'SFProText', sans-serif;
+    font-family: 'MSPlus', sans-serif;
 }
