@@ -5,6 +5,7 @@ import {User, UserBoost} from "@/shared/api/types/user.ts";
 export const useUserStore = defineStore('userStore', () => {
   const isAuth = ref<Boolean>(false);
   const user = ref<User | null>(null);
+  const bonusVisible = ref<Boolean>(true);
 
   const setAuth = (auth: Boolean) => {
     isAuth.value = auth;
@@ -26,6 +27,10 @@ export const useUserStore = defineStore('userStore', () => {
     }
   }
 
+  const setBonusVisible = (visible: Boolean) => {
+    bonusVisible.value = visible;
+  }
+
   const updateBoostData = (nextBoost: UserBoost) => {
     if (user.value) {
       user.value.boost = user.value.next_boost;
@@ -41,5 +46,7 @@ export const useUserStore = defineStore('userStore', () => {
     moneyPlus,
     updateBoostData,
     setMoney,
+    bonusVisible,
+    setBonusVisible,
   };
 });

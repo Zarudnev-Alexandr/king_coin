@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import FloatButton from "@/components/FloatButton.vue";
-import {computed, ref} from "vue";
+import {computed} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 
-const isVisible = ref(true);
-const handleGetBonus = () => {
-  isVisible.value = false;
-}
 const userStore = useUserStore();
+
+const handleGetBonus = () => {
+  userStore.setBonusVisible(false);
+}
 
 const titleText = computed(() => {
   if (userStore.user?.is_registred) {
@@ -39,7 +39,7 @@ const rewardText = computed(() => {
 </script>
 
 <template>
-  <div class="bonus-modal-wrapper" v-if="isVisible">
+  <div class="bonus-modal-wrapper" v-if="userStore.bonusVisible">
     <div class="bonus-modal-content">
       <span class="bonus-title">{{ titleText }}</span>
       <h3 class="bonus-subtitle sf-pro-font">{{ subtitleText }}</h3>
