@@ -198,27 +198,14 @@ user_route = APIRouter()
 
 @user_route.post('/logreg')
 async def logreg(initData: str = Header(...), ref: int = Query(None), db: AsyncSession = Depends(get_db)):
-    try:
-        # Декодируем строку JSON
-        decoded_data = json.loads(initData)
+    data_from_init_data = await decode_init_data(initData, db)
 
-        # Валидируем данные с помощью Pydantic
-        # data = InitDataSchema(**decoded_data)
-        data = decoded_data
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-
-    tg_id = data.get("id")
-    username = data.get("username", "")
-    first_name = data.get("first_name", "")
-    last_name = data.get("last_name", "")
-    is_premium = data.get("is_premium", False)
-
-    if not tg_id:
-        raise HTTPException(status_code=400, detail="User ID is required")
-
-    # Пытаемся найти пользователя по tg_id
-    user = await get_user(db, tg_id)
+    tg_id = data_from_init_data["tg_id"]
+    username = data_from_init_data["username"]
+    first_name = data_from_init_data["first_name"]
+    last_name = data_from_init_data["last_name"]
+    is_premium = data_from_init_data["is_premium"]
+    user = data_from_init_data["user"]
 
     if user:
         # Пользователь найден, выполняем вход
