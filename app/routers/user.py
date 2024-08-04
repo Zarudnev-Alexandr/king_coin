@@ -694,6 +694,7 @@ async def get_invited_users(initData: str = Header(...), db: AsyncSession = Depe
             "lvl": invited_user.lvl,
             "money": invited_user.money,
             "total_hourly_income": total_hourly_income,
+            "is_premium": invited_user.is_premium if invited_user.is_premium else None,
             "invited_count": invited_count
         })
 
