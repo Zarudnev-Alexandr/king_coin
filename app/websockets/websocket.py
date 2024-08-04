@@ -120,6 +120,7 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
 
         except Exception as e:
             logger.error(f"Error in user_income_task for user {user_id}: {e}")
+            await db.rollback()
             await asyncio.sleep(10)  # Немного подождем перед повтором цикла в случае ошибки
 
 @websocket_router.websocket("/{user_id}")
