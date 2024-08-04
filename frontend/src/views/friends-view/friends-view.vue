@@ -24,9 +24,14 @@ const copy = () => {
 
 onMounted(async () => {
   const res = await friendApiService.getRefLink();
+  const friendsRes = await friendApiService.getFriends();
 
   if (res && res.right) {
     referralLink.value = res.right.referral_link;
+  }
+
+  if (friendsRes && friendsRes.right) {
+    console.log(friendsRes);
   }
 });
 </script>

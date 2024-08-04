@@ -26,6 +26,7 @@ function copyTextToClipboard(text: string) {
   }
   navigator.clipboard.writeText(text).then(() => {
     console.log('Текст успешно скопирован в буфер обмена');
+    Telegram.WebApp.HapticFeedback.impactOccurred("medium");
   }).catch((err) => {
     console.error('Ошибка при копировании текста в буфер обмена', err);
   });

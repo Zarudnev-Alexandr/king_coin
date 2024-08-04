@@ -6,8 +6,11 @@ import UserApiService from "@/shared/api/services/user-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import log from 'loglevel';
 import SocketEventUpdate from "@/shared/api/types/socket-event-update.ts";
+import {useRoute, useRouter} from "vue-router";
 
 const userStore = useUserStore();
+const route = useRoute();
+const router = useRouter();
 const userApiService = new UserApiService(axiosInstance, errorHandler);
 
 const updateEachSecond = () => {
@@ -24,9 +27,16 @@ const updateEachSecond = () => {
 }
 
 onMounted(async () => {
-  Telegram.WebApp.expand();
+  await router.isReady();
 
-  const response = await userApiService.getCurrentUser();
+  Telegram.WebApp.expand();
+  let ref = null;
+
+  if (route.query.ref) {
+    ref = route.query.ref;
+  }
+
+  const response = await userApiService.getCurrentUser(ref as string);
   if (response.left) {
     return;
   }
