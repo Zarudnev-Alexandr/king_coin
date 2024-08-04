@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.errors import KafkaError
-from fastapi import APIRouter, Depends, HTTPException, Path, Header
+from fastapi import APIRouter, Depends, HTTPException, Path, Header, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -197,7 +197,7 @@ user_route = APIRouter()
 
 
 @user_route.post('/logreg')
-async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+async def logreg(initData: str = Header(...), ref: int = Query(None), db: AsyncSession = Depends(get_db)):
     try:
         # Декодируем строку JSON
         decoded_data = json.loads(initData)
@@ -212,7 +212,6 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
     username = data.get("username", "")
     first_name = data.get("first_name", "")
     last_name = data.get("last_name", "")
-    invited_tg_id = data.get("invited_tg_id", None)
     is_premium = data.get("is_premium", False)
 
     if not tg_id:
@@ -316,7 +315,7 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
             tg_id=tg_id,
             username=username,
             fio=first_name + ' ' + last_name,  # Ваша схема использует 'fio', но в данных 'first_name'
-            invited_tg_id=invited_tg_id,
+            invited_tg_id=ref,
             is_premium=is_premium  # Добавляем флаг Telegram Premium
         )
         if not new_user:
@@ -326,13 +325,14 @@ async def logreg(initData: str = Header(...), db: AsyncSession = Depends(get_db)
         bonus = 25000 if is_premium else 10000
         new_user.user.money += bonus
 
-        if invited_tg_id:
-            inviter = await get_user(db, invited_tg_id)
+        if ref:
+            inviter = await get_user(db, ref)
             if inviter:
                 inviter.money += bonus
                 await db.commit()
                 await db.refresh(inviter)
 
+        await db.refresh(new_user)
         boost_data = {
             "boost_id": new_user.boost.lvl,
             "name": new_user.boost.name,

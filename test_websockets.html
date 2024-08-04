@@ -50,7 +50,7 @@
         const userId = 54;  // ID юзера
         document.getElementById("user-id").innerText = userId;
 
-        const ws = new WebSocket(`wss://king-coin.online/api/ws/${userId}`);
+        const ws = new WebSocket(`wss://king-coin.online/api/ws/${userId}`);z
         // const ws = new WebSocket(`ws://localhost:8000/api/ws/${userId}`);
 
         ws.onopen = () => {
