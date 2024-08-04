@@ -3,35 +3,43 @@
 import FriendsHeader from "@/views/friends-view/components/friends-header.vue";
 import InviteInfoCards from "@/views/friends-view/components/InviteInfoCards.vue";
 import FloatButton from "@/components/FloatButton.vue";
-import {friendsList} from "@/shared/constants/friends-list.ts";
 import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
 import FriendItem from "@/views/friends-view/components/friend-item.vue";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import FriendsApiService from "@/shared/api/services/friends-api-service.ts";
-import {onMounted, Ref, ref} from "vue";
+import {onMounted} from "vue";
 import {copyTextToClipboard} from "@/helpers/clipbaord.ts";
+import {useFriendsStore} from "@/shared/pinia/friends-store.ts";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
-
-const sumAllProfits = () => {
-  return friendsList.reduce((acc: number, friend: any) => acc + friend.profit, 0);
-}
-const referralLink: Ref<string | null> = ref(null);
+const friendsStore = useFriendsStore();
 
 const copy = () => {
-  copyTextToClipboard(referralLink.value ?? '');
+  copyTextToClipboard(friendsStore.referralLink || '');
 }
 
 onMounted(async () => {
-  const res = await friendApiService.getRefLink();
-  const friendsRes = await friendApiService.getFriends();
 
-  if (res && res.right) {
-    referralLink.value = res.right.referral_link;
+  if (!friendsStore.referralLink) {
+    friendApiService.getRefLink().then((res) => {
+      if (res && res.right) {
+        friendsStore.setReferralLink(res.right.referral_link);
+      }
+    });
   }
 
-  if (friendsRes && friendsRes.right) {
-    console.log(friendsRes);
+  if (!friendsStore.friendsList) {
+    friendApiService.getFriends().then((res) => {
+      if (res && res.right) {
+        friendsStore.setFriendsList(res.right);
+        let sumIncome = 0;
+
+        res.right.forEach((friend: any) => {
+          sumIncome += friend.external_income_field;
+        });
+        friendsStore.setSumAllProfits(sumIncome);
+      }
+    });
   }
 });
 </script>
@@ -41,7 +49,7 @@ onMounted(async () => {
     <FriendsHeader/>
     <InviteInfoCards/>
 
-    <div class="invite-buttons" v-if="referralLink">
+    <div class="invite-buttons" v-if="friendsStore.referralLink !== ''">
       <FloatButton style="flex: 1; height: 65px;">
         <div class="button-content">
           <span>Пригласить друга</span>
@@ -54,14 +62,15 @@ onMounted(async () => {
     </div>
 
     <div class="friends-list-wrap">
-      <div class="all-friend-statistic-wrap">
-        <span class="sf-pro-font">Ваши друзья ({{ friendsList.length }})</span>
-        <CoinCountItem :count="sumAllProfits()"/>
+      <div class="all-friend-statistic-wrap" v-if="friendsStore.friendsList">
+        <span class="sf-pro-font">Ваши друзья ({{ friendsStore.friendsList.length }})</span>
+        <CoinCountItem :count="friendsStore.sumAllProfits"/>
       </div>
-      <div class="friends-list">
-        <FriendItem v-for="item in friendsList" :friend-data="item"/>
+      <div class="friends-list" v-if="friendsStore.friendsList">
+        <FriendItem v-for="item in friendsStore.friendsList" :friend-data="item"/>
       </div>
     </div>
+    <h1/>
   </div>
 </template>
 

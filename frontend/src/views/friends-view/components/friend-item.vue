@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
+import {Friend} from "@/shared/api/types/friend.ts";
+import {getLevelByIndex} from "@/helpers/levels.ts";
 
 interface Props {
-  friendData: {
-    name: string,
-    inviteFriendsCount: number,
-    profit: number,
-    league: string,
-  }
+  friendData: Friend
 }
 
 const props: Props = defineProps<Props>();
@@ -17,17 +14,17 @@ const props: Props = defineProps<Props>();
   <div class="friend-item-wrap">
     <img src="@/assets/svg/friends/friend-item-avatar-example.png" alt="">
     <div class="friend-item-name-wrap">
-      <span class="sf-pro-font">{{ props.friendData.name }}</span>
+      <span class="sf-pro-font">{{ props.friendData.fio }}</span>
       <div class="friend-item-league">
         <img src="@/assets/svg/friends/friend-grandmaster-league-icon.png" alt="">
-        <span class="sf-pro-font">{{ props.friendData.league }}</span>
+        <span class="sf-pro-font">{{ getLevelByIndex(props.friendData.lvl).name }}</span>
       </div>
     </div>
     <div class="friend-item-profit-wrap">
-      <CoinCountItem :count="props.friendData.profit"/>
+      <CoinCountItem :count="props.friendData.external_income_field"/>
       <div class="friend-invite-count-wrap">
         <img src="@/assets/svg/friends/friend-group-icon.png" alt="">
-        <span class="sf-pro-font">+ {{ friendData.inviteFriendsCount }}</span>
+        <span class="sf-pro-font">+ {{ props.friendData.invited_count }}</span>
       </div>
     </div>
   </div>

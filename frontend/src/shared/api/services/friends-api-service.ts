@@ -2,6 +2,7 @@ import {AxiosInstance} from "axios";
 import AxiosErrorHandler from "@/shared/api/axios/axios-error-handler.ts";
 import {CommonResponseError, Either} from "@/shared/api/axios/types.ts";
 import {Friend} from "@/shared/api/types/friend.ts";
+import {getIncomeSumByLevel} from "@/helpers/levels.ts";
 
 class FriendsApiService {
   private readonly referralLinkApi = '/users/get-referral-link';
@@ -17,10 +18,23 @@ class FriendsApiService {
     })
   }
 
-  public async getFriends(): Promise<Either<CommonResponseError, { invited_users: Friend[] }>> {
-    return this.errorHandler.processRequest<{ invited_users: Friend[] }>(async () => {
+  public async getFriends(): Promise<Either<CommonResponseError, Friend[]>> {
+    return this.errorHandler.processRequest<Friend[]>(async () => {
       const response = await this.client.get<{ invited_users: Friend[] }>(this.friendsApi);
-      return response.data;
+      const friends: Friend[] = [];
+      response.data.invited_users.forEach(friend => {
+        friends.push({
+          tg_id: friend.tg_id,
+          fio: friend.fio,
+          username: friend.username,
+          lvl: friend.lvl,
+          money: friend.money,
+          invited_count: friend.invited_count,
+          total_hourly_income: friend.total_hourly_income,
+          external_income_field: getIncomeSumByLevel(friend.lvl),
+        });
+      });
+      return friends;
     })
   }
 }
