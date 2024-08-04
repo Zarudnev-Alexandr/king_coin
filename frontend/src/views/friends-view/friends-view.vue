@@ -8,17 +8,26 @@ import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
 import FriendItem from "@/views/friends-view/components/friend-item.vue";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import FriendsApiService from "@/shared/api/services/friends-api-service.ts";
-import {onMounted} from "vue";
+import {onMounted, Ref, ref} from "vue";
+import {copyTextToClipboard} from "@/helpers/clipbaord.ts";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 
 const sumAllProfits = () => {
   return friendsList.reduce((acc: number, friend: any) => acc + friend.profit, 0);
 }
+const referralLink: Ref<string | null> = ref(null);
+
+const copy = () => {
+  copyTextToClipboard(referralLink.value ?? '');
+}
 
 onMounted(async () => {
   const res = await friendApiService.getRefLink();
-  console.log(res);
+
+  if (res && res.right) {
+    referralLink.value = res.right.referral_link;
+  }
 });
 </script>
 
@@ -27,14 +36,14 @@ onMounted(async () => {
     <FriendsHeader/>
     <InviteInfoCards/>
 
-    <div class="invite-buttons">
+    <div class="invite-buttons" v-if="referralLink">
       <FloatButton style="flex: 1; height: 65px;">
         <div class="button-content">
           <span>Пригласить друга</span>
           <img src="@/assets/svg/friends/main-invite-button-icon.png" alt="">
         </div>
       </FloatButton>
-      <FloatButton style="height: 65px; width: 65px;">
+      <FloatButton style="height: 65px; width: 65px;" @click="copy">
         <img src="@/assets/svg/copy-icon.svg" alt="" style="width: 21.45px; height: 23.71px;">
       </FloatButton>
     </div>

@@ -1,19 +1,21 @@
-import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, {AxiosInstance, AxiosError, AxiosRequestConfig} from 'axios';
 import log from 'loglevel';
 import './axios-extended.d.ts'; // Импортируем расширение типов
 
 class AxiosClientCreator {
   private defaultConnectTimeout = 25000;
 
-  constructor(private baseURL: string, private enableLogs: boolean) {}
+  constructor(private baseURL: string, private enableLogs: boolean) {
+  }
 
   public makeAxiosClient(): AxiosInstance {
+    const testInitData = 'query_id=AAEHkPY1AAAAAAeQ9jVyoovM&user=%7B%22id%22%3A905631175%2C%22first_name%22%3A%22c2dent%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22c562dent%22%2C%22language_code%22%3A%22ru%22%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1722771586&hash=472c999c56fe21e642b74eba904291cf53e2e5b8eff575feeb7991248b16672e';
     const instance = axios.create({
       baseURL: this.baseURL,
       timeout: this.defaultConnectTimeout,
       headers: {
         'Content-Type': 'application/json',
-        'initData': Telegram.WebApp.initData !== '' ? JSON.stringify(Telegram.WebApp.initDataUnsafe.user) : '{"allows_write_to_pm": true, "first_name": "firstname", "id": 55212, "language_code": "ru", "last_name": "", "username": "c2dent", "invited_tg_id": 6954225}',
+        'initData': Telegram.WebApp.initData !== '' ? JSON.stringify(Telegram.WebApp.initDataUnsafe.user) : testInitData,
       },
     });
 

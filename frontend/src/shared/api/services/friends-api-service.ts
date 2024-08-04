@@ -8,9 +8,9 @@ class FriendsApiService {
   constructor(private client: AxiosInstance, private errorHandler: AxiosErrorHandler) {
   }
 
-  public async getRefLink(): Promise<Either<CommonResponseError, {referral_ling: string}>> {
-    return this.errorHandler.processRequest<{referral_ling: string}>(async () => {
-      const response = await this.client.get<{referral_ling: string}>(this.referralLinkApi);
+  public async getRefLink(): Promise<Either<CommonResponseError, {referral_link: string}>> {
+    return this.errorHandler.processRequest<{referral_link: string}>(async () => {
+      const response = await this.client.get<{referral_link: string}>(this.referralLinkApi);
       return response.data;
     })
   }

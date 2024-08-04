@@ -14,6 +14,7 @@ export interface User {
   earnings_per_hour: number,
   fio: string,
   last_login: string,
+  is_registred: boolean | undefined,
   money: number,
   tg_id: number,
   total_income: number,

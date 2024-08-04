@@ -19,7 +19,7 @@ const handleOnAccept = () => {
 
 <template>
   <div class="action-modal-wrapper" @click="closeActionModal">
-    <div class="action-modal">
+    <div class="action-modal" @click.stop="() => {}">
       <svg
           viewBox="0 0 206 206"
           fill="none"
