@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import {useFriendsStore} from "@/shared/pinia/friends-store.ts";
+import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 
+const friendsStore = useFriendsStore();
 </script>
 
 <template>
@@ -8,8 +11,8 @@
     <img src="@/assets/svg/friends/header-top-lf-monkey.png" alt="" class="header-top-lf-img">
     <img src="@/assets/svg/friends/header-rt-monkey.png" alt="" class="header-rt-img">
     <img src="@/assets/svg/friends/header-bottom-rt.png" alt="" class="header-bt-rt-img">
-    <div class="friends-count-wrapper">
-      <span>150 000</span>
+    <div class="friends-count-wrapper" v-if="friendsStore.friendsList">
+      <span>{{ formatNumberWithSpaces(friendsStore.friendsList.length) }}</span>
       <img src="@/assets/svg/friends/crown-icon.svg" alt="t">
     </div>
     <span class="sf-pro-font friends-header-text-1">друзей обезьян</span>
