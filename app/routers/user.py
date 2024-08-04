@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
     get_boost_by_lvl, get_next_boost, upgrade_user_boost, get_user_bool, get_daily_reward, add_daily_reward, \
     update_user_level, get_daily_reward_all
-from ..api.added_funcs import decode_init_data
+from ..api.added_funcs import decode_init_data, transform_init_data, validate
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
@@ -624,7 +624,8 @@ async def get_referral_link_api(initData: str = Header(...), db: AsyncSession = 
     """
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
-
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     referral_link = f"https://t.me/KingCoin_ebot?start=ref_{user.tg_id}"
     return {"referral_link": referral_link}
 
