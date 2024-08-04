@@ -50,8 +50,8 @@ async def decode_init_data(initData: str, db: AsyncSession):
         raise HTTPException(status_code=400, detail=f"Invalid data format: {str(e)}")
 
     # Проверяем подпись
-    if not validate(parsed_data, BOT_TOKEN):
-        raise HTTPException(status_code=400, detail="Invalid signature")
+    # if not validate(parsed_data, BOT_TOKEN):
+    #     raise HTTPException(status_code=400, detail="Invalid signature")
 
     user_data = parsed_data.get("user", {})
     tg_id = user_data.get("id")
