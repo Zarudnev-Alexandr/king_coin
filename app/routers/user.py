@@ -301,16 +301,22 @@ async def logreg(initData: str = Header(...), ref: int = Query(None), db: AsyncS
             db,
             tg_id=tg_id,
             username=username,
-            fio=first_name + ' ' + last_name,  # Ваша схема использует 'fio', но в данных 'first_name'
+            fio=first_name + ' ' + last_name,
             invited_tg_id=ref,
-            is_premium=is_premium  # Добавляем флаг Telegram Premium
+            is_premium=is_premium
         )
         if not new_user:
             raise HTTPException(status_code=500, detail="Error creating user")
 
         # Начисление бонусных монет
-        bonus = 25000 if is_premium else 10000
+        bonus = 5000
+        if ref:
+            bonus = 15000
+            if is_premium:
+                bonus = 25000
         new_user.user.money += bonus
+        await db.commit()
+        await db.refresh(new_user)
 
         if ref:
             inviter = await get_user(db, ref)
@@ -684,6 +690,7 @@ async def get_invited_users(initData: str = Header(...), db: AsyncSession = Depe
         invited_users_data.append({
             "tg_id": invited_user.tg_id,
             "username": invited_user.username,
+            "fio": invited_user.fio,
             "lvl": invited_user.lvl,
             "money": invited_user.money,
             "total_hourly_income": total_hourly_income,
