@@ -7,12 +7,13 @@ import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
 import FriendItem from "@/views/friends-view/components/friend-item.vue";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import FriendsApiService from "@/shared/api/services/friends-api-service.ts";
-import {onMounted} from "vue";
+import {onMounted, ref} from "vue";
 import {copyTextToClipboard} from "@/helpers/clipbaord.ts";
 import {useFriendsStore} from "@/shared/pinia/friends-store.ts";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 const friendsStore = useFriendsStore();
+const shareHref = ref('');
 
 const copy = () => {
   copyTextToClipboard(friendsStore.referralLink || '');
@@ -24,6 +25,7 @@ onMounted(async () => {
     friendApiService.getRefLink().then((res) => {
       if (res && res.right) {
         friendsStore.setReferralLink(res.right.referral_link);
+        shareHref.value = `https://t.me/share/url?url=${res.right.referral_link}&text=Приглашаю тебя в игру!`;
       }
     });
   }
@@ -50,15 +52,17 @@ onMounted(async () => {
     <InviteInfoCards/>
 
     <div class="invite-buttons" v-if="friendsStore.referralLink !== ''">
-      <FloatButton style="flex: 1; height: 65px;">
-        <div class="button-content">
-          <span>Пригласить друга</span>
-          <img src="@/assets/svg/friends/main-invite-button-icon.png" alt="">
-        </div>
-      </FloatButton>
-      <FloatButton style="height: 65px; width: 65px;" @click="copy">
-        <img src="@/assets/svg/copy-icon.svg" alt="" style="width: 21.45px; height: 23.71px;">
-      </FloatButton>
+      <a :href="shareHref">
+        <FloatButton style="flex: 1; height: 65px;">
+          <div class="button-content">
+            <span>Пригласить друга</span>
+            <img src="@/assets/svg/friends/main-invite-button-icon.png" alt="">
+          </div>
+        </FloatButton>
+        <FloatButton style="height: 65px; width: 65px;" @click="copy">
+          <img src="@/assets/svg/copy-icon.svg" alt="" style="width: 21.45px; height: 23.71px;">
+        </FloatButton>
+      </a>
     </div>
 
     <div class="friends-list-wrap">
