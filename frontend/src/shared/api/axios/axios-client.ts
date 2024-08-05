@@ -9,7 +9,8 @@ class AxiosClientCreator {
   }
 
   public makeAxiosClient(): AxiosInstance {
-    const testInitData = "query_id=AAEHkPY1AAAAAAeQ9jV-ht30&user=%7B%22id%22%3A905351175%2C%22first_name%22%3A%22c2dent%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22c2dent%22%2C%22language_code%22%3A%22ru%22%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1722792416&hash=0099a95924782b5e0e9f3786aa44fc424bf637349ff1205e597c44fec6e9f754";
+    const testInitData = "query_id=AAFOE9phAgAAAE4T2mELCGHs&user=%7B%22id%22%3A5936649038%2C%22first_name%22%3A%22Last%22%2C%22last_name%22%3A%22%22%2C%22language_code%22%3A%22ru%22%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1722801085&hash=44ccde3a7cb1eac019a4d4912933c32c472f385b056110e07a76bf300a406c07"
+    ;
     const instance = axios.create({
       baseURL: this.baseURL,
       timeout: this.defaultConnectTimeout,

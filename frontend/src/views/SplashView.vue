@@ -7,6 +7,7 @@ import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts"
 import log from 'loglevel';
 import SocketEventUpdate from "@/shared/api/types/socket-event-update.ts";
 import {useRoute, useRouter} from "vue-router";
+import LvlUpData from "@/shared/api/types/lvl-up-data.ts";
 
 const userStore = useUserStore();
 const route = useRoute();
@@ -52,10 +53,12 @@ onMounted(async () => {
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    console.log("Socket DAta", data);
+    console.log("Socket data", data);
     if (data.event === 'update') {
-      const moneyData = data.data as SocketEventUpdate;
-      userStore.setMoney(moneyData.money ?? 0);
+      userStore.setMoneyUpdate(data.data as SocketEventUpdate);
+    } else if (data.event === 'new_lvl') {
+      userStore.setLevelUpData(data.data as LvlUpData);
+      userStore.setLevelUpVisible(true);
     }
   };
 
