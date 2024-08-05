@@ -63,6 +63,8 @@ const rewardText = computed(() => {
   flex-direction: column;
   justify-content: end;
   position: absolute;
+  top: 0;
+  left: 0;
   z-index: 30;
   gap: 15px;
   background-color: rgba(0, 0, 0, 0.8);
