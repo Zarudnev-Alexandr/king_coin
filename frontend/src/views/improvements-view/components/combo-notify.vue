@@ -3,9 +3,11 @@
 import FloatButton from "@/components/FloatButton.vue";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 import {computed, ref, Ref, watch} from "vue";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
 
 const {setComboNotify} = useImprovementsStore();
 const improvementsStore = useImprovementsStore();
+const userStore = useUserStore();
 const images: Ref<{ url: string, name: string }[]> = ref([]);
 
 const handleConfirm = () => {
@@ -31,6 +33,10 @@ watch(() => improvementsStore.combo, (newReward, _) => {
     imgTemp.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
   }
   images.value = imgTemp;
+
+  if (images.value.length > 2) {
+    userStore.moneyPlus(6000000);
+  }
 
 }, {deep: true});
 
