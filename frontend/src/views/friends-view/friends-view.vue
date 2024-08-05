@@ -52,17 +52,18 @@ onMounted(async () => {
     <InviteInfoCards/>
 
     <div class="invite-buttons" v-if="friendsStore.referralLink !== ''">
-      <a :href="shareHref">
-        <FloatButton style="flex: 1; height: 65px;">
+      <a :href="shareHref" style="flex: 1">
+        <FloatButton style="height: 65px;">
           <div class="button-content">
             <span>Пригласить друга</span>
             <img src="@/assets/svg/friends/main-invite-button-icon.png" alt="">
           </div>
         </FloatButton>
-        <FloatButton style="height: 65px; width: 65px;" @click="copy">
-          <img src="@/assets/svg/copy-icon.svg" alt="" style="width: 21.45px; height: 23.71px;">
-        </FloatButton>
       </a>
+
+      <FloatButton style="height: 65px; width: 65px;" @click="copy">
+        <img src="@/assets/svg/copy-icon.svg" alt="" style="width: 21.45px; height: 23.71px;">
+      </FloatButton>
     </div>
 
     <div class="friends-list-wrap">
