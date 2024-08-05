@@ -4,6 +4,7 @@ import CardImprovementsModalContent from "@/views/improvements-view/components/c
 import TaskFulfillModal from "@/views/income-view/components/task-fulfill-modal.vue";
 import ComboNotify from "@/views/improvements-view/components/combo-notify.vue";
 import LevelUpModal from "@/components/level-up-modal.vue";
+import BonusModal from "@/views/main-view/components/bonus-modal.vue";
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import LevelUpModal from "@/components/level-up-modal.vue";
     <TaskFulfillModal/>
     <ComboNotify/>
     <level-up-modal/>
+    <bonus-modal/>
   </div>
 </template>
 

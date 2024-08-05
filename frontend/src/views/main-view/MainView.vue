@@ -20,7 +20,6 @@ import Level9Image from "@/assets/img/level/level-9.png"
 import Level10Image from "@/assets/img/level/level-10.png"
 import BoostApiService from "@/shared/api/services/boost-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
-import BonusModal from "@/views/main-view/components/bonus-modal.vue";
 
 const router = useRouter();
 const visibleBoostModal = ref(false);
@@ -150,7 +149,6 @@ const goToLevels = () => {
         </div>
       </div>
     </action-modal>
-    <bonus-modal/>
   </div>
 </template>
 
