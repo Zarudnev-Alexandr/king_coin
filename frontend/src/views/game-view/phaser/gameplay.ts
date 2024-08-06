@@ -8,7 +8,7 @@ import CoinRewardImage from "@/assets/img/game/coin.png"
 import MysteryBoxImage from "@/assets/img/game/mystery-box.png"
 import Background1 from "@/assets/img/game/background1.png"
 import Background2 from "@/assets/img/game/background2.png"
-import MonkeyMaket from "@/assets/img/game/monkey-maket.svg";
+import MonkeyMaket from "@/assets/img/game/monkey-maket.png";
 import TouchImg from "@/assets/img/game/touch.png";
 import Obstacle from "@/views/game-view/phaser/entities/obstacle.ts";
 import {useGameStore} from "@/shared/pinia/game-store.ts";
@@ -52,7 +52,7 @@ class Gameplay extends Phaser.Scene {
     this.backgroundManager = new BackgroundSprite(this, 'background1', 'background2', 1);
     this.obstacleManager = new ObstacleManager(this);
     this.player = new Player(this, 100, this.scale.height / 2);
-    this.maketMonkey = this.add.sprite(200, this.scale.height / 2 - 90, 'monkey-maket');
+    this.maketMonkey = this.add.sprite(200, this.scale.height / 2 - 90, 'monkey-maket').setScale(0.36, 0.36);
     this.touchSprite = this.add.sprite(230, this.scale.height / 2 + 50, 'touch');
 
     // Обработка столкновений игрока с препятствиями
