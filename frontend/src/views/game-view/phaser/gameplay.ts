@@ -36,6 +36,10 @@ class Gameplay extends Phaser.Scene {
     this.load.image('mystery-box', MysteryBoxImage);
     this.load.image('background1', Background1);
     this.load.image('background2', Background2);
+
+    this.load.on('complete', () => {
+      this.gameStore.setLoading(false);
+    });
   }
 
   create() {

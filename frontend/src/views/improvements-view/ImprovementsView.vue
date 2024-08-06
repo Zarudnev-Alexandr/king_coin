@@ -50,7 +50,7 @@ onMounted(async () => {
       <div class="impro-scoreboard">
         <div style="height: 35px"></div>
         <div class="impro-scoreboard-content">
-          <img src="@/assets/svg/coin.svg" alt="">
+          <img src="@/assets/img/coin.webp" alt="">
           <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
         </div>
       </div>
@@ -67,7 +67,7 @@ onMounted(async () => {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background-image: url('@/assets/img/app-bg.png');
+  background-image: url('@/assets/img/app-bg.webp');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -82,7 +82,7 @@ onMounted(async () => {
     z-index: 10;
 
     .impro-scoreboard {
-      background-image: url("@/assets/img/improvement-scoreboard.png");
+      background-image: url("@/assets/img/improvement-scoreboard.webp");
       background-repeat: no-repeat;
       background-size: cover;
       background-position: center;

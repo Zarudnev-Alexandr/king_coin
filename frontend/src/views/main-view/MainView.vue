@@ -8,16 +8,16 @@ import ActionModal from "@/components/ActionModal.vue";
 import {computed, ref} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {formatNumber, formatNumberWithSpaces} from "@/helpers/formats.ts";
-import Level1Image from "@/assets/img/level/level-1.png"
-import Level2Image from "@/assets/img/level/level-2.png"
-import Level3Image from "@/assets/img/level/level-3.png"
-import Level4Image from "@/assets/img/level/level-4.png"
-import Level5Image from "@/assets/img/level/level-5.png"
-import Level6Image from "@/assets/img/level/level-6.png"
-import Level7Image from "@/assets/img/level/level-7.png"
-import Level8Image from "@/assets/img/level/level-8.png"
-import Level9Image from "@/assets/img/level/level-9.png"
-import Level10Image from "@/assets/img/level/level-10.png"
+import Level1Image from "@/assets/img/level/character-1.webp"
+import Level2Image from "@/assets/img/level/character-2.webp"
+import Level3Image from "@/assets/img/level/character-3.webp"
+import Level4Image from "@/assets/img/level/character-4.webp"
+import Level5Image from "@/assets/img/level/character-5.webp"
+import Level6Image from "@/assets/img/level/character-6.webp"
+import Level7Image from "@/assets/img/level/character-7.webp"
+import Level8Image from "@/assets/img/level/character-8.webp"
+import Level9Image from "@/assets/img/level/character-9.webp"
+import Level10Image from "@/assets/img/level/character-10.webp"
 import BoostApiService from "@/shared/api/services/boost-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 
@@ -93,7 +93,7 @@ const goToLevels = () => {
         <div class="header-data-scoreboard">
           <div class="header-data-content">
             <div class="header-data-score-count">
-              <img src="@/assets/svg/coin.svg" alt="">
+              <img src="@/assets/img/coin.webp" alt="">
               <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
             </div>
             <div class="header-data-statistic">
@@ -133,18 +133,18 @@ const goToLevels = () => {
                   @on-accept="upgradeBoost">
       <div class="boost-modal-wrapper">
         <div style="height: 30px"/>
-        <img src="@/assets/img/boost-icon.png" alt="">
+        <img src="@/assets/img/boost-icon.webp" alt="">
         <span class="boost-modal-title sf-pro-font">Усилитель</span>
         <span class="boost-description sf-pro-font">
           Увеличивает количество монет, которое вы можете заработать за одно нажатие
         </span>
         <span class="boost-description sf-pro-font">Уровень {{ userStore.user?.next_boost.lvl }}</span>
         <div class="boost-reward">
-          <img src="@/assets/svg/coin.svg" alt="">
+          <img src="@/assets/img/coin.webp" alt="">
           <span class="sf-pro-font">+ {{ userStore.user?.next_boost.tap_boost }} монета за тап</span>
         </div>
         <div class="boost-price">
-          <img src="@/assets/svg/coin.svg" alt="">
+          <img src="@/assets/img/coin.webp" alt="">
           <span class="sf-pro-font">{{ formatNumber(userStore.user?.next_boost.price ?? 0) }}</span>
         </div>
       </div>
@@ -159,7 +159,7 @@ const goToLevels = () => {
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  background-image: url('@/assets/img/main-view-bg.png');
+  background-image: url('@/assets/img/main-view-bg.webp');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -265,7 +265,7 @@ const goToLevels = () => {
       z-index: 12;
 
       .header-data-scoreboard {
-        background-image: url("@/assets/svg/header-scoreboard.svg");
+        background-image: url("@/assets/img/header-scoreboard.webp");
         background-repeat: no-repeat;
         background-size: cover;
         background-position: center;
@@ -363,7 +363,7 @@ const goToLevels = () => {
   .main-monkey {
     width: 100%;
     height: 85%;
-    background-image: url('@/assets/img/level/level-1.png');
+    background-image: url('@/assets/img/level/character-1.webp');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;

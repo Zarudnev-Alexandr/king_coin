@@ -11,6 +11,7 @@ export const useGameStore = defineStore('gameStore', () => {
   const currentActiveModal: Ref<'game-over' | 'pause' | 'exit' | ''> = ref('');
   const transitionView = ref('');
   const mysteryBox: Ref<MysteryBoxType | null> = ref(null);
+  const isLoading: Ref<boolean> = ref(false);
 
   const setScore = (value: number) => {
     score.value = value;
@@ -46,6 +47,10 @@ export const useGameStore = defineStore('gameStore', () => {
     mysteryBox.value = value;
   }
 
+  const setLoading = (value: boolean) => {
+    isLoading.value = value;
+  }
+
   return {
     score,
     setScore,
@@ -59,6 +64,8 @@ export const useGameStore = defineStore('gameStore', () => {
     transitionView,
     setTransitionView,
     mysteryBox,
-    setMysteryBox
+    setMysteryBox,
+    isLoading,
+    setLoading,
   };
 });

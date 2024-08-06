@@ -116,6 +116,7 @@ onMounted(() => {
     game = new Phaser.Game(config);
     gameStore.initGameState();
   }
+  gameStore.setLoading(true);
 });
 
 onUnmounted(() => {
@@ -179,6 +180,8 @@ onUnmounted(() => {
         </div>
       </template>
     </ActionModal>
+    <div v-else class="loader" v-if="gameStore.isLoading">
+    </div>
   </div>
 </template>
 
@@ -328,5 +331,18 @@ onUnmounted(() => {
 
 .speed-bg {
   background: rgba(57, 34, 0, 1);
+}
+
+.loader {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background-image: url('@/assets/img/loader-bg.webp');
+  background-repeat: no-repeat;
+  background-size: cover; /* Изображение масштабируется, чтобы полностью покрыть контейнер */
+  background-position: center; /* Изображение центрируется */
 }
 </style>

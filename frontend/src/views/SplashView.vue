@@ -139,7 +139,7 @@ onMounted(async () => {
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  background-image: url('@/assets/img/splash-bg.png');
+  background-image: url('@/assets/img/loader-bg.webp');
   background-repeat: no-repeat;
   background-size: cover; /* Изображение масштабируется, чтобы полностью покрыть контейнер */
   background-position: center; /* Изображение центрируется */

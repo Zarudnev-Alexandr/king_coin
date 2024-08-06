@@ -4,8 +4,8 @@
 
 <template>
   <div class="income-header-wrapper">
-    <img src="../../../assets/svg/friends/invite-card-up-coin.png" alt="" class="up-left-coin">
-    <img src="../../../assets/svg/friends/invite-friends-card-down-coin.png" alt="" class="up-right-coin">
+    <img src="@/assets/svg/friends/invite-card-up-coin.png" alt="" class="up-left-coin">
+    <img src="@/assets/svg/friends/invite-friends-card-down-coin.png" alt="" class="up-right-coin">
     <h2 class="sf-pro-font">Хаслим монеты</h2>
     <span class="sf-pro-font">Выполняйте задания и зарабатывайте монеты</span>
   </div>
@@ -41,11 +41,16 @@
   }
 
   h2 {
-    font-size: 28px;
-    font-weight: 800;
-    line-height: 33.41px;
+    font-family: 'SuperSquadRus', sans-serif;
+    font-size: 30px;
+    font-weight: 400;
+    line-height: 46.32px;
     text-align: center;
-    color: rgba(93, 56, 0, 1);
+    color: white;
+    text-shadow: -3px 3px 0 rgba(57, 34, 0, 1),
+    3px 3px 0 rgba(57, 34, 0, 1),
+    3px -3px 0 rgba(57, 34, 0, 1),
+    -3px -3px 0 rgba(57, 34, 0, 1);
   }
 
   span {

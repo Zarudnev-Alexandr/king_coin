@@ -36,7 +36,7 @@ const userStore = useUserStore();
   width: 100%;
   height: 100%;
   margin: 0 auto;
-  background-image: url('@/assets/img/app-bg.png');
+  background-image: url('@/assets/img/app-bg.webp');
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
