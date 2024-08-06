@@ -34,8 +34,9 @@ watch(() => improvementsStore.combo, (newReward, _) => {
   }
   images.value = imgTemp;
 
-  if (images.value.length > 2) {
+  if (images.value.length > 2 && !newReward.reward_claimed && newReward.combo) {
     userStore.moneyPlus(6000000);
+    improvementsStore.combo!.reward_claimed = true;
   }
 
 }, {deep: true});
@@ -53,7 +54,7 @@ const getDescriptionText = computed(() => {
   <div class="combo-notify-wrapper" v-if="improvementsStore.visibleComboNotify">
     <div class="combo-info-wrapper">
       <span class="title">Комбо!</span>
-      <span class="info sf-pro-font">{{ getDescriptionText}}</span>
+      <span class="info sf-pro-font">{{ getDescriptionText }}</span>
       <FloatButton style="width: 175px; height: 65px;" @click="handleConfirm">
         <span class="button-text">{{ getButtonText }}</span>
       </FloatButton>
