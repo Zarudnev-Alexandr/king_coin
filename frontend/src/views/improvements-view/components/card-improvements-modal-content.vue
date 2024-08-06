@@ -18,14 +18,20 @@ const handleClose = () => {
 }
 
 const checkCombo = (res: CoinUpgradeResponse) => {
-  if (res.combo_status.upgrade_1_purchased) {
-    improvementsStore.upgradePurchaseCombo(1);
+  if (res.combo_status.upgrade_1_purchased && improvementsStore.combo) {
+    improvementsStore.combo.upgrade_1.is_bought = true;
+    improvementsStore.combo.upgrade_1.name = improvementsStore.selectCoinForImpro?.name ?? '';
+    improvementsStore.combo.upgrade_1.image_url = improvementsStore.selectCoinForImpro?.image_url ?? '';
     improvementsStore.setComboNotify(true);
-  } else if (res.combo_status.upgrade_2_purchased) {
-    improvementsStore.upgradePurchaseCombo(2);
+  } else if (res.combo_status.upgrade_2_purchased && improvementsStore.combo) {
+    improvementsStore.combo.upgrade_2.is_bought = true;
+    improvementsStore.combo.upgrade_2.name = improvementsStore.selectCoinForImpro?.name ?? '';
+    improvementsStore.combo.upgrade_2.image_url = improvementsStore.selectCoinForImpro?.image_url ?? '';
     improvementsStore.setComboNotify(true);
-  } else if (res.combo_status.upgrade_3_purchased) {
-    improvementsStore.upgradePurchaseCombo(3);
+  } else if (res.combo_status.upgrade_3_purchased && improvementsStore.combo) {
+    improvementsStore.combo.upgrade_3.is_bought = true;
+    improvementsStore.combo.upgrade_3.name = improvementsStore.selectCoinForImpro?.name ?? '';
+    improvementsStore.combo.upgrade_3.image_url = improvementsStore.selectCoinForImpro?.image_url ?? '';
     improvementsStore.setComboNotify(true);
   }
 }
@@ -34,6 +40,7 @@ const updateCombo = () => {
   comboApiService.getComboData().then(res => {
     if (res.right) {
       improvementsStore.setCombo(res.right);
+      improvementsStore.setComboNotify(true);
     }
   });
 }
@@ -55,14 +62,13 @@ const handleAccept = async () => {
     improvementsStore.selectCoinForImpro.factor_at_new_lvl = res.right.factor_at_new_lvl;
     improvementsStore.selectCoinForImpro.factor = res.right.current_factor;
     improvementsStore.selectCoinForImpro.lvl = res.right.current_lvl;
-    improvementsStore.setSelectCoinForImpro(null);
 
     if (res.right.combo_status.new_combo_created) {
-      updateCombo();
-      improvementsStore.setComboNotify(true);
+      updateCombo()
     } else {
       checkCombo(res.right);
     }
+    improvementsStore.setSelectCoinForImpro(null);
   }
 }
 </script>
