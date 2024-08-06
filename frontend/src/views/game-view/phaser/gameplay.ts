@@ -8,6 +8,8 @@ import CoinRewardImage from "@/assets/img/game/coin.png"
 import MysteryBoxImage from "@/assets/img/game/mystery-box.png"
 import Background1 from "@/assets/img/game/background1.png"
 import Background2 from "@/assets/img/game/background2.png"
+import MonkeyMaket from "@/assets/img/game/monkey-maket.svg";
+import TouchImg from "@/assets/img/game/touch.png";
 import Obstacle from "@/views/game-view/phaser/entities/obstacle.ts";
 import {useGameStore} from "@/shared/pinia/game-store.ts";
 import ObstacleManager from "@/views/game-view/phaser/entities/obstacle-manager.ts";
@@ -22,6 +24,8 @@ class Gameplay extends Phaser.Scene {
   private timeoutIds: number[] = [];
   static instance: Gameplay | null = null;
   private backgroundManager: BackgroundTile | null = null;
+  private maketMonkey: Phaser.GameObjects.Sprite | null = null;
+  private touchSprite: Phaser.GameObjects.Sprite | null = null;
 
   constructor() {
     super('Gameplay');
@@ -36,6 +40,8 @@ class Gameplay extends Phaser.Scene {
     this.load.image('mystery-box', MysteryBoxImage);
     this.load.image('background1', Background1);
     this.load.image('background2', Background2);
+    this.load.image('monkey-maket', MonkeyMaket);
+    this.load.image('touch', TouchImg);
 
     this.load.on('complete', () => {
       this.gameStore.setLoading(false);
@@ -46,6 +52,8 @@ class Gameplay extends Phaser.Scene {
     this.backgroundManager = new BackgroundSprite(this, 'background1', 'background2', 1);
     this.obstacleManager = new ObstacleManager(this);
     this.player = new Player(this, 100, this.scale.height / 2);
+    this.maketMonkey = this.add.sprite(200, this.scale.height / 2 - 90, 'monkey-maket');
+    this.touchSprite = this.add.sprite(230, this.scale.height / 2 + 50, 'touch');
 
     // Обработка столкновений игрока с препятствиями
     this.physics.add.overlap(this.player, this.obstacleManager.obstacles, this.handleCollision, undefined, this);
@@ -142,6 +150,15 @@ class Gameplay extends Phaser.Scene {
   public clearAllTimeouts() {
     this.timeoutIds.forEach(clearTimeout);
     this.timeoutIds = [];
+  }
+
+  public removePresentationSprites() {
+    if (this.maketMonkey && this.touchSprite) {
+      this.maketMonkey.destroy();
+      this.touchSprite.destroy();
+      this.maketMonkey = null;
+      this.touchSprite = null;
+    }
   }
 }
 

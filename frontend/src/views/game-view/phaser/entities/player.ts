@@ -49,6 +49,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
     if (this.gameStore.gameInitStarted === false) {
       this.gameStore.setGameInitStarted();
       this.gameStore.setPause(false);
+      Gameplay.instance?.removePresentationSprites();
     }
 
     if (this.gameStore.isPaused) return;

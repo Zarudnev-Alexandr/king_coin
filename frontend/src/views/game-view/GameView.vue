@@ -340,7 +340,7 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   z-index: 100;
-  background-image: url('@/assets/img/loader-bg.webp');
+  background-image: url('@/assets/img/game/loader.png');
   background-repeat: no-repeat;
   background-size: cover; /* Изображение масштабируется, чтобы полностью покрыть контейнер */
   background-position: center; /* Изображение центрируется */
