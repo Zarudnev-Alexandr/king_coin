@@ -220,13 +220,13 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
                 db.add(user_combo_progress)
                 combo_status["new_combo_created"] = True
 
-            if upgrade_id == latest_combo.upgrade_1_id:
+            if upgrade_id == latest_combo.upgrade_1_id and not user_combo_progress.upgrade_1_bought:
                 user_combo_progress.upgrade_1_bought = True
                 combo_status["upgrade_1_purchased"] = True
-            elif upgrade_id == latest_combo.upgrade_2_id:
+            elif upgrade_id == latest_combo.upgrade_2_id and not user_combo_progress.upgrade_2_bought:
                 user_combo_progress.upgrade_2_bought = True
                 combo_status["upgrade_2_purchased"] = True
-            elif upgrade_id == latest_combo.upgrade_3_id:
+            elif upgrade_id == latest_combo.upgrade_3_id and not user_combo_progress.upgrade_3_bought:
                 user_combo_progress.upgrade_3_bought = True
                 combo_status["upgrade_3_purchased"] = True
 
