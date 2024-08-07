@@ -1,9 +1,9 @@
-import BackgroundMusic from "@/assets/songs/bg-song.mp3"
-import HitBoxSound from "@/assets/songs/box-hit.mp3"
-import HitObstacle from "@/assets/songs/obstacle-hit.mp3"
-import CoinSound from "@/assets/songs/coin-hit.mp3"
-import TapSound from "@/assets/songs/tap-song.mp3"
-import {useSettingsStore} from "@/shared/pinia/settings-store.ts";
+import BackgroundMusic from "@/assets/songs/bg-song.mp3";
+import HitBoxSound from "@/assets/songs/box-hit.mp3";
+import HitObstacle from "@/assets/songs/obstacle-hit.mp3";
+import CoinSound from "@/assets/songs/coin-hit.mp3";
+import TapSound from "@/assets/songs/tap-song.mp3";
+import { useSettingsStore } from "@/shared/pinia/settings-store.ts";
 
 class AudioManager {
   context: AudioContext;
@@ -18,7 +18,6 @@ class AudioManager {
   hitBoxSoundBuffer: AudioBuffer | null;
   hitBoxSoundSource: AudioBufferSourceNode | null;
   settingStore = useSettingsStore();
-
 
   constructor() {
     this.context = new AudioContext();
@@ -70,6 +69,7 @@ class AudioManager {
     if (!this.settingStore.soundOn) return;
 
     if (this.backgroundMusicBuffer) {
+      this.stopBackgroundMusic(); // Остановите любую текущую музыку перед запуском новой
       this.backgroundMusicSource = this.context.createBufferSource();
       this.backgroundMusicSource.buffer = this.backgroundMusicBuffer;
       this.backgroundMusicSource.loop = true;
@@ -80,7 +80,7 @@ class AudioManager {
 
   stopBackgroundMusic() {
     if (this.backgroundMusicSource) {
-      this.backgroundMusicSource.stop();
+      this.backgroundMusicSource.stop(0);
       this.backgroundMusicSource.disconnect();
       this.backgroundMusicSource = null;
     }
