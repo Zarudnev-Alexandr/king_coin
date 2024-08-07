@@ -79,7 +79,7 @@ class UpgradeLevel(Base):
     upgrade_id: Mapped[int] = mapped_column(Integer, ForeignKey('upgrades.id'), primary_key=True, index=True)
     lvl: Mapped[int] = mapped_column(Integer, primary_key=True)
     factor: Mapped[float] = mapped_column(Float)
-    price: Mapped[int] = mapped_column(Integer)
+    price: Mapped[int] = mapped_column(BigInteger)
 
     upgrade: Mapped["Upgrades"] = relationship("Upgrades", back_populates="levels", lazy='selectin')
 
