@@ -57,10 +57,10 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
             await db.refresh(user)
 
             # Проверка на достижение новых уровней
-            new_levels = []
+            # new_levels = []
             for level in levels_list:
                 await db.refresh(level)
-                if user.money >= level.required_money:
+                if user.money >= level.required_money and user.lvl < level.lvl:
                     old_lvl = user.lvl
                     user.lvl = level.lvl
                     user.taps_for_level = level.taps_for_level
@@ -90,18 +90,21 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
                                                       "new_lvl": user.lvl,
                                                       "new_taps_for_lvl": user.taps_for_level}},
                         user_id)
-                else:
-                    new_levels.append(level)
-
-            levels_list[:] = new_levels
+            #     else:
+            #         new_levels.append(level)
+            #
+            # levels_list[:] = new_levels
 
             # Определение денег до следующего уровня
-            if levels_list:
-                next_level_money = levels_list[0].required_money
-                money_to_next_level = next_level_money - user.money
-            else:
-                next_level_money = None
-                money_to_next_level = None
+            # if levels_list:
+            #     next_level_money = levels_list[0].required_money
+            #     money_to_next_level = next_level_money - user.money
+            # else:
+            #     next_level_money = None
+            #     money_to_next_level = None
+
+            next_level = next((level for level in levels_list if level.lvl > user.lvl), None)
+            money_to_next_level = next_level.required_money - user.money if next_level else None
 
             # Отправка обновленного значения денег и информации о доходах пользователю
             await ws_manager.send_message(
