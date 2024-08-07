@@ -31,6 +31,10 @@ const gotoRatingView = () => {
   router.push({name: 'Rating'});
 }
 
+const goToSettings = () => {
+  router.push({name: 'Settings'});
+}
+
 const getLevelImage = () => {
   switch (user?.user_lvl) {
     case 1:
@@ -112,7 +116,7 @@ const goToLevels = () => {
           <AppIconButton style="width: 48px; height: 48px;" @on-click="gotoRatingView">
             <img src="@/assets/svg/rating-icon.svg" alt="">
           </AppIconButton>
-          <AppIconButton style="width: 48px; height: 48px;">
+          <AppIconButton style="width: 48px; height: 48px;" @on-click="goToSettings">
             <img src="@/assets/svg/settings-icon.svg" alt="">
           </AppIconButton>
           <AppIconButton style="width: 48px; height: 48px;" @on-click="openBoostModal">

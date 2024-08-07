@@ -71,6 +71,13 @@ const handleAccept = async () => {
     improvementsStore.setSelectCoinForImpro(null);
   }
 }
+
+const getPlusImpro = () => {
+  if (!improvementsStore.selectCoinForImpro) {
+    return 0;
+  }
+  return ((improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0) - (improvementsStore.selectCoinForImpro.factor ?? 0));
+}
 </script>
 
 <template>
@@ -84,7 +91,7 @@ const handleAccept = async () => {
         <div class="impro-data-income-value">
           <img src="@/assets/svg/coin.svg" alt="">
           <span class="sf-pro-font">+ {{
-              formatNumber(improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0)
+              formatNumber(getPlusImpro())
             }}</span>
         </div>
       </div>
@@ -132,6 +139,11 @@ const handleAccept = async () => {
   }
 
   .impro-data-income {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+
     img {
       width: 14px;
       height: 14px;

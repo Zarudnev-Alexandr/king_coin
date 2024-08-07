@@ -38,6 +38,11 @@ const router = createRouter(
         path: '/levels',
         name: 'Levels',
         component: () => import('@/views/levels-view/levels-view.vue')
+      },
+      {
+        path: '/settings',
+        name: 'Settings',
+        component: () => import('@/views/settings-view/settings-view.vue')
       }
     ]
   }

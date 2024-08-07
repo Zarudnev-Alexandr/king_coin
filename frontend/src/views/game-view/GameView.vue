@@ -16,8 +16,10 @@ import {MysteryBoxType} from "@/shared/api/types/enums.ts";
 import GameApiService from "@/shared/api/services/game-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
+import GameLoader from "@/views/game-view/components/game-loader.vue";
 
 const phaserRef = ref<HTMLDivElement | null>(null);
+const isGameDelay = ref(true);
 const gameApiService = new GameApiService(axiosInstance, errorHandler);
 
 let game: Phaser.Game | null = null;
@@ -117,6 +119,10 @@ onMounted(() => {
     gameStore.initGameState();
   }
   gameStore.setLoading(true);
+
+  setTimeout(() => {
+    isGameDelay.value = false;
+  }, 2000);
 });
 
 onUnmounted(() => {
@@ -180,8 +186,7 @@ onUnmounted(() => {
         </div>
       </template>
     </ActionModal>
-    <div v-else class="loader" v-if="gameStore.isLoading">
-    </div>
+    <game-loader v-if="gameStore.isLoading || isGameDelay"/>
   </div>
 </template>
 
@@ -331,18 +336,5 @@ onUnmounted(() => {
 
 .speed-bg {
   background: rgba(57, 34, 0, 1);
-}
-
-.loader {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 100;
-  background-image: url('@/assets/img/game/loader.png');
-  background-repeat: no-repeat;
-  background-size: cover; /* Изображение масштабируется, чтобы полностью покрыть контейнер */
-  background-position: center; /* Изображение центрируется */
 }
 </style>

@@ -2,6 +2,7 @@
 
 interface Props {
   mainButtonText?: string,
+  actionButtonIsHide?: boolean,
 }
 
 const props = defineProps<Props>();
@@ -50,7 +51,7 @@ const handleOnAccept = () => {
         <slot></slot>
       </div>
 
-      <div class="accept-action">
+      <div class="accept-action" v-if="!props.actionButtonIsHide">
         <slot name="actions">
           <div class="accept-button-wrapper" @click="handleOnAccept">
             <span>{{ props.mainButtonText ? props.mainButtonText : 'Получить' }}</span>

@@ -88,6 +88,7 @@ class Gameplay extends Phaser.Scene {
   }
 
   handleCollision() {
+    this.gameStore.audioManager.playGameOverMusic();
     this.gameStore.setPause(true);
     this.gameStore.setCurrentActiveModal('game-over');
     this.clearAllTimeouts();
@@ -101,6 +102,7 @@ class Gameplay extends Phaser.Scene {
   handleRewardCollision(_: (Phaser.Types.Physics.Arcade.GameObjectWithBody | Phaser.Tilemaps.Tile),
                         object2: (Phaser.Types.Physics.Arcade.GameObjectWithBody | Phaser.Tilemaps.Tile)) {
     if (object2 instanceof CoinReward) {
+      this.gameStore.audioManager.playCoinMusic()
       object2.destroy();
       this.gameStore.setScore(this.gameStore.score + object2.reward);
     }
@@ -110,6 +112,7 @@ class Gameplay extends Phaser.Scene {
                             object2: (Phaser.Types.Physics.Arcade.GameObjectWithBody | Phaser.Tilemaps.Tile)) {
     if (object2 instanceof MysteryBox) {
       object2.destroy();
+      this.gameStore.audioManager.playHitBoxSound();
       this.gameStore.setMysteryBox(object2.type);
 
       if (object2.type === MysteryBoxType['100COIN']) {

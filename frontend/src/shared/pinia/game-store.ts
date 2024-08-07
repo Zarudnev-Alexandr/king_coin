@@ -2,6 +2,7 @@ import {defineStore} from "pinia";
 import {Ref, ref} from "vue";
 import Gameplay from "@/views/game-view/phaser/gameplay.ts";
 import {MysteryBoxType} from "@/shared/api/types/enums.ts";
+import AudioManager from "@/views/game-view/phaser/audio-manager.ts";
 
 
 export const useGameStore = defineStore('gameStore', () => {
@@ -12,6 +13,7 @@ export const useGameStore = defineStore('gameStore', () => {
   const transitionView = ref('');
   const mysteryBox: Ref<MysteryBoxType | null> = ref(null);
   const isLoading: Ref<boolean> = ref(false);
+  const audioManager = new AudioManager();
 
   const setScore = (value: number) => {
     score.value = value;
@@ -20,11 +22,19 @@ export const useGameStore = defineStore('gameStore', () => {
   const setPause = (value: boolean) => {
     isPaused.value = value;
     currentActiveModal.value = value ? 'pause' : '';
-    value ? Gameplay.instance?.disablePhysics() : Gameplay.instance?.enablePhysics();
+    if (value) {
+      console.log("disabled background music")
+      audioManager.stopBackgroundMusic();
+      Gameplay.instance?.disablePhysics()
+    } else {
+      audioManager.playBackgroundMusic();
+      Gameplay.instance?.enablePhysics();
+    }
   };
 
   const setGameInitStarted = () => {
     gameInitStarted.value = true;
+    audioManager.playBackgroundMusic();
   }
 
   const initGameState = () => {
@@ -67,5 +77,6 @@ export const useGameStore = defineStore('gameStore', () => {
     setMysteryBox,
     isLoading,
     setLoading,
+    audioManager,
   };
 });
