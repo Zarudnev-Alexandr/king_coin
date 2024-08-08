@@ -1,5 +1,5 @@
 import {defineStore} from "pinia";
-import {LocalStorageService} from "@/helpers/local-storage.ts";
+import {LocalStorageService} from "@/shared/api/services/local-storage-service.ts";
 import {ref} from "vue";
 import Languages from "@/shared/constants/languages.ts";
 
