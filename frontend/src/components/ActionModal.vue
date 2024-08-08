@@ -83,6 +83,9 @@ const handleOnAccept = () => {
     border: 2px solid white;
     background-color: rgba(57, 34, 0, 1);
     position: relative;
+    opacity: 0;
+    transform: translateY(-50px);
+    animation: slideIn 0.5s ease-in-out forwards;
 
     .close-icon {
       position: absolute;
@@ -127,6 +130,13 @@ const handleOnAccept = () => {
         }
       }
     }
+  }
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1; /* Конечная прозрачность */
+    transform: translateY(0); /* Конечное смещение */
   }
 }
 </style>

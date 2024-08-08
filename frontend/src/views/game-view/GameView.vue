@@ -113,6 +113,7 @@ watch(() => gameStore.currentActiveModal, (newVal, _) => {
 });
 
 onMounted(() => {
+  userStore.vibrationService.light();
   if (phaserRef.value) {
     config.parent = phaserRef.value;
     game = new Phaser.Game(config);

@@ -22,6 +22,7 @@ const {
 const userStore = useUserStore();
 
 onMounted(async () => {
+  userStore.vibrationService.light();
   if (dataLoaded) {
     return;
   }

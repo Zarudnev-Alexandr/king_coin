@@ -10,9 +10,11 @@ import FriendsApiService from "@/shared/api/services/friends-api-service.ts";
 import {onMounted, ref} from "vue";
 import {copyTextToClipboard} from "@/helpers/clipbaord.ts";
 import {useFriendsStore} from "@/shared/pinia/friends-store.ts";
+import VibrationService from "@/shared/api/services/vibration-service.ts";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 const friendsStore = useFriendsStore();
+const vibrationService = new VibrationService();
 const shareHref = ref('');
 
 const copy = () => {
@@ -20,7 +22,7 @@ const copy = () => {
 }
 
 onMounted(async () => {
-
+  vibrationService.light();
   if (!friendsStore.referralLink) {
     friendApiService.getRefLink().then((res) => {
       if (res && res.right) {

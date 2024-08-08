@@ -4,6 +4,7 @@ import {User, UserBoost} from "@/shared/api/types/user.ts";
 import LvlUpData from "@/shared/api/types/lvl-up-data.ts";
 import SocketEventUpdate from "@/shared/api/types/socket-event-update.ts";
 import {getLevelByIndex} from "@/helpers/levels.ts";
+import VibrationService from "@/shared/api/services/vibration-service.ts";
 
 export const useUserStore = defineStore('userStore', () => {
   const isAuth = ref<Boolean>(false);
@@ -11,6 +12,7 @@ export const useUserStore = defineStore('userStore', () => {
   const bonusVisible = ref<Boolean>(true);
   const levelUpVisible = ref<Boolean>(false);
   const levelUpData = ref<LvlUpData | null>(null);
+  const vibrationService = new VibrationService();
 
   const setAuth = (auth: Boolean) => {
     isAuth.value = auth;
@@ -79,5 +81,6 @@ export const useUserStore = defineStore('userStore', () => {
     levelUpData,
     setLevelUpData,
     setMoneyUpdate,
+    vibrationService,
   };
 });

@@ -8,11 +8,14 @@ import {onMounted} from "vue";
 import TasksApiService from "@/shared/api/services/tasks-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
+import VibrationService from "@/shared/api/services/vibration-service.ts";
 
 const taskService = new TasksApiService(axiosInstance, errorHandler)
+const vibrationService = new VibrationService();
 const {setLoading, setTasks, setDailyTask} = useIncomeStore();
 
 onMounted(async () => {
+  vibrationService.light();
   setLoading(true);
   const res = await taskService.getTasks();
   if (res && res.right) {

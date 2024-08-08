@@ -5,7 +5,7 @@ import AppIconButton from "@/components/AppIconButton.vue";
 import HeaderStatisticItem from "@/views/main-view/components/header-statistic-item.vue";
 import {useRouter} from "vue-router";
 import ActionModal from "@/components/ActionModal.vue";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {formatNumber, formatNumberWithSpaces} from "@/helpers/formats.ts";
 import Level1Image from "@/assets/img/level/character-1.webp"
@@ -87,6 +87,10 @@ const upgradeBoost = async () => {
 const goToLevels = () => {
   router.push({name: 'Levels'});
 }
+
+onMounted(() => {
+  userStore.vibrationService.light();
+});
 </script>
 
 <template>
