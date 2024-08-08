@@ -4,6 +4,7 @@ import SplashView from "@/views/SplashView.vue";
 import MainLayout from "@/components/MainLayout.vue";
 
 const userStore = useUserStore();
+Telegram.WebApp.expand();
 </script>
 
 <template>
