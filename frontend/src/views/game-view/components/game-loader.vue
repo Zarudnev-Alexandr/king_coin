@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <img src="@/assets/img/game/loading-bg-player.png" alt="">
+    <img src="@/assets/img/game/game-loader-player.webp" alt="">
   </div>
 </template>
 
@@ -34,7 +34,7 @@
   z-index: 15;
   width: 100%;
   height: 100%;
-  background-image: url('@/assets/img/game/loading-bg.jpg');
+  background-image: url('@/assets/img/game/game-loader-bg.webp');
   background-repeat: no-repeat;
   background-size: cover; /* Изображение масштабируется, чтобы полностью покрыть контейнер */
   background-position: center; /* Изображение центрируется */
