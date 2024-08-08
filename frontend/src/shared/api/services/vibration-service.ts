@@ -1,24 +1,22 @@
 import {useSettingsStore} from "@/shared/pinia/settings-store.ts";
 
 class VibrationService {
+  settingsStore = useSettingsStore();
 
-  public static light = () => {
-    const settingsStore = useSettingsStore();
-    if (Telegram.WebApp && settingsStore.vibrationOn) {
+  public light = () => {
+    if (Telegram.WebApp && this.settingsStore.vibrationOn) {
       Telegram.WebApp.HapticFeedback.impactOccurred('light');
     }
   }
 
-  public static medium = () => {
-    const settingsStore = useSettingsStore();
-    if (Telegram.WebApp && settingsStore.vibrationOn) {
+  public medium = () => {
+    if (Telegram.WebApp && this.settingsStore.vibrationOn) {
       Telegram.WebApp.HapticFeedback.impactOccurred('medium');
     }
   }
 
-  public static heavy = () => {
-    const settingsStore = useSettingsStore();
-    if (Telegram.WebApp && settingsStore.vibrationOn) {
+  public heavy = () => {
+    if (Telegram.WebApp && this.settingsStore.vibrationOn) {
       Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
     }
   }

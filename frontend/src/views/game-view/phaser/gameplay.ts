@@ -16,7 +16,6 @@ import ObstacleManager from "@/views/game-view/phaser/entities/obstacle-manager.
 import CoinReward from "@/views/game-view/phaser/entities/coin-reward.ts";
 import MysteryBox from "@/views/game-view/phaser/entities/mystery-box.ts";
 import {MysteryBoxType} from "@/shared/api/types/enums.ts";
-import VibrationService from "@/shared/api/services/vibration-service.ts";
 
 class Gameplay extends Phaser.Scene {
   private player?: Player;
@@ -91,7 +90,7 @@ class Gameplay extends Phaser.Scene {
   handleCollision() {
     if (this.gameStore.currentActiveModal !== 'game-over') {
       this.gameStore.audioManager.playGameOverMusic();
-      VibrationService.medium();
+      this.gameStore.vibrationService.medium();
     }
     this.gameStore.setPause(true);
     this.gameStore.setCurrentActiveModal('game-over');

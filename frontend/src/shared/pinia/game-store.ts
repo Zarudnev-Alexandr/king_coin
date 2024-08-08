@@ -3,6 +3,7 @@ import {Ref, ref} from "vue";
 import Gameplay from "@/views/game-view/phaser/gameplay.ts";
 import {MysteryBoxType} from "@/shared/api/types/enums.ts";
 import AudioManager from "@/views/game-view/phaser/audio-manager.ts";
+import VibrationService from "@/shared/api/services/vibration-service.ts";
 
 
 export const useGameStore = defineStore('gameStore', () => {
@@ -14,6 +15,7 @@ export const useGameStore = defineStore('gameStore', () => {
   const mysteryBox: Ref<MysteryBoxType | null> = ref(null);
   const isLoading: Ref<boolean> = ref(false);
   const audioManager = new AudioManager();
+  const vibrationService = new VibrationService();
 
   const setScore = (value: number) => {
     score.value = value;
@@ -78,5 +80,6 @@ export const useGameStore = defineStore('gameStore', () => {
     isLoading,
     setLoading,
     audioManager,
+    vibrationService,
   };
 });
