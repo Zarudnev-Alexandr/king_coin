@@ -31,7 +31,7 @@
   display: flex;
   justify-content: end;
   position: absolute;
-  z-index: 100;
+  z-index: 15;
   width: 100%;
   height: 100%;
   background-image: url('@/assets/img/game/loading-bg.jpg');
