@@ -8,6 +8,7 @@ import log from 'loglevel';
 import SocketEventUpdate from "@/shared/api/types/socket-event-update.ts";
 import {useRoute, useRouter} from "vue-router";
 import LvlUpData from "@/shared/api/types/lvl-up-data.ts";
+import BonusImg from "@/assets/img/bonus.png";
 
 const userStore = useUserStore();
 const route = useRoute();
@@ -28,6 +29,11 @@ const updateEachSecond = () => {
 }
 
 onMounted(async () => {
+  const img = new Image();
+  img.src = BonusImg;
+  img.onload = () => {};
+  img.onerror = () => {};
+
   await router.isReady();
 
   Telegram.WebApp.expand();
