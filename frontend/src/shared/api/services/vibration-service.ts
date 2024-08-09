@@ -5,7 +5,7 @@ class VibrationService {
 
   public light = () => {
     if (Telegram.WebApp && this.settingsStore.vibrationOn) {
-      Telegram.WebApp.HapticFeedback.impactOccurred('light');
+      Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
     }
   }
 
