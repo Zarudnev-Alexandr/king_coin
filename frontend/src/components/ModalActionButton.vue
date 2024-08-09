@@ -1,9 +1,25 @@
 <script setup lang="ts">
+interface Props {
+  buttonText?: string;
+  disabledText?: string;
+  isDisabled?: boolean;
+}
 
+const props = defineProps<Props>();
+const emits = defineEmits(['onAccept']);
+
+const handleOnAccept = () => {
+  if (props.isDisabled) return;
+
+  emits('onAccept');
+}
 </script>
 
 <template>
-  <div class="modal-action-button-wrapper">
+  <div class="modal-action-button-wrapper"
+       :class="{ 'active-bg': !props.isDisabled, 'disabled-bg': props.isDisabled }"
+       @click="handleOnAccept"
+  >
     <svg width="93" height="47" viewBox="0 0 93 47" fill="none" xmlns="http://www.w3.org/2000/svg"
          style="position: absolute; right: 0; bottom: 0"
     >
@@ -21,13 +37,14 @@
           d="M15.2661 1.63794C16.4021 1.41585 16.6071 -0.0015942 15.4495 1.34597e-06C10.7303 0.00650752 6.05569 2.07262 2.87218 6.03983C1.57354 7.65816 0.637487 9.45019 0.0532487 11.3178C-0.294485 12.4293 1.15384 12.6402 1.70541 11.6144C2.26422 10.5752 2.92494 9.57273 3.68913 8.6204C6.70832 4.85797 10.8409 2.50309 15.2661 1.63794Z"
           fill="white"/>
     </svg>
-    <slot></slot>
+    <slot>
+      <span class="action-button-title">{{ props.isDisabled ? props.disabledText : props.buttonText }}</span>
+    </slot>
   </div>
 </template>
 
 <style scoped>
 .modal-action-button-wrapper {
-  background: radial-gradient(120.14% 120.14% at 50% -11.81%, #FFFFFF 0%, #FFE531 20%, #FFA531 74.03%, #FF8200 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -37,5 +54,22 @@
   border-left: 2px solid white;
   border-right: 2px solid white;
   border-top: 2px solid white;
+
+  .action-button-title {
+    font-family: 'SuperSquadRus', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 21.62px;
+    text-align: center;
+    color: rgba(93, 56, 0, 1);
+  }
+}
+
+.active-bg {
+  background: radial-gradient(120.14% 120.14% at 50% -11.81%, #FFFFFF 0%, #FFE531 20%, #FFA531 74.03%, #FF8200 100%);
+}
+
+.disabled-bg {
+  background-color: rgba(160, 116, 50, 1);
 }
 </style>

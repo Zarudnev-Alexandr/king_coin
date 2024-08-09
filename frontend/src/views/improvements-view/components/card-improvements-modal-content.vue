@@ -8,6 +8,7 @@ import {useUserStore} from "@/shared/pinia/user-store.ts";
 import ComboApiService from "@/shared/api/services/combo-api-service.ts";
 import CoinUpgradeResponse from "@/shared/api/types/coin-upgrade-response.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
+import ModalActionButton from "@/components/ModalActionButton.vue";
 
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
@@ -17,6 +18,10 @@ const comboApiService = new ComboApiService(axiosInstance, errorHandler);
 
 const handleClose = () => {
   improvementsStore.setSelectCoinForImpro(null);
+}
+
+const isDisabled = () => {
+  return !improvementsStore.selectCoinForImpro || (userStore.user?.money ?? 0) < (improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0);
 }
 
 const checkCombo = (res: CoinUpgradeResponse) => {
@@ -105,6 +110,16 @@ const getPlusImpro = () => {
           }}</span>
       </div>
     </div>
+    <template #actions>
+      <modal-action-button
+          style="width: 133px; height: 67px"
+          button-text="Получить"
+          @on-accept="handleAccept"
+          :is-disabled="isDisabled()"
+          :disabled-text="isDisabled() ? 'Нет денег' : 'Получить'"
+      />
+    </template>
+
   </ActionModal>
 </template>
 

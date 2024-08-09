@@ -20,6 +20,7 @@ import Level9Image from "@/assets/img/level/character-9.webp"
 import Level10Image from "@/assets/img/level/character-10.webp"
 import BoostApiService from "@/shared/api/services/boost-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
+import ModalActionButton from "@/components/ModalActionButton.vue";
 
 const router = useRouter();
 const visibleBoostModal = ref(false);
@@ -82,6 +83,10 @@ const upgradeBoost = async () => {
     userStore.updateBoostData(res.right.next_boost);
     visibleBoostModal.value = false;
   }
+}
+
+const isDisabled = () => {
+  return user!.money < user!.next_boost.price;
 }
 
 const goToLevels = () => {
@@ -156,6 +161,15 @@ onMounted(() => {
           <span class="sf-pro-font">{{ formatNumber(userStore.user?.next_boost.price ?? 0) }}</span>
         </div>
       </div>
+      <template #actions>
+        <modal-action-button
+            style="width: 133px; height: 67px"
+            button-text="Получить"
+            @on-accept="upgradeBoost"
+            :is-disabled="isDisabled()"
+            :disabled-text="isDisabled() ? 'Нет денег' : 'Получить'"
+        />
+      </template>
     </action-modal>
   </div>
 </template>

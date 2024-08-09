@@ -8,6 +8,7 @@ import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts"
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {Ref, ref} from "vue";
+import ModalActionButton from "@/components/ModalActionButton.vue";
 
 const appStore = useAppStore();
 const taskStore = useIncomeStore();
@@ -18,6 +19,10 @@ const isReady: Ref<boolean> = ref(false);
 const handleClose = () => {
   isReady.value = false;
   appStore.setSelectTaskForFulfill(null);
+}
+
+const isDisabled = () => {
+  return appStore.selectTaskForFulfill?.type === 'daily' && taskStore.dailyTask?.is_collect;
 }
 
 const handleAccept = () => {
@@ -77,10 +82,21 @@ const getMainButtonText = () => {
                @close="handleClose"
                @on-accept="handleAccept"
                :main-button-text="getMainButtonText()">
-    <task-fulfill-subribe-content
-        v-if="appStore.selectTaskForFulfill.type === 'subscribe_telegram' || appStore.selectTaskForFulfill?.type === 'generic'"/>
-    <task-fulfull-daily-content v-if="appStore.selectTaskForFulfill.type === 'daily'"/>
-    <task-fulfill-subribe-content v-if="appStore.selectTaskForFulfill.type === 'invite'"/>
+    <template #actions>
+      <modal-action-button
+          style="width: 133px; height: 67px"
+          :button-text="getMainButtonText()"
+          @on-accept="handleAccept"
+          :is-disabled="isDisabled()"
+          :disabled-text="isDisabled() ? 'До завтра' : 'Забрать'"
+      />
+    </template>
+    <template #default>
+      <task-fulfill-subribe-content
+          v-if="appStore.selectTaskForFulfill.type === 'subscribe_telegram' || appStore.selectTaskForFulfill?.type === 'generic'"/>
+      <task-fulfull-daily-content v-if="appStore.selectTaskForFulfill.type === 'daily'"/>
+      <task-fulfill-subribe-content v-if="appStore.selectTaskForFulfill.type === 'invite'"/>
+    </template>
   </ActionModal>
 </template>
 
