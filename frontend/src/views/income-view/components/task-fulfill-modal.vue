@@ -52,7 +52,7 @@ const claimDailyReward = async () => {
   const res = await taskApiService.claimDailyTask();
   if (res && res.right) {
     taskStore.claimDailyTask();
-    userStore.user!.money += res.right.reward;
+    userStore.moneyPlus(res.right.reward);
     appStore.setSelectTaskForFulfill(null);
     appStore.playCoinAnimation();
   }

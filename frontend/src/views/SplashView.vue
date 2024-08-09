@@ -45,6 +45,7 @@ onMounted(async () => {
   }
 
   userStore.setUser(response.right!);
+  userStore.moneyPlus(-response.right!.total_income);
   userStore.setAuth(true);
   updateEachSecond();
 

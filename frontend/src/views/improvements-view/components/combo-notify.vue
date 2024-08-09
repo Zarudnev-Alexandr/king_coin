@@ -37,7 +37,7 @@ watch(() => improvementsStore.combo, (newReward, _) => {
   images.value = imgTemp;
 
   if (images.value.length > 2 && !newReward.reward_claimed && newReward.combo) {
-    userStore.moneyPlus(6000000);
+    userStore.animationPlusMoney(6000000);
     improvementsStore.combo!.reward_claimed = true;
     appStore.playCoinAnimation();
   }

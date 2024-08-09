@@ -10,6 +10,7 @@ const appStore = useAppStore();
 
 const handleGetBonus = () => {
   userStore.setBonusVisible(false);
+  userStore.animationPlusMoney(userStore.user!.total_income);
   appStore.playCoinAnimation();
 }
 

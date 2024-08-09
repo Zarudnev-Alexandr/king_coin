@@ -5,7 +5,7 @@ import AppIconButton from "@/components/AppIconButton.vue";
 import HeaderStatisticItem from "@/views/main-view/components/header-statistic-item.vue";
 import {useRouter} from "vue-router";
 import ActionModal from "@/components/ActionModal.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {formatNumber, formatNumberWithSpaces} from "@/helpers/formats.ts";
 import Level1Image from "@/assets/img/level/character-1.webp"
@@ -27,6 +27,7 @@ const visibleBoostModal = ref(false);
 const userStore = useUserStore();
 const user = userStore.user;
 const boostApiService = new BoostApiService(axiosInstance, errorHandler);
+const isAnimating = ref(false);
 
 const gotoRatingView = () => {
   router.push({name: 'Rating'});
@@ -79,7 +80,7 @@ const upgradeBoost = async () => {
 
   const res = await boostApiService.upgradeBoost();
   if (res && res.right) {
-    userStore.moneyPlus(-user!.next_boost.price);
+    userStore.animationPlusMoney(-user!.next_boost.price);
     userStore.updateBoostData(res.right.next_boost);
     visibleBoostModal.value = false;
   }
@@ -93,8 +94,21 @@ const goToLevels = () => {
   router.push({name: 'Levels'});
 }
 
+function startAnimation() {
+  isAnimating.value = true;
+  setTimeout(() => {
+    isAnimating.value = false;
+  }, 1000);
+}
+
 onMounted(() => {
+  userStore.setPulseAnimationMethod(startAnimation);
   userStore.vibrationService.light();
+});
+
+onBeforeUnmount(() => {
+  userStore.setPulseAnimationMethod(() => {
+  });
 });
 </script>
 
@@ -105,7 +119,7 @@ onMounted(() => {
       <div class="header-data">
         <div class="header-data-scoreboard">
           <div class="header-data-content">
-            <div class="header-data-score-count">
+            <div class="header-data-score-count" :class="{ 'pulse-animation': isAnimating }">
               <img src="@/assets/img/coin.webp" alt="">
               <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
             </div>
@@ -401,6 +415,19 @@ onMounted(() => {
   to {
     opacity: 1; /* Конечная прозрачность */
     transform: translateY(0); /* Конечное смещение */
+  }
+}
+
+.pulse-animation {
+  animation: pulse 0.3s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
   }
 }
 </style>

@@ -4,7 +4,7 @@ import Combo from "@/views/improvements-view/components/combo.vue";
 import CoinCardList from "@/views/improvements-view/components/coin-card-list.vue";
 import CoinApiService from "@/shared/api/services/coin-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
-import {onMounted} from "vue";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 import {CoinCategory} from "@/shared/api/types/coin-category.ts";
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
@@ -20,8 +20,10 @@ const {
   setSpecialCoinList,
 } = useImprovementsStore();
 const userStore = useUserStore();
+const isAnimating = ref(false);
 
 onMounted(async () => {
+  userStore.setImproPulseAnimationMethod(startAnimation);
   userStore.vibrationService.light();
   if (dataLoaded) {
     return;
@@ -43,6 +45,18 @@ onMounted(async () => {
     setLoading(false);
   }
 });
+
+function startAnimation() {
+  isAnimating.value = true;
+  setTimeout(() => {
+    isAnimating.value = false;
+  }, 1000);
+}
+
+onBeforeUnmount(() => {
+  userStore.setImproPulseAnimationMethod(() => {
+  });
+});
 </script>
 
 <template>
@@ -50,7 +64,7 @@ onMounted(async () => {
     <div class="improvements-header">
       <div class="impro-scoreboard">
         <div style="height: 35px"></div>
-        <div class="impro-scoreboard-content">
+        <div class="impro-scoreboard-content" :class="{ 'pulse-animation': isAnimating }">
           <img src="@/assets/img/coin.webp" alt="">
           <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
         </div>
@@ -120,10 +134,23 @@ onMounted(async () => {
   }
 }
 
+.pulse-animation {
+  animation: pulse 0.3s infinite;
+}
+
 @keyframes slideIn {
   to {
     opacity: 1; /* Конечная прозрачность */
     transform: translateY(0); /* Конечное смещение */
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
   }
 }
 </style>
