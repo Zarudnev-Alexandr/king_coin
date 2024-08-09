@@ -7,9 +7,11 @@ import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts"
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import ComboApiService from "@/shared/api/services/combo-api-service.ts";
 import CoinUpgradeResponse from "@/shared/api/types/coin-upgrade-response.ts";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
 
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
+const appStore = useAppStore();
 const coinApiService = new CoinApiService(axiosInstance, errorHandler);
 const comboApiService = new ComboApiService(axiosInstance, errorHandler);
 
@@ -69,6 +71,7 @@ const handleAccept = async () => {
       checkCombo(res.right);
     }
     improvementsStore.setSelectCoinForImpro(null);
+    appStore.playCoinAnimation();
   }
 }
 
