@@ -72,6 +72,9 @@ const rewardText = computed(() => {
   z-index: 30;
   gap: 15px;
   background-color: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transform: translateY(50px);
+  animation: slideIn 0.5s ease-in-out forwards;
 
   .bonus-modal-content {
     display: flex;
@@ -125,6 +128,13 @@ const rewardText = computed(() => {
       text-align: center;
       color: rgba(93, 56, 0, 1);
     }
+  }
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1; /* Конечная прозрачность */
+    transform: translateY(0); /* Конечное смещение */
   }
 }
 </style>
