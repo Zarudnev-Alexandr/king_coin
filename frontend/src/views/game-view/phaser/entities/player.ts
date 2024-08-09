@@ -79,7 +79,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
   private handleWorldBoundsCollision() {
     if (this.gameStore.currentActiveModal !== 'game-over') {
       this.gameStore.audioManager.playGameOverMusic();
-      this.gameStore.vibrationService.medium();
+      this.gameStore.vibrationService.heavy();
     }
 
     this.gameStore.setPause(true);

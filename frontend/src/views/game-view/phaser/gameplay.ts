@@ -90,7 +90,7 @@ class Gameplay extends Phaser.Scene {
   handleCollision() {
     if (this.gameStore.currentActiveModal !== 'game-over') {
       this.gameStore.audioManager.playGameOverMusic();
-      this.gameStore.vibrationService.medium();
+      this.gameStore.vibrationService.heavy();
     }
     this.gameStore.setPause(true);
     this.gameStore.setCurrentActiveModal('game-over');

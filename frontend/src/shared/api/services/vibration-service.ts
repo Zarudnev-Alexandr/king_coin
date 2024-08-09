@@ -17,7 +17,7 @@ class VibrationService {
 
   public heavy = () => {
     if (Telegram.WebApp && this.settingsStore.vibrationOn) {
-      Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+      Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
     }
   }
 }
