@@ -3,11 +3,14 @@ import FloatButton from "@/components/FloatButton.vue";
 import {computed} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
 
 const userStore = useUserStore();
+const appStore = useAppStore();
 
 const handleGetBonus = () => {
   userStore.setBonusVisible(false);
+  appStore.playCoinAnimation();
 }
 
 const titleText = computed(() => {

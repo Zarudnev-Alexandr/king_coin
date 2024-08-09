@@ -4,10 +4,12 @@ import FloatButton from "@/components/FloatButton.vue";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 import {computed, ref, Ref, watch} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
 
 const {setComboNotify} = useImprovementsStore();
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
+const appStore = useAppStore();
 const images: Ref<{ url: string, name: string }[]> = ref([]);
 
 const handleConfirm = () => {
@@ -37,6 +39,7 @@ watch(() => improvementsStore.combo, (newReward, _) => {
   if (images.value.length > 2 && !newReward.reward_claimed && newReward.combo) {
     userStore.moneyPlus(6000000);
     improvementsStore.combo!.reward_claimed = true;
+    appStore.playCoinAnimation();
   }
 
 }, {deep: true});

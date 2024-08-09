@@ -49,6 +49,7 @@ const claimDailyReward = async () => {
     taskStore.claimDailyTask();
     userStore.user!.money += res.right.reward;
     appStore.setSelectTaskForFulfill(null);
+    appStore.playCoinAnimation();
   }
 }
 
@@ -58,6 +59,7 @@ const checkTask = async () => {
     taskStore.taskCompleted(appStore.selectTaskForFulfill!.id);
     userStore.user!.money += res.right.money_received;
     appStore.setSelectTaskForFulfill(null);
+    appStore.playCoinAnimation();
   }
 }
 

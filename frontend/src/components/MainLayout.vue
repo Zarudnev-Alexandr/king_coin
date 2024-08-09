@@ -5,6 +5,7 @@ import TaskFulfillModal from "@/views/income-view/components/task-fulfill-modal.
 import ComboNotify from "@/views/improvements-view/components/combo-notify.vue";
 import LevelUpModal from "@/components/level-up-modal.vue";
 import BonusModal from "@/views/main-view/components/bonus-modal.vue";
+import CoinLottieAnimation from "@/components/coin-lottie-animation.vue";
 </script>
 
 <template>
@@ -16,6 +17,7 @@ import BonusModal from "@/views/main-view/components/bonus-modal.vue";
     <ComboNotify/>
     <level-up-modal/>
     <bonus-modal/>
+    <coin-lottie-animation/>
   </div>
 </template>
 

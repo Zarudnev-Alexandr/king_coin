@@ -16,15 +16,16 @@
     "phaser": "^3.80.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
-    "vue-router": "^4.4.0"
+    "vue-router": "^4.4.0",
+    "vue3-lottie": "^3.3.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
+    "@types/telegram-web-app": "^7.8.0",
     "@vitejs/plugin-vue": "^5.0.5",
     "typescript": "^5.2.2",
     "vite": "^5.3.1",
     "vite-tsconfig-paths": "^4.3.2",
-    "@types/telegram-web-app": "^7.8.0",
     "vue-tsc": "^2.0.21"
   }
 }
