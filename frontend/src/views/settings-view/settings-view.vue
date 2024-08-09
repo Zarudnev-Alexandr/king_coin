@@ -9,9 +9,12 @@ import SoundOnSvg from "@/assets/svg/settings/sound-on.svg"
 import SoundOffSvg from "@/assets/svg/settings/sound-off.svg"
 import VibrationOnSvg from "@/assets/svg/settings/vibration-on.svg"
 import VibrationOffSvg from "@/assets/svg/settings/vibration-off.svg"
+import FloatButton from "@/components/FloatButton.vue";
+import RemoveAccountModal from "@/views/settings-view/components/remove-account-modal.vue";
 
 const settingsStore = useSettingsStore();
 const selectLangIsOpen = ref(false);
+const removeModalIsVisible = ref(false);
 
 const closeSelectLangModal = () => {
   selectLangIsOpen.value = false;
@@ -27,6 +30,19 @@ const toggleSound = () => {
 
 const toggleVibration = () => {
   settingsStore.setVibrationOn(!settingsStore.vibrationOn);
+}
+
+const closeRemoveModal = () => {
+  removeModalIsVisible.value = false;
+}
+
+const openRemoveModal = () => {
+  removeModalIsVisible.value = true;
+}
+
+const acceptRemoveAccount = () => {
+  console.log('acceptRemoveAccount');
+  closeRemoveModal();
 }
 </script>
 
@@ -56,7 +72,15 @@ const toggleVibration = () => {
         <img :src="settingsStore.vibrationOn ? VibrationOnSvg : VibrationOffSvg" alt="">
       </app-icon-button>
     </div>
+    <div style="flex: 1"></div>
+    <div style="display: flex; justify-content: center;">
+      <FloatButton style="width: 124px; height: 55px;" @click="openRemoveModal">
+        <span class="remove-btn">Удалить аккаунт</span>
+      </FloatButton>
+    </div>
+    <h1></h1>
     <select-lang-modal @close="closeSelectLangModal" v-if="selectLangIsOpen"/>
+    <remove-account-modal v-if="removeModalIsVisible" @close="closeRemoveModal" @accept="acceptRemoveAccount"/>
   </div>
 </template>
 
@@ -125,6 +149,15 @@ const toggleVibration = () => {
       }
     }
   }
+}
+
+.remove-btn {
+  font-family: 'SuperSquadRus', sans-serif;
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 12.35px;
+  text-align: center;
+  color: rgba(93, 56, 0, 1);
 }
 
 .off-bg {
