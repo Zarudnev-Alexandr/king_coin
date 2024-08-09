@@ -28,7 +28,7 @@ export const useAppStore = defineStore('appStore', () => {
 
   const playCoinAnimation = () => {
     coinAnimation.value = true;
-    vibrationService.medium();
+    vibrationService.heavy();
     setTimeout(() => {
       coinAnimation.value = false;
     }, 1200)
