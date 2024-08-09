@@ -30,7 +30,7 @@ const accept = () => {
       </div>
     </div>
 
-    <img src="@/assets/img/remove/remove-player.png" alt="">
+    <img src="@/assets/img/remove/delete-monkey.webp" alt="">
   </div>
 </template>
 
