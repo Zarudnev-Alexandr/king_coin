@@ -11,7 +11,7 @@ class VibrationService {
 
   public medium = () => {
     if (Telegram.WebApp && this.settingsStore.vibrationOn) {
-      Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      Telegram.WebApp.HapticFeedback.notificationOccurred('success')
     }
   }
 
