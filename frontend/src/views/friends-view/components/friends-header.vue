@@ -5,7 +5,7 @@ import {ref, watch} from "vue";
 
 const friendsStore = useFriendsStore();
 const isAnimating = ref(false);
-const displayedFriendsCount = ref(0);
+const displayedFriendsCount = ref(friendsStore.friendsList?.length ?? 0);
 
 function startAnimation() {
   isAnimating.value = true;
@@ -31,6 +31,7 @@ const animationPlusCount = (val: number) => {
       setTimeout(updateValue, updateInterval);
     }
   }
+
   updateValue();
 };
 
