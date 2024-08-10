@@ -9,10 +9,10 @@ import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 import {CoinCategory} from "@/shared/api/types/coin-category.ts";
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
+import Skeleton from "@/views/improvements-view/components/improvements-skeleton.vue";
 
 const coinApiService = new CoinApiService(axiosInstance, errorHandler);
 const {
-  setLoading,
   dataLoaded,
   setDataLoaded,
   setCryptoCoinList,
@@ -21,6 +21,7 @@ const {
 } = useImprovementsStore();
 const userStore = useUserStore();
 const isAnimating = ref(false);
+const isLoading = ref(false);
 
 onMounted(async () => {
   userStore.setImproPulseAnimationMethod(startAnimation);
@@ -29,7 +30,7 @@ onMounted(async () => {
     return;
   }
 
-  setLoading(true);
+  isLoading.value = true
   const response = await coinApiService.getCategories();
   if (response.right) {
     setDataLoaded(true);
@@ -42,7 +43,7 @@ onMounted(async () => {
         setSpecialCoinList(item.upgrades);
       }
     });
-    setLoading(false);
+    isLoading.value = false;
   }
 });
 
@@ -70,8 +71,9 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
-    <combo/>
-    <coin-card-list style="margin-top: 20px;"/>
+    <combo v-if="!isLoading"/>
+    <coin-card-list style="margin-top: 20px;" v-if="!isLoading"/>
+    <skeleton v-if="isLoading"/>
     <div style="margin-top: 100px;"></div>
   </div>
 </template>

@@ -11,11 +11,13 @@ import {onMounted, ref} from "vue";
 import {copyTextToClipboard} from "@/helpers/clipbaord.ts";
 import {useFriendsStore} from "@/shared/pinia/friends-store.ts";
 import VibrationService from "@/shared/api/services/vibration-service.ts";
+import FriendsSkeleton from "@/views/friends-view/components/friends-skeleton.vue";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 const friendsStore = useFriendsStore();
 const vibrationService = new VibrationService();
 const shareHref = ref('');
+const isLoading = ref(false);
 
 const copy = () => {
   copyTextToClipboard(friendsStore.referralLink || '');
@@ -33,6 +35,7 @@ onMounted(async () => {
   }
 
   if (!friendsStore.friendsList) {
+    isLoading.value = true;
     friendApiService.getFriends().then((res) => {
       if (res && res.right) {
         friendsStore.setFriendsList(res.right);
@@ -42,6 +45,7 @@ onMounted(async () => {
           sumIncome += friend.external_income_field;
         });
         friendsStore.setSumAllProfits(sumIncome);
+        isLoading.value = false;
       }
     });
   }
@@ -68,7 +72,7 @@ onMounted(async () => {
       </FloatButton>
     </div>
 
-    <div class="friends-list-wrap">
+    <div class="friends-list-wrap" v-if="!isLoading">
       <div class="all-friend-statistic-wrap" v-if="friendsStore.friendsList">
         <span class="sf-pro-font">Ваши друзья ({{ friendsStore.friendsList.length }})</span>
         <CoinCountItem :count="friendsStore.sumAllProfits"/>
@@ -76,7 +80,9 @@ onMounted(async () => {
       <div class="friends-list" v-if="friendsStore.friendsList">
         <FriendItem v-for="item in friendsStore.friendsList" :friend-data="item"/>
       </div>
+
     </div>
+    <friends-skeleton v-else/>
     <h1/>
   </div>
 </template>

@@ -1,8 +1,43 @@
 <script setup lang="ts">
 import {useFriendsStore} from "@/shared/pinia/friends-store.ts";
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
+import {ref, watch} from "vue";
 
 const friendsStore = useFriendsStore();
+const isAnimating = ref(false);
+const displayedFriendsCount = ref(0);
+
+function startAnimation() {
+  isAnimating.value = true;
+  setTimeout(() => {
+    isAnimating.value = false;
+  }, 500);
+}
+
+const animationPlusCount = (val: number) => {
+  startAnimation();
+  const startTime = performance.now();
+  const duration = 500;
+  const startVal = 0
+  const updateInterval = 50;
+
+  function updateValue() {
+    const currentTime = performance.now();
+    const elapsedTime = currentTime - startTime;
+    const progress = Math.min(elapsedTime / duration, 1);
+    displayedFriendsCount.value = startVal + (val * progress);
+
+    if (progress < 1) {
+      setTimeout(updateValue, updateInterval);
+    }
+  }
+  updateValue();
+};
+
+watch(() => friendsStore.friendsList, () => {
+  if (friendsStore.friendsList && friendsStore.friendsList?.length !== 0)
+    animationPlusCount(friendsStore.friendsList?.length);
+});
 </script>
 
 <template>
@@ -11,8 +46,8 @@ const friendsStore = useFriendsStore();
     <img src="@/assets/svg/friends/header-top-lf-monkey.png" alt="" class="header-top-lf-img">
     <img src="@/assets/svg/friends/header-rt-monkey.png" alt="" class="header-rt-img">
     <img src="@/assets/svg/friends/header-bottom-rt.png" alt="" class="header-bt-rt-img">
-    <div class="friends-count-wrapper" v-if="friendsStore.friendsList">
-      <span>{{ formatNumberWithSpaces(friendsStore.friendsList.length) }}</span>
+    <div class="friends-count-wrapper" :class="{ 'pulse-animation': isAnimating }">
+      <span>{{ formatNumberWithSpaces(displayedFriendsCount) }}</span>
       <img src="@/assets/svg/friends/crown-icon.svg" alt="t">
     </div>
     <span class="sf-pro-font friends-header-text-1">друзей обезьян</span>
@@ -110,10 +145,23 @@ const friendsStore = useFriendsStore();
   }
 }
 
+.pulse-animation {
+  animation: pulse 0.3s infinite;
+}
+
 @keyframes slideIn {
   to {
     opacity: 1; /* Конечная прозрачность */
     transform: translateY(0); /* Конечное смещение */
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
   }
 }
 </style>

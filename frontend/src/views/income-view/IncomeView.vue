@@ -4,28 +4,38 @@ import IncomeHeader from "@/views/income-view/components/income-header.vue";
 import IncomeActualTasks from "@/views/income-view/components/income-actual-tasks.vue";
 import IncomeDailyTasks from "@/views/income-view/components/income-daily-tasks.vue";
 import IncomeTaskList from "@/views/income-view/components/income-task-list.vue";
-import {onMounted} from "vue";
+import {onMounted, ref} from "vue";
 import TasksApiService from "@/shared/api/services/tasks-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import VibrationService from "@/shared/api/services/vibration-service.ts";
+import IncomeSkeleton from "@/views/income-view/components/income-skeleton.vue";
 
 const taskService = new TasksApiService(axiosInstance, errorHandler)
 const vibrationService = new VibrationService();
-const {setLoading, setTasks, setDailyTask} = useIncomeStore();
+const {setTasks, setDailyTask, tasks, dailyTask} = useIncomeStore();
+const isLoading = ref(false);
+const isLoadingDaily = ref(false);
 
 onMounted(async () => {
   vibrationService.light();
-  setLoading(true);
-  const res = await taskService.getTasks();
-  if (res && res.right) {
-    setTasks(res.right);
-    setLoading(false);
+
+  if (tasks.length === 0) {
+    isLoading.value = true;
+    const res = await taskService.getTasks();
+    if (res && res.right) {
+      setTasks(res.right);
+      isLoading.value = false;
+    }
   }
 
-  const dailyRes = await taskService.getDailyTaskInfo();
-  if (dailyRes && dailyRes.right) {
-    setDailyTask(dailyRes.right);
+  if (!dailyTask) {
+    isLoadingDaily.value = true;
+    const dailyRes = await taskService.getDailyTaskInfo();
+    if (dailyRes && dailyRes.right) {
+      setDailyTask(dailyRes.right);
+      isLoadingDaily.value = false;
+    }
   }
 })
 </script>
@@ -33,9 +43,10 @@ onMounted(async () => {
 <template>
   <div class="income-wrapper">
     <income-header/>
-    <income-actual-tasks/>
-    <income-daily-tasks/>
-    <income-task-list/>
+    <income-actual-tasks v-if="!isLoading"/>
+    <income-daily-tasks v-if="!isLoadingDaily"/>
+    <income-skeleton :is-loading="isLoading" :is-daily-loading="isLoadingDaily"/>
+    <income-task-list v-if="!isLoading"/>
   </div>
 </template>
 
