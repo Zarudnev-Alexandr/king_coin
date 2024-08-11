@@ -13,14 +13,25 @@ const gameStore = useGameStore();
 Telegram.WebApp.expand();
 const isMobile = Telegram.WebApp.platform === 'android' || Telegram.WebApp.platform === 'ios';
 
+window.Telegram.WebApp.onEvent("viewportChanged", (_) => {
+  if (window.Telegram.WebApp.viewportHeight < window.innerWidth) {
+    if (gameStore.currentActiveModal === '') {
+      gameStore.setCurrentActiveModal('pause');
+    }
+    appStore.setIsLandscape(true);
+  } else {
+    appStore.setIsLandscape(false);
+  }
+});
+
 window.addEventListener('resize', () => {
   if (window.innerHeight > window.innerWidth) {
     appStore.setIsLandscape(false);
   } else {
-    appStore.setIsLandscape(true);
     if (gameStore.currentActiveModal === '') {
       gameStore.setCurrentActiveModal('pause');
     }
+    appStore.setIsLandscape(true);
   }
 });
 </script>
