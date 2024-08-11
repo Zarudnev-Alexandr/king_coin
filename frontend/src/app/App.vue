@@ -11,7 +11,7 @@ const appStore = useAppStore();
 Telegram.WebApp.expand();
 const isMobile = Telegram.WebApp.platform === 'android' || Telegram.WebApp.platform === 'ios';
 
-Telegram.WebApp.onEvent('viewportChanged', () => {
+window.addEventListener('resize', () => {
   if (window.innerHeight > window.innerWidth) {
     appStore.setIsLandscape(false);
   } else {
