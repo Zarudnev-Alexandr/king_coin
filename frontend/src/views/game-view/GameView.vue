@@ -61,6 +61,7 @@ const handleExitGame = () => {
 const handleRestart = () => {
   gameStore.initGameState();
   gameStore.setAdIsWatched(false);
+  gameStore.setInvulnerable(false);
   Gameplay.instance?.clearAllTimeouts();
   Gameplay.instance?.clearTimers();
   Gameplay.instance?.scene.restart();
@@ -132,6 +133,7 @@ watch(() => gameStore.currentActiveModal, (newVal, _) => {
 onMounted(() => {
   userStore.vibrationService.light();
   gameStore.setAdIsWatched(false);
+  gameStore.setInvulnerable(false);
   if (phaserRef.value) {
     config.parent = phaserRef.value;
     game = new Phaser.Game(config);
