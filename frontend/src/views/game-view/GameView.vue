@@ -60,6 +60,7 @@ const handleExitGame = () => {
 
 const handleRestart = () => {
   gameStore.initGameState();
+  gameStore.setAdIsWatched(false);
   Gameplay.instance?.clearAllTimeouts();
   Gameplay.instance?.clearTimers();
   Gameplay.instance?.scene.restart();
@@ -130,6 +131,7 @@ watch(() => gameStore.currentActiveModal, (newVal, _) => {
 
 onMounted(() => {
   userStore.vibrationService.light();
+  gameStore.setAdIsWatched(false);
   if (phaserRef.value) {
     config.parent = phaserRef.value;
     game = new Phaser.Game(config);
@@ -194,7 +196,7 @@ onUnmounted(() => {
               <img src="@/assets/img/game/watch-video.svg" alt="watch video icon">
             </div>
           </FloatButton>
-          <div v-else style="height: 40px;" />
+          <div v-else style="height: 40px;"/>
         </div>
       </div>
       <template #actions>
