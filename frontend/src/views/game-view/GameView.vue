@@ -23,7 +23,7 @@ import {ShowPromiseResult} from "@/shared/api/types/adsgram";
 const phaserRef = ref<HTMLDivElement | null>(null);
 const isGameDelay = ref(true);
 const gameApiService = new GameApiService(axiosInstance, errorHandler);
-const AdController = window.Adsgram?.init({blockId: "1770", debugBannerType: 'RewardedVideo'});
+const AdController = window.Adsgram?.init({blockId: "1770", debug: true, debugBannerType: 'RewardedVideo'});
 
 let game: Phaser.Game | null = null;
 const gameStore = useGameStore();
