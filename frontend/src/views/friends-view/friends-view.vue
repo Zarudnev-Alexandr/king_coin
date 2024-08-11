@@ -12,15 +12,19 @@ import {copyTextToClipboard} from "@/helpers/clipbaord.ts";
 import {useFriendsStore} from "@/shared/pinia/friends-store.ts";
 import VibrationService from "@/shared/api/services/vibration-service.ts";
 import FriendsSkeleton from "@/views/friends-view/components/friends-skeleton.vue";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
+import {ToastType} from "@/shared/api/types/toast.ts";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 const friendsStore = useFriendsStore();
+const appStore = useAppStore();
 const vibrationService = new VibrationService();
 const shareHref = ref('');
 const isLoading = ref(false);
 
 const copy = () => {
   copyTextToClipboard(friendsStore.referralLink || '');
+  appStore.pushToast(ToastType.SUCCESS, 'Link copied');
 }
 
 onMounted(async () => {

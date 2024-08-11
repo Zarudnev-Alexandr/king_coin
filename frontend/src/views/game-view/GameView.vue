@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, onUnmounted, ref, watch} from 'vue';
+import {onMounted, onUnmounted, ref} from 'vue';
 import Phaser from 'phaser';
 import Gameplay from '@/views/game-view/phaser/gameplay';
 import {useGameStore} from "@/shared/pinia/game-store.ts";
@@ -23,7 +23,7 @@ import {ShowPromiseResult} from "@/shared/api/types/adsgram";
 const phaserRef = ref<HTMLDivElement | null>(null);
 const isGameDelay = ref(true);
 const gameApiService = new GameApiService(axiosInstance, errorHandler);
-const AdController = window.Adsgram?.init({blockId: "1770", debug: true, debugBannerType: 'RewardedVideo'});
+const AdController = window.Adsgram?.init({blockId: "1770"});
 
 let game: Phaser.Game | null = null;
 const gameStore = useGameStore();
@@ -59,6 +59,7 @@ const handleExitGame = () => {
 }
 
 const handleRestart = () => {
+  sendGameResult();
   gameStore.initGameState();
   gameStore.setAdIsWatched(false);
   gameStore.setInvulnerable(false);
@@ -123,13 +124,6 @@ const launchAdVideo = () => {
   })
 }
 
-
-watch(() => gameStore.currentActiveModal, (newVal, _) => {
-  if (newVal === 'game-over') {
-    sendGameResult();
-  }
-});
-
 onMounted(() => {
   userStore.vibrationService.light();
   gameStore.setAdIsWatched(false);
@@ -188,16 +182,15 @@ onUnmounted(() => {
             <img src="@/assets/svg/coin.svg" alt="">
             <span class="sf-pro-font">{{ formatNumberWithSpaces(gameStore.score) }}</span>
           </div>
-          <FloatButton
-              v-if="gameStore.currentActiveModal === 'game-over' && !gameStore.adIsWatched"
-              @click="launchAdVideo"
-              style="width: 132px; height: 65px; margin-bottom: 10px"
-          >
-            <div class="float-btn-wrap">
-              <span class="float-button-text">Продолжить</span>
-              <img src="@/assets/img/game/watch-video.svg" alt="watch video icon">
-            </div>
-          </FloatButton>
+          <div v-if="gameStore.currentActiveModal === 'game-over' && !gameStore.adIsWatched" class="ad-block-wrap">
+            <span class="subtitle sf-pro-font">Посмотрите рекламу и сможете</span>
+            <FloatButton @click="launchAdVideo" style="width: 132px; height: 65px; margin-bottom: 10px">
+              <div class="float-btn-wrap">
+                <span class="float-button-text">Продолжить</span>
+                <img src="@/assets/img/game/watch-video.svg" alt="watch video icon">
+              </div>
+            </FloatButton>
+          </div>
           <div v-else style="height: 40px;"/>
         </div>
       </div>
@@ -367,23 +360,38 @@ onUnmounted(() => {
   }
 }
 
-.float-btn-wrap {
+.ad-block-wrap {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 5px;
 
-  .float-button-text {
-    font-family: 'SuperSquadRus', sans-serif;
-    font-size: 14px;
+  .subtitle {
+    font-size: 9px;
     font-weight: 400;
-    line-height: 21.62px;
+    line-height: 13.03px;
     text-align: center;
-    color: rgba(93, 56, 0, 1) !important;
+    color: rgba(194, 163, 117, 1) !important;
   }
 
-  img {
-    width: 17px;
-    height: 17px;
+  .float-btn-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    .float-button-text {
+      font-family: 'SuperSquadRus', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 21.62px;
+      text-align: center;
+      color: rgba(93, 56, 0, 1) !important;
+    }
+
+    img {
+      width: 17px;
+      height: 17px;
+    }
   }
 }
 

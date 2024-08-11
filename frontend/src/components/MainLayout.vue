@@ -6,6 +6,7 @@ import ComboNotify from "@/views/improvements-view/components/combo-notify.vue";
 import LevelUpModal from "@/components/level-up-modal.vue";
 import BonusModal from "@/views/main-view/components/bonus-modal.vue";
 import CoinLottieAnimation from "@/components/coin-lottie-animation.vue";
+import ToastNotification from "@/components/toast-notification.vue";
 </script>
 
 <template>
@@ -18,6 +19,7 @@ import CoinLottieAnimation from "@/components/coin-lottie-animation.vue";
     <level-up-modal/>
     <bonus-modal/>
     <coin-lottie-animation/>
+    <toast-notification/>
   </div>
 </template>
 
