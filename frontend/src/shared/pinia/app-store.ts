@@ -47,6 +47,10 @@ export const useAppStore = defineStore('appStore', () => {
     }, 2000);
   }
 
+  const removeToast = (index: number) => {
+    toasts.value.splice(index, 1);
+  }
+
   const playCoinAnimation = () => {
     coinAnimation.value = true;
     vibrationService.heavy();
@@ -68,5 +72,6 @@ export const useAppStore = defineStore('appStore', () => {
     vibrationService,
     toasts,
     pushToast,
+    removeToast,
   }
 });
