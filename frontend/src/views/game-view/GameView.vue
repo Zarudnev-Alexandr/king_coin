@@ -364,7 +364,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
 
   .subtitle {
     font-size: 9px;
