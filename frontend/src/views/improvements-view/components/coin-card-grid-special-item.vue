@@ -11,7 +11,10 @@ const props: Props = defineProps<Props>();
 
 <template>
   <div class="coin-special-card-item-wrapper">
-    <div class="coin-special-card-gradient"/>
+    <div class="bg-img">
+      <img src="@/assets/img/specific/special-card-example-baner.png" alt="">
+      <div class="coin-special-card-gradient"/>
+    </div>
     <div class="coin-special-card-data">
       <span class="text-style-white">{{ props.cardItem.name }}</span>
       <p class="sf-pro-font">Доход в час</p>
@@ -46,6 +49,29 @@ const props: Props = defineProps<Props>();
   flex-direction: column;
   justify-content: end;
   position: relative;
+
+  .bg-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+
+    img {
+      width: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .coin-special-card-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 66px;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(57, 34, 0, 0) 0%, #392200 100%);
+    }
+  }
 
   .coin-special-card-data {
     display: flex;
@@ -82,16 +108,6 @@ const props: Props = defineProps<Props>();
       display: flex;
       gap: 5px;
     }
-  }
-
-  .coin-special-card-gradient {
-    position: absolute;
-    bottom: 66px;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    z-index: 0;
-    background: linear-gradient(180deg, rgba(57, 34, 0, 0) 0%, #392200 100%);
   }
 }
 
