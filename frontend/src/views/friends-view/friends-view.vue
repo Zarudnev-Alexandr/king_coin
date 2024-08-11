@@ -55,8 +55,7 @@ onMounted(async () => {
 <template>
   <div class="friend-wrapper">
     <FriendsHeader/>
-    <InviteInfoCards/>
-
+    <InviteInfoCards style="margin-top: 10px;"/>
     <div class="invite-buttons" v-if="friendsStore.referralLink !== ''">
       <a :href="shareHref" style="flex: 1">
         <FloatButton style="height: 65px;">

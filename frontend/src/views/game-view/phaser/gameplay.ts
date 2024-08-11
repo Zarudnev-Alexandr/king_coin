@@ -16,6 +16,7 @@ import ObstacleManager from "@/views/game-view/phaser/entities/obstacle-manager.
 import CoinReward from "@/views/game-view/phaser/entities/coin-reward.ts";
 import MysteryBox from "@/views/game-view/phaser/entities/mystery-box.ts";
 import {MysteryBoxType} from "@/shared/api/types/enums.ts";
+import Timer from "@/shared/api/types/timer.ts";
 
 class Gameplay extends Phaser.Scene {
   private player?: Player;
@@ -26,6 +27,7 @@ class Gameplay extends Phaser.Scene {
   private backgroundManager: BackgroundTile | null = null;
   private maketMonkey: Phaser.GameObjects.Sprite | null = null;
   private touchSprite: Phaser.GameObjects.Sprite | null = null;
+  private timers: Timer[] = [];
 
   constructor() {
     super('Gameplay');
@@ -73,6 +75,9 @@ class Gameplay extends Phaser.Scene {
       (obstacle as Obstacle).update();
     });
     this.obstacleManager?.update(time, delta);
+
+    // Обновляем все таймеры
+    this.timers.forEach((timer) => timer.update(delta));
     console.log(this.obstacleManager?.obstacles?.getChildren().length)
   }
 
@@ -80,6 +85,7 @@ class Gameplay extends Phaser.Scene {
     this.player?.disablePhysics();
     this.obstacleManager?.setVelocityX(0);
     this.clearAllTimeouts();
+    this.clearTimers()
   }
 
   public enablePhysics() {
@@ -88,13 +94,14 @@ class Gameplay extends Phaser.Scene {
   }
 
   handleCollision() {
+    if (this.gameStore.isInvulnerable) return;
+
     if (this.gameStore.currentActiveModal !== 'game-over') {
       this.gameStore.audioManager.playGameOverMusic();
       this.gameStore.vibrationService.heavy();
     }
     this.gameStore.setPause(true);
     this.gameStore.setCurrentActiveModal('game-over');
-    this.clearAllTimeouts();
     this.gameStore.setMysteryBox(null);
   }
 
@@ -167,6 +174,23 @@ class Gameplay extends Phaser.Scene {
       this.maketMonkey = null;
       this.touchSprite = null;
     }
+  }
+
+  public setInvulnerable() {
+    this.gameStore.setAdIsWatched(true);
+    this.gameStore.setInvulnerable(true);
+    this.addTimer(3000, () => {
+      this.gameStore.setInvulnerable(false);
+    })
+  }
+
+  public addTimer(delay: number, callback: () => void) {
+    const timer = new Timer(delay, callback);
+    this.timers.push(timer);
+  }
+
+  public clearTimers() {
+    this.timers = [];
   }
 }
 

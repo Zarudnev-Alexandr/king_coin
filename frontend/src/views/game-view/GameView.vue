@@ -17,10 +17,13 @@ import GameApiService from "@/shared/api/services/game-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import GameLoader from "@/views/game-view/components/game-loader.vue";
+import FloatButton from "@/components/FloatButton.vue";
+import {ShowPromiseResult} from "@/shared/api/types/adsgram";
 
 const phaserRef = ref<HTMLDivElement | null>(null);
 const isGameDelay = ref(true);
 const gameApiService = new GameApiService(axiosInstance, errorHandler);
+const AdController = window.Adsgram?.init({blockId: "1770"});
 
 let game: Phaser.Game | null = null;
 const gameStore = useGameStore();
@@ -57,6 +60,8 @@ const handleExitGame = () => {
 
 const handleRestart = () => {
   gameStore.initGameState();
+  Gameplay.instance?.clearAllTimeouts();
+  Gameplay.instance?.clearTimers();
   Gameplay.instance?.scene.restart();
 }
 
@@ -103,6 +108,17 @@ const handleClose = () => {
   } else if (gameStore.currentActiveModal === 'game-over') {
     handleRestart();
   }
+}
+
+const launchAdVideo = () => {
+  AdController?.show().then((result: ShowPromiseResult) => {
+    if (!result.done) return;
+
+    Gameplay.instance?.setInvulnerable();
+    handleResumeGame();
+  }).catch((result: ShowPromiseResult) => {
+    console.log(result);
+  })
 }
 
 
@@ -168,15 +184,26 @@ onUnmounted(() => {
             <img src="@/assets/svg/coin.svg" alt="">
             <span class="sf-pro-font">{{ formatNumberWithSpaces(gameStore.score) }}</span>
           </div>
+          <FloatButton
+              v-if="gameStore.currentActiveModal === 'game-over' && !gameStore.adIsWatched"
+              @click="launchAdVideo"
+              style="width: 132px; height: 65px; margin-bottom: 10px"
+          >
+            <div class="float-btn-wrap">
+              <span class="float-button-text">Продолжить</span>
+              <img src="@/assets/img/game/watch-video.svg" alt="watch video icon">
+            </div>
+          </FloatButton>
+          <div v-else style="height: 40px;" />
         </div>
       </div>
       <template #actions>
         <div class="modal-actions-wrapper"
              v-if="gameStore.currentActiveModal === 'pause' || gameStore.currentActiveModal === 'exit'">
-          <ModalActionButton style="width: 133px; height: 67px" @click="handleResumeGame">
+          <ModalActionButton style="width: 133px; height: 67px;" @click="handleResumeGame">
             <span class="action-button-title">Продолжить</span>
           </ModalActionButton>
-          <ModalActionButton style="width: 133px; height: 67px" @click="handleExitGame">
+          <ModalActionButton style="width: 133px; height: 67px;" @click="handleExitGame">
             <span class="action-button-title">Выйти</span>
           </ModalActionButton>
         </div>
@@ -256,10 +283,11 @@ onUnmounted(() => {
   }
 
   .game-modal-content-wrapper {
+    padding-top: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 40px;
+    justify-content: end;
     gap: 30px;
 
 
@@ -334,6 +362,27 @@ onUnmounted(() => {
     }
   }
 }
+
+.float-btn-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  .float-button-text {
+    font-family: 'SuperSquadRus', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 21.62px;
+    text-align: center;
+    color: rgba(93, 56, 0, 1) !important;
+  }
+
+  img {
+    width: 17px;
+    height: 17px;
+  }
+}
+
 
 .speed-bg {
   background: rgba(57, 34, 0, 1);

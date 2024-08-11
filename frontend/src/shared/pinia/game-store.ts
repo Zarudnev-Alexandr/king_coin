@@ -14,6 +14,8 @@ export const useGameStore = defineStore('gameStore', () => {
   const transitionView = ref('');
   const mysteryBox: Ref<MysteryBoxType | null> = ref(null);
   const isLoading: Ref<boolean> = ref(false);
+  const isInvulnerable = ref(false);
+  const adIsWatched = ref(false);
   const audioManager = new AudioManager();
   const vibrationService = new VibrationService();
 
@@ -63,6 +65,14 @@ export const useGameStore = defineStore('gameStore', () => {
     isLoading.value = value;
   }
 
+  const setInvulnerable = (value: boolean) => {
+    isInvulnerable.value = value;
+  }
+
+  const setAdIsWatched = (value: boolean) => {
+    adIsWatched.value = value;
+  }
+
   return {
     score,
     setScore,
@@ -81,5 +91,9 @@ export const useGameStore = defineStore('gameStore', () => {
     setLoading,
     audioManager,
     vibrationService,
+    setInvulnerable,
+    isInvulnerable,
+    setAdIsWatched,
+    adIsWatched,
   };
 });
