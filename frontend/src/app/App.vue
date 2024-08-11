@@ -5,9 +5,11 @@ import MainLayout from "@/components/MainLayout.vue";
 import NotAvailablePlatformView from "@/views/not-available-platform-view/not-available-platform-view.vue";
 import Landscape from "@/components/landscape.vue";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
+import {useGameStore} from "@/shared/pinia/game-store.ts";
 
 const userStore = useUserStore();
 const appStore = useAppStore();
+const gameStore = useGameStore();
 Telegram.WebApp.expand();
 const isMobile = Telegram.WebApp.platform === 'android' || Telegram.WebApp.platform === 'ios';
 
@@ -16,6 +18,9 @@ window.addEventListener('resize', () => {
     appStore.setIsLandscape(false);
   } else {
     appStore.setIsLandscape(true);
+    if (gameStore.currentActiveModal === '') {
+      gameStore.setCurrentActiveModal('pause');
+    }
   }
 });
 </script>

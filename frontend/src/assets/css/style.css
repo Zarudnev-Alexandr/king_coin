@@ -13,27 +13,6 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-@media screen and (min-aspect-ratio: 13/9) {
-    html {
-        transform: rotate(-90deg);
-        transform-origin: left top;
-        width: 100vh;
-        overflow-x: hidden;
-        position: absolute;
-        top: 100%;
-        left: 0;
-    }
-}
-@media screen and (min-width: 1292px) {
-    html {
-        transform: none;
-        transform-origin: unset;
-        width: 100%;
-        overflow-x: hidden;
-        position: relative;
-    }
-}
-
 a {
     font-weight: 500;
     color: #646cff;
