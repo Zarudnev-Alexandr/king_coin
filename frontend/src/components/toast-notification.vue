@@ -14,7 +14,7 @@ const appStore = useAppStore();
         <img src="@/assets/svg/toast/warning.svg" alt="warning" v-if="item.type === ToastType.WARNING">
         <span class="sf-pro-font">{{ item.message }}</span>
         <div style="width: 30px"/>
-        <img src="@/assets/svg/toast/close.svg" alt="close" @click="() => appStore.removeToast(index)">
+        <img src="@/assets/svg/toast/close.svg" alt="close" @click="appStore.removeToast(index)">
       </div>
     </transition-group>
   </div>
