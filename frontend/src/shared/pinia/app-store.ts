@@ -9,7 +9,7 @@ export const useAppStore = defineStore('appStore', () => {
   const selectTaskForFulfill: Ref<Task | null> = ref(null);
   const visibleGameplay: Ref<boolean> = ref(false);
   const coinAnimation: Ref<boolean> = ref(false);
-  const isLandscape: Ref<boolean> = ref(true);
+  const isLandscape: Ref<boolean> = ref(false);
   const toasts: Ref<Toast[]> = ref([]);
   const vibrationService = new VibrationService();
 
