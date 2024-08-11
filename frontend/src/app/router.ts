@@ -43,6 +43,11 @@ const router = createRouter(
         path: '/settings',
         name: 'Settings',
         component: () => import('@/views/settings-view/settings-view.vue')
+      },
+      {
+        path: '/not-available-platform',
+        name: 'NotAvailablePlatform',
+        component: () => import("@/views/not-available-platform-view/not-available-platform-view.vue")
       }
     ]
   }

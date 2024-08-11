@@ -9,6 +9,7 @@ export const useAppStore = defineStore('appStore', () => {
   const selectTaskForFulfill: Ref<Task | null> = ref(null);
   const visibleGameplay: Ref<boolean> = ref(false);
   const coinAnimation: Ref<boolean> = ref(false);
+  const isLandscape: Ref<boolean> = ref(true);
   const toasts: Ref<Toast[]> = ref([]);
   const vibrationService = new VibrationService();
 
@@ -47,6 +48,10 @@ export const useAppStore = defineStore('appStore', () => {
     }, 2000);
   }
 
+  const setIsLandscape = (val: boolean) => {
+    isLandscape.value = val;
+  }
+
   const removeToast = (index: number) => {
     toasts.value.splice(index, 1);
   }
@@ -73,5 +78,7 @@ export const useAppStore = defineStore('appStore', () => {
     toasts,
     pushToast,
     removeToast,
+    isLandscape,
+    setIsLandscape,
   }
 });

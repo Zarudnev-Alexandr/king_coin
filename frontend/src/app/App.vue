@@ -2,17 +2,32 @@
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import SplashView from "@/views/SplashView.vue";
 import MainLayout from "@/components/MainLayout.vue";
+import NotAvailablePlatformView from "@/views/not-available-platform-view/not-available-platform-view.vue";
+import Landscape from "@/components/landscape.vue";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
 
 const userStore = useUserStore();
+const appStore = useAppStore();
 Telegram.WebApp.expand();
+const isMobile = Telegram.WebApp.platform === 'android' || Telegram.WebApp.platform === 'ios';
+
+Telegram.WebApp.onEvent('viewportChanged', () => {
+  if (window.innerHeight > window.innerWidth) {
+    appStore.setIsLandscape(false);
+  } else {
+    appStore.setIsLandscape(true);
+  }
+});
 </script>
 
 <template>
   <div v-set-screen-height style="width: 100%; height: 100%">
-    <SplashView v-if="!userStore.isAuth"/>
-    <MainLayout v-else>
+    <SplashView v-if="!userStore.isAuth && isMobile"/>
+    <MainLayout v-if="userStore.isAuth && isMobile">
       <router-view/>
     </MainLayout>
+    <not-available-platform-view v-if="!isMobile"/>
+    <landscape v-if="appStore.isLandscape" />
   </div>
 </template>
 

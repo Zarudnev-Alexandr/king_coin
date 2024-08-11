@@ -39,9 +39,6 @@ const props: Props = defineProps<Props>();
 <style scoped>
 .coin-special-card-item-wrapper {
   background-color: rgba(57, 34, 0, 1);
-  background-image: url("@/assets/img/specific/special-card-example-baner.png");
-  background-size: contain;
-  background-repeat: no-repeat;
   border-radius: 10px;
   min-height: 204px;
   flex: 1 1 45%;
