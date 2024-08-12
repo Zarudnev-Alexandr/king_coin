@@ -16,7 +16,7 @@ const handleGetBonus = () => {
 
 const titleText = computed(() => {
   if (userStore.user?.is_registred) {
-    if (userStore.user?.money === 5000) {
+    if (userStore.user?.total_income === 5000) {
       return "Бонус";
     }
     return "Бонус друга";
@@ -32,14 +32,6 @@ const subtitleText = computed(() => {
     return "Пока вас не было, вам накапало монет";
   }
 })
-
-const rewardText = computed(() => {
-  if (userStore.user?.is_registred) {
-    return userStore.user?.money ?? 0;
-  } else {
-    return userStore.user?.total_income ?? 0;
-  }
-})
 </script>
 
 <template>
@@ -49,7 +41,7 @@ const rewardText = computed(() => {
       <h3 class="bonus-subtitle sf-pro-font">{{ subtitleText }}</h3>
       <div class="bonus-reward">
         <img src="@/assets/svg/coin.svg" alt="">
-        <span class="sf-pro-font">{{ formatNumberWithSpaces(rewardText) }}</span>
+        <span class="sf-pro-font">{{ formatNumberWithSpaces(userStore.user?.total_income ?? 0) }}</span>
       </div>
       <FloatButton @click="handleGetBonus" style="width: 175px; height: 65px">
         <span class="bonus-main-button">Получить</span>

@@ -31,8 +31,10 @@ const updateEachSecond = () => {
 onMounted(async () => {
   const img = new Image();
   img.src = BonusImg;
-  img.onload = () => {};
-  img.onerror = () => {};
+  img.onload = () => {
+  };
+  img.onerror = () => {
+  };
 
   await router.isReady();
 
@@ -51,7 +53,12 @@ onMounted(async () => {
   }
 
   userStore.setUser(response.right!);
-  userStore.moneyPlus(-response.right!.total_income);
+  if (response.right!.is_registred) {
+    userStore.user!.total_income = response.right!.money;
+    userStore.moneyPlus(-response.right!.money);
+  } else {
+    userStore.moneyPlus(-response.right!.total_income);
+  }
   userStore.setAuth(true);
   updateEachSecond();
 

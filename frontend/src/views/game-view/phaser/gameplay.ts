@@ -130,36 +130,24 @@ class Gameplay extends Phaser.Scene {
       if (object2.type === MysteryBoxType['100COIN']) {
         this.gameStore.setScore(this.gameStore.score + 100);
 
-        const timeoutId = window.setTimeout(() => {
+        this.addTimer(2000, () => {
           this.gameStore.setMysteryBox(null);
-        }, 2000);
-
-        this.addTimeout(timeoutId);
-
+        })
         return;
       } else if (object2.type === MysteryBoxType['SPEED_X2.5']) {
         Gameplay.instance?.setSpeed(-300);
 
-        const timeoutId = window.setTimeout(() => {
+        this.addTimer(8000, () => {
           if (!this.gameStore.isPaused) Gameplay.instance?.setSpeed(-120);
           this.gameStore.setMysteryBox(null);
-        }, 5000);
-
-        this.addTimeout(timeoutId);
-
+        })
         return;
       }
 
-      const timeoutId = window.setTimeout(() => {
+      this.addTimer(8000, () => {
         this.gameStore.setMysteryBox(null);
-      }, 5000);
-
-      this.addTimeout(timeoutId);
+      })
     }
-  }
-
-  private addTimeout(timeoutId: number) {
-    this.timeoutIds.push(timeoutId);
   }
 
   public clearAllTimeouts() {
