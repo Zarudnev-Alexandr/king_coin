@@ -72,7 +72,6 @@ async def update_user_level(db: AsyncSession, user):
     new_taps_for_level = user.taps_for_level
 
     for level in levels:
-        print('🤐🤐all levels😀😀', level.__dict__)
 
         # Обновляем текущий уровень, если его можно достичь и он выше текущего
         if user.money >= level.required_money and level.lvl > new_level:

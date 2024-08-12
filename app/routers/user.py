@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.errors import KafkaError
 from fastapi import APIRouter, Depends, HTTPException, Path, Header, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
@@ -701,57 +701,19 @@ async def get_invited_users(initData: str = Header(...), db: AsyncSession = Depe
     return {"invited_users": invited_users_data}
 
 
+@user_route.delete("/delete_user")
+async def delete_user(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
 
-# @user_route.get('/check_income')
-# async def check_income(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
-#     try:
-#         decoded_data = json.loads(initData)
-#         tg_id = decoded_data.get("id")
-#     except json.JSONDecodeError:
-#         raise HTTPException(status_code=400, detail="Invalid JSON format in header initData")
-#
-#     if not tg_id:
-#         raise HTTPException(status_code=400, detail="User ID is required")
-#
-#     # Пытаемся найти пользователя по tg_id
-#     user = await get_user(db, tg_id)
-#     if not user:
-#         raise HTTPException(status_code=404, detail="User not found")
-#
-#     current_time = datetime.utcnow()
-#     last_check_time = user.last_check_time or user.last_login or current_time
-#     time_diff = current_time - last_check_time
-#     seconds_passed = min(time_diff.total_seconds(), 30)
-#
-#     user_upgrades = await get_user_upgrades(tg_id, db)
-#     upgrades = await asyncio.gather(
-#         *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-#     )
-#
-#     total_hourly_income = sum(
-#         next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-#         for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-#     )
-#
-#     total_income = (total_hourly_income / 3600) * seconds_passed
-#     user.money += total_income
-#     user.last_check_time = current_time
-#
-#     next_level = await update_user_level(db, user)
-#     level_up_flag = next_level and next_level.lvl > user.lvl
-#
-#     if level_up_flag:
-#         user.lvl = next_level.lvl
-#         user.required_money = next_level.required_money
-#         user.taps_for_level = next_level.taps_for_level
-#
-#     await db.commit()
-#     await db.refresh(user)
-#
-#     response_data = {
-#         "money": user.money,
-#         "user_lvl": user.lvl,
-#         "level_up": level_up_flag
-#     }
-#
-#     return response_data
+    await db.execute(
+        update(User)
+        .where(User.invited_tg_id == user.tg_id)
+        .values(invited_tg_id=None)
+    )
+
+    # Удалите пользователя
+    await db.delete(user)
+    await db.commit()
+
+    return {"detail": "User and all related records have been deleted"}
