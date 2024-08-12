@@ -34,11 +34,14 @@ class User(Base):
     is_premium: Mapped[bool] = mapped_column(Boolean, nullable=True)
 
     invited_by: Mapped["User"] = relationship("User", remote_side=[tg_id], lazy='selectin')
-    upgrades: Mapped[list["UserUpgrades"]] = relationship("UserUpgrades", back_populates="user", lazy='selectin')
+    upgrades: Mapped[list["UserUpgrades"]] = relationship("UserUpgrades", back_populates="user",
+                                                          cascade="all, delete-orphan", lazy='selectin')
     combo_progress: Mapped[list["UserDailyComboProgress"]] = relationship("UserDailyComboProgress",
-                                                                          back_populates="user", lazy='selectin')
-    boost: Mapped[list["UserBoost"]] = relationship("UserBoost", back_populates="user", lazy='selectin')
-    tasks = relationship("UserTask", back_populates="user", lazy='selectin')
+                                                                          back_populates="user",
+                                                                          cascade="all, delete-orphan", lazy='selectin')
+    boost: Mapped[list["UserBoost"]] = relationship("UserBoost", back_populates="user", cascade="all, delete-orphan",
+                                                    lazy='selectin')
+    tasks = relationship("UserTask", back_populates="user", cascade="all, delete-orphan", lazy='selectin')
 
 
 class Level(Base):
