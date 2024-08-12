@@ -47,7 +47,7 @@ class ObstacleManager {
     let rewardCoin = null;
     let mysteryBox = null;
 
-    if (this.obstacleCount === 9 || this.obstacleCount === 29 || this.obstacleCount === 99) {
+    if (this.obstacleCount === 1 || this.obstacleCount === 9 || this.obstacleCount === 29 || this.obstacleCount === 99) {
       let reward = 200;
 
       if (this.obstacleCount === 9 && this.userStore.user) {
