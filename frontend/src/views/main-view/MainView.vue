@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
         <span class="boost-description sf-pro-font">Уровень {{ userStore.user?.next_boost.lvl }}</span>
         <div class="boost-reward">
           <img src="@/assets/img/coin.webp" alt="">
-          <span class="sf-pro-font">+ {{ userStore.user?.next_boost.tap_boost }} монета за тап</span>
+          <span class="sf-pro-font">+ {{ userStore.user?.next_boost.tap_boost }} монета</span>
         </div>
         <div class="boost-price">
           <img src="@/assets/img/coin.webp" alt="">
