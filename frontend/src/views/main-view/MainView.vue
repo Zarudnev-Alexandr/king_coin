@@ -124,7 +124,7 @@ onBeforeUnmount(() => {
               <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
             </div>
             <div class="header-data-statistic">
-              <header-statistic-item title="Доход за тап"
+              <header-statistic-item title="Бонус колонн"
                                      :value="(user?.taps_for_level ?? 0) + (user?.boost.one_tap ?? 0)"/>
               <header-statistic-item title="До lvl-апа"
                                      :value="formatNumber(user?.next_level_data.required_money ?? 0)"/>
@@ -163,7 +163,7 @@ onBeforeUnmount(() => {
         <img src="@/assets/img/boost-icon.webp" alt="">
         <span class="boost-modal-title sf-pro-font">Усилитель</span>
         <span class="boost-description sf-pro-font">
-          Увеличивает количество монет, которое вы можете заработать за одно нажатие
+          Увеличивает количество монет, которое вы можете заработать за прохождение колонн
         </span>
         <span class="boost-description sf-pro-font">Уровень {{ userStore.user?.next_boost.lvl }}</span>
         <div class="boost-reward">

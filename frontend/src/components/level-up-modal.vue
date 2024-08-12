@@ -22,7 +22,7 @@ const handleClose = () => {
         <span class="level-up-description sf-pro-font">Уровень {{ userStore.levelUpData?.new_lvl ?? 0 }}</span>
         <div class="level-up-reward">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ {{ userStore.levelUpData?.new_taps_for_lvl ?? 0 }} монета за тап</span>
+          <span class="sf-pro-font">+ {{ userStore.levelUpData?.new_taps_for_lvl ?? 0 }} монета</span>
         </div>
       </div>
 

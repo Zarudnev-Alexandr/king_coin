@@ -6,6 +6,7 @@ import CoinReward from "@/views/game-view/phaser/entities/coin-reward.ts";
 import MysteryBox from "@/views/game-view/phaser/entities/mystery-box.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 
+
 class ObstacleManager {
   gameStore = useGameStore();
   userStore = useUserStore();
@@ -30,7 +31,7 @@ class ObstacleManager {
     this.obstacleCount = 0;
     this.distanceBetweenPipesY = 350;
     this.distanceBetweenPipesX = 150;
-    this.distanceBetweenPairs = 3000;
+    this.distanceBetweenPairs = 500;
     this.timeSinceLastObstacle = 0;
     this.speed = -120;
   }
@@ -42,7 +43,7 @@ class ObstacleManager {
     const rewardY = pipeTopY + ((pipeBottomY - pipeTopY) / 2);
 
     const pipeTop = new ObstacleTopPipe(this.scene, this.scene.scale.width, pipeTopY)
-    const pipeBottom = new ObstacleBottomPipe(this.scene, this.scene.scale.width + this.distanceBetweenPipesX, pipeBottomY)
+    const pipeBottom = new ObstacleBottomPipe(this.scene, this.scene.scale.width, pipeBottomY)
     let rewardCoin = null;
     let mysteryBox = null;
 
@@ -89,16 +90,17 @@ class ObstacleManager {
   }
 
   private checkLevelUp() {
-    if (this.level === 1 && this.obstacleCount >= 5) {
+    if (this.obstacleCount === 0) {
+      this.distanceBetweenPairs = 500
+    } else if (this.level === 1 && this.obstacleCount < 5) {
+      this.distanceBetweenPairs = 3000;
+    } else if (this.level === 1 && this.obstacleCount >= 5) {
       this.level = 2;
       this.distanceBetweenPipesY = 350;
     } else if (this.level === 2 && this.obstacleCount >= 10) {
       this.level = 3;
       this.distanceBetweenPipesY = 300;
       this.distanceBetweenPairs = 2500;
-    } else if (this.level === 3 && this.obstacleCount === 16) {
-      this.distanceBetweenPipesX = 0;
-      this.distanceBetweenPairs = 3000;
     } else if (this.level === 3 && this.obstacleCount >= 16) {
       this.level = 4;
       this.distanceBetweenPipesY = 250;
