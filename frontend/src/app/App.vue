@@ -28,7 +28,7 @@ window.addEventListener('resize', () => {
   if (window.innerHeight > window.innerWidth) {
     appStore.setIsLandscape(false);
   } else {
-    if (gameStore.currentActiveModal === '') {
+    if (gameStore.currentActiveModal === '' && gameStore.gameInitStarted) {
       gameStore.setCurrentActiveModal('pause');
     }
     appStore.setIsLandscape(true);
@@ -43,7 +43,7 @@ window.addEventListener('resize', () => {
       <router-view/>
     </MainLayout>
     <not-available-platform-view v-if="!isMobile"/>
-    <landscape v-if="appStore.isLandscape" />
+    <landscape v-if="appStore.isLandscape"/>
   </div>
 </template>
 
