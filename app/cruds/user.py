@@ -73,12 +73,16 @@ async def update_user_level(db: AsyncSession, user):
 
     for level in levels:
         print('🤐🤐all levels😀😀', level.__dict__)
-        if user.money >= level.required_money and level.lvl > user.lvl:
+
+        # Обновляем текущий уровень, если его можно достичь и он выше текущего
+        if user.money >= level.required_money and level.lvl > new_level:
             new_level = level.lvl
             new_taps_for_level = level.taps_for_level
-        else:
+
+        # Определяем следующий уровень, который будет следующим после текущего уровня пользователя
+        if level.lvl > new_level:
             next_level = level
-            continue
+            break
 
     # Обновить уровень пользователя, если он увеличился
     if user.lvl != new_level:
@@ -88,6 +92,7 @@ async def update_user_level(db: AsyncSession, user):
         await db.refresh(user)
 
     return next_level
+
 
 
 async def get_next_boost(db: AsyncSession, current_lvl: int):
