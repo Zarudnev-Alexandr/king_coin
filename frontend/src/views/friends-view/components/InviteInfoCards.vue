@@ -12,7 +12,7 @@
       <div class="banner-item-down-block">
         <div class="banner-item-reward">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ 5 000</span>
+          <span class="sf-pro-font">+ 15 000</span>
         </div>
         <span class="sf-pro-font">для вас и вашего друга</span>
       </div>

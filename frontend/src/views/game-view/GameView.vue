@@ -166,7 +166,8 @@ onUnmounted(() => {
     </div>
     <div ref="phaserRef" id="game-container"/>
 
-    <ActionModal v-if="gameStore.currentActiveModal !== ''" @close="handleClose">
+    <ActionModal v-if="gameStore.currentActiveModal !== ''" @close="handleClose"
+                 :disable-close-on-background-click="true">
       <div class="game-modal-content-wrapper">
         <div class="content-header">
           <span v-if="gameStore.currentActiveModal === 'game-over'" class="header-text">Game over</span>

@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import {useGameStore} from "@/shared/pinia/game-store.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
-import {MysteryBoxType} from "@/shared/api/types/enums.ts";
 import Gameplay from "@/views/game-view/phaser/gameplay.ts";
 
 export default class Player extends Phaser.GameObjects.Sprite {
@@ -11,6 +10,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
+    this.scene = scene;
 
     scene.add.existing(this);
     scene.physics.world.enable(this);
@@ -36,17 +36,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
   }
 
   private handleJump() {
-    if (this.userStore.user) {
-      this.gameStore.audioManager.playTapSound();
-      let one_tap = (this.userStore.user.boost.one_tap + this.userStore.user.taps_for_level);
-      if (this.gameStore.mysteryBox === MysteryBoxType['10X']) {
-        one_tap *= 10;
-      } else if (this.gameStore.mysteryBox === MysteryBoxType['5X']) {
-        one_tap *= 5;
-      }
-
-      this.gameStore.setScore(this.gameStore.score + one_tap);
-    }
+    this.gameStore.audioManager.playTapSound();
 
     if (this.gameStore.gameInitStarted === false) {
       this.gameStore.setGameInitStarted();
@@ -74,6 +64,9 @@ export default class Player extends Phaser.GameObjects.Sprite {
 
   private startBlinking() {
     if (this.blinkTimer) return;
+
+    const time = this.scene?.time;
+    if (!time) return;
 
     this.blinkTimer = this.scene.time.addEvent({
       delay: 100, // Задержка между переключениями видимости

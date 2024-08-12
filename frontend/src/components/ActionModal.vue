@@ -3,6 +3,7 @@
 interface Props {
   mainButtonText?: string,
   actionButtonIsHide?: boolean,
+  disableCloseOnBackgroundClick?: boolean,
 }
 
 const props = defineProps<Props>();
@@ -16,10 +17,15 @@ const closeActionModal = () => {
 const handleOnAccept = () => {
   emit('onAccept')
 }
+
+const handleBackgroundClick = () => {
+  if (props.disableCloseOnBackgroundClick) return;
+  closeActionModal();
+}
 </script>
 
 <template>
-  <div class="action-modal-wrapper" @click="closeActionModal">
+  <div class="action-modal-wrapper" @click="handleBackgroundClick">
     <div class="action-modal" @click.stop="() => {}">
       <svg
           viewBox="0 0 206 206"
