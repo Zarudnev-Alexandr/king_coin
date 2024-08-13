@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AppIconWithShadow from "@/components/AppIconWithShadow.vue";
 
 interface Props {
   title: string,
@@ -13,9 +12,7 @@ const props: Props = defineProps<Props>()
   <div class="combo-item-wrapper">
     <div class="combo-item">
       <div class="combo-item-content">
-        <AppIconWithShadow style="gap: 5px;">
-          <img :src="props.img_url" alt="BadCoin" style="width: 35px; height: 35px;">
-        </AppIconWithShadow>
+        <img :src="props.img_url" alt="BadCoin" style="width: 35px;">
         <span class="sf-pro-font">
           {{ props.title }}
         </span>
@@ -48,7 +45,6 @@ const props: Props = defineProps<Props>()
 
       img {
         width: 40px;
-        height: 40px;
       }
 
       span {
