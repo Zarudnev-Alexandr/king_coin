@@ -391,7 +391,7 @@ async def upload_image(upgrade_id: int, file: UploadFile = File(...), db: AsyncS
         buffer.write(await file.read())
 
     # Обновление записи в базе данных
-    upgrade.image_url = file_path
+    upgrade.image_url = f"{SERVER_URL}/uploads/{file_name}"
     await db.commit()
 
     return ImageUploadResponse(image_url=file_path)
