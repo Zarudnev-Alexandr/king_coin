@@ -386,7 +386,7 @@ async def upload_image(upgrade_id: int, file: UploadFile = File(...), db: AsyncS
     file_name = f"{upgrade_id}.{file_extension}"
 
     # Сохранение файла на сервере
-    file_path = os.path.join(f"{SERVER_URL}/uploads", file_name)  # Оставляем путь как в контейнере
+    file_path = os.path.join("/uploads", file_name)  # Оставляем путь как в контейнере
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
 
