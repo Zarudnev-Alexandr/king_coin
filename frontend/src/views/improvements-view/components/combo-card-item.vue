@@ -2,7 +2,8 @@
 import AppIconWithShadow from "@/components/AppIconWithShadow.vue";
 
 interface Props {
-  title: string
+  title: string,
+  img_url: string,
 }
 
 const props: Props = defineProps<Props>()
@@ -13,7 +14,7 @@ const props: Props = defineProps<Props>()
     <div class="combo-item">
       <div class="combo-item-content">
         <AppIconWithShadow style="gap: 5px;">
-          <img src="@/assets/img/bad-coin-icon.png" alt="BadCoin" style="width: 35px; height: 35px;">
+          <img :src="props.img_url" alt="BadCoin" style="width: 35px; height: 35px;">
         </AppIconWithShadow>
         <span class="sf-pro-font">
           {{ props.title }}
