@@ -4,9 +4,11 @@ import {computed} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
+import {useI18n} from "vue-i18n";
 
 const userStore = useUserStore();
 const appStore = useAppStore();
+const {t} = useI18n();
 
 const handleGetBonus = () => {
   userStore.setBonusVisible(false);
@@ -17,19 +19,19 @@ const handleGetBonus = () => {
 const titleText = computed(() => {
   if (userStore.user?.is_registred) {
     if (userStore.user?.total_income === 5000) {
-      return "Бонус";
+      return t('bonus');
     }
-    return "Бонус друга";
+    return t('friend_bonus');
   } else {
-    return "Прибыль";
+    return t('profit');
   }
 })
 
 const subtitleText = computed(() => {
   if (userStore.user?.is_registred) {
-    return "Мы рады видеть тебя в KingCoin";
+    return t('glad_to_see_you');
   } else {
-    return "Пока вас не было, вам накапало монет";
+    return t('coins_accumulated');
   }
 })
 </script>
@@ -44,7 +46,7 @@ const subtitleText = computed(() => {
         <span class="sf-pro-font">{{ formatNumberWithSpaces(userStore.user?.total_income ?? 0) }}</span>
       </div>
       <FloatButton @click="handleGetBonus" style="width: 175px; height: 65px">
-        <span class="bonus-main-button">Получить</span>
+        <span class="bonus-main-button">{{ $t('get_it') }}</span>
       </FloatButton>
     </div>
     <img src="@/assets/img/bonus.png" style="width: 100%" alt="">

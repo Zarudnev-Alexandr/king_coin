@@ -5,7 +5,7 @@
 <template>
   <div class="landscape-wrap">
     <img src="@/assets/svg/landscape.svg" alt="">
-    <span class="sf-pro-font">Поверните телефон, чтобы продолжить</span>
+    <span class="sf-pro-font">{{ $t('rotate_phone') }}</span>
   </div>
 </template>
 

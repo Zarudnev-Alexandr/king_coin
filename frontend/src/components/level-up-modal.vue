@@ -16,13 +16,13 @@ const handleClose = () => {
       <div style="height: 30px"/>
       <img src="@/assets/img/game/player.png" alt="">
       <span class="level-up-modal-title sf-pro-font">Level Up!</span>
-      <span class="level-up-description sf-pro-font">Теперь ты очень крутая горилла!</span>
+      <span class="level-up-description sf-pro-font">{{ $t('cool_gorilla') }}</span>
       <div style="height: 20px"/>
       <div style="display: flex; flex-direction: column; gap: 5px; align-items: center">
-        <span class="level-up-description sf-pro-font">Уровень {{ userStore.levelUpData?.new_lvl ?? 0 }}</span>
+        <span class="level-up-description sf-pro-font">{{ $t('level') }} {{ userStore.levelUpData?.new_lvl ?? 0 }}</span>
         <div class="level-up-reward">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ {{ userStore.levelUpData?.new_taps_for_lvl ?? 0 }} монета</span>
+          <span class="sf-pro-font">+ {{ userStore.levelUpData?.new_taps_for_lvl ?? 0 }} {{ $t('plus_coin') }}</span>
         </div>
       </div>
 

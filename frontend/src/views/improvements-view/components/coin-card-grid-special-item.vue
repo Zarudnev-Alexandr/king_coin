@@ -12,12 +12,12 @@ const props: Props = defineProps<Props>();
 <template>
   <div class="coin-special-card-item-wrapper">
     <div class="bg-img">
-      <img src="@/assets/img/specific/special-card-example-baner.png" alt="">
+      <img :src="props.cardItem.image_url" alt="">
       <div class="coin-special-card-gradient"/>
     </div>
     <div class="coin-special-card-data">
       <span class="text-style-white">{{ props.cardItem.name }}</span>
-      <p class="sf-pro-font">Доход в час</p>
+      <p class="sf-pro-font">{{ $t('hourly_income') }}</p>
       <div class="coin-special-card-income">
         <img class="coin-img" src="@/assets/svg/coin.svg" alt="">
         <span class="text-style-white">{{ formatNumber(props.cardItem.factor ?? 0) }}</span>

@@ -7,7 +7,7 @@ import {useSettingsStore} from "@/shared/pinia/settings-store.ts";
 const settingsStore = useSettingsStore();
 
 const emits = defineEmits(['close']);
-const selectLang = (lang: { name: string, icon: string }) => {
+const selectLang = (lang: { name: string, short: string, icon: string }) => {
   if (lang.name === settingsStore.currenLanguage?.name) return;
   settingsStore.setLanguage(lang);
   emits('close');
@@ -21,7 +21,7 @@ const onClose = () => {
 <template>
   <action-modal :action-button-is-hide="true" @close="onClose">
     <div class="select-lang-wrap">
-      <h2 class="sf-pro-font">Выбор языка</h2>
+      <h2 class="sf-pro-font">{{ $t('language_selection') }}</h2>
 
       <div v-for="item in Languages" :key="item.name" class="lang-item"
            @click="() => selectLang(item)"

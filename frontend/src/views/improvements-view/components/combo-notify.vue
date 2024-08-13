@@ -5,12 +5,14 @@ import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 import {computed, ref, Ref, watch} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
+import {useI18n} from "vue-i18n";
 
 const {setComboNotify} = useImprovementsStore();
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
 const appStore = useAppStore();
 const images: Ref<{ url: string, name: string }[]> = ref([]);
+const {t} = useI18n();
 
 const handleConfirm = () => {
   setComboNotify(false);
@@ -45,18 +47,18 @@ watch(() => improvementsStore.combo, (newReward, _) => {
 }, {deep: true});
 
 const getButtonText = computed(() => {
-  return images.value.length > 2 ? 'Получить Бонус' : 'Нужно ещё!'
+  return images.value.length > 2 ? t('get_bonus') : t('need_more')
 });
 
 const getDescriptionText = computed(() => {
-  return images.value.length > 2 ? 'Ты успешно подобрал все карточки! Забирай бонус' : `Ты собрал ${images.value.length} из 3 комбо-карточек`
+  return images.value.length > 2 ? t('all_cards_collected') : t('combo_collected_one', {count: images.value.length});
 });
 </script>
 
 <template>
   <div class="combo-notify-wrapper" v-if="improvementsStore.visibleComboNotify">
     <div class="combo-info-wrapper">
-      <span class="title">Комбо!</span>
+      <span class="title">{{ $t('combo') }}</span>
       <span class="info sf-pro-font">{{ getDescriptionText }}</span>
       <FloatButton style="width: 175px; height: 65px;" @click="handleConfirm">
         <span class="button-text">{{ getButtonText }}</span>

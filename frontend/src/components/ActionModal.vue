@@ -60,7 +60,7 @@ const handleBackgroundClick = () => {
       <div class="accept-action" v-if="!props.actionButtonIsHide">
         <slot name="actions">
           <div class="accept-button-wrapper" @click="handleOnAccept">
-            <span>{{ props.mainButtonText ? props.mainButtonText : 'Получить' }}</span>
+            <span>{{ props.mainButtonText ? props.mainButtonText : $t('get_it') }}</span>
           </div>
         </slot>
       </div>

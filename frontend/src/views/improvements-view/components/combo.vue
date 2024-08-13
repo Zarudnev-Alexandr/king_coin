@@ -57,7 +57,7 @@ const updateImages = () => {
 <template>
   <div class="combo-wrapper" v-if="improvementsStore.cryptoCoinList.length > 0">
     <div class="combo-indicator">
-      <span class="sf-pro-font combo-indicator-title">Дневное комбо</span>
+      <span class="sf-pro-font combo-indicator-title">{{ $t('daily_combo') }}</span>
       <div class="combo-indicator-icons">
         <span class="combo-indicator-icon-item" :class="{active: images.length > 0}"></span>
         <span class="combo-indicator-icon-item" :class="{active: images.length > 1}"></span>

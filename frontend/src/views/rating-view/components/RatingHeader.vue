@@ -9,9 +9,9 @@
     <img src="@/assets/img/rating/right-top-coin.png" class="right-top-coin" alt="">
     <div class="rating-count-wrapper">
       <img src="@/assets/svg/friends/crown-icon.svg" alt="t">
-      <span>Рейтинг</span>
+      <span>{{ $t('ranking') }}</span>
     </div>
-    <span class="friends-header-text-2 sf-pro-font">Лучшие из лучших обезьян</span>
+    <span class="friends-header-text-2 sf-pro-font">{{ $t('best_monkeys') }}</span>
   </div>
 </template>
 

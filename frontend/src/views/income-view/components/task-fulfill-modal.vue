@@ -9,12 +9,14 @@ import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {Ref, ref} from "vue";
 import ModalActionButton from "@/components/ModalActionButton.vue";
+import {useI18n} from "vue-i18n";
 
 const appStore = useAppStore();
 const taskStore = useIncomeStore();
 const userStore = useUserStore()
 const taskApiService = new TasksApiService(axiosInstance, errorHandler);
 const isReady: Ref<boolean> = ref(false);
+const {t} = useI18n();
 
 const handleClose = () => {
   isReady.value = false;
@@ -71,9 +73,9 @@ const checkTask = async () => {
 const getMainButtonText = () => {
   if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram' || appStore.selectTaskForFulfill?.type === 'generic') {
     console.log("isReady", isReady.value)
-    return isReady.value ? 'Получить' : 'Выполнить';
+    return isReady.value ? t('get_it') : t('complete');
   }
-  return 'Забрать';
+  return t('claim');
 }
 </script>
 
@@ -88,7 +90,7 @@ const getMainButtonText = () => {
           :button-text="getMainButtonText()"
           @on-accept="handleAccept"
           :is-disabled="isDisabled()"
-          :disabled-text="isDisabled() ? 'До завтра' : 'Забрать'"
+          :disabled-text="isDisabled() ? $t('see_you_tomorrow') : $t('claim')"
       />
     </template>
     <template #default>

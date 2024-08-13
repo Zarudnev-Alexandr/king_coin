@@ -6,7 +6,7 @@
   <div class="invite-info-cards-wrap">
     <div class="banner-item">
       <div class="banner-item-up-block">
-        <span class="sf-pro-font">Пригласить друга</span>
+        <span class="sf-pro-font">{{ $t('invite_a_friend') }}</span>
         <img src="@/assets/svg/friends/invite-friend-banner.png" alt="">
       </div>
       <div class="banner-item-down-block">
@@ -14,14 +14,14 @@
           <img src="@/assets/svg/coin.svg" alt="">
           <span class="sf-pro-font">+ 15 000</span>
         </div>
-        <span class="sf-pro-font">для вас и вашего друга</span>
+        <span class="sf-pro-font">{{ $t('for_you_and_your_friend') }}</span>
       </div>
     </div>
     <div class="banner-item">
       <img src="@/assets/svg/friends/invite-card-up-coin.png" alt="" class="premium-up-coin">
       <img src="@/assets/svg/friends/invite-friends-card-down-coin.png" alt="" class="premium-down-coin">
       <div class="banner-item-up-block">
-        <span class="sf-pro-font">Пригласить друга с Premium</span>
+        <span class="sf-pro-font">{{ $t('invite_friend_premium') }}</span>
         <img src="@/assets/svg/friends/invite-friend-premium-banner.png" alt="">
       </div>
       <div class="banner-item-down-block">
@@ -29,7 +29,7 @@
           <img src="@/assets/svg/coin.svg" alt="">
           <span class="sf-pro-font">+ 25 000</span>
         </div>
-        <span class="sf-pro-font">для вас и вашего друга</span>
+        <span class="sf-pro-font">{{ $t('for_you_and_your_friend') }}</span>
       </div>
     </div>
   </div>

@@ -6,8 +6,8 @@ import dailyRewards from "@/shared/constants/daily-rewards.ts";
 <template>
   <div class="fulfill-modal-wrap">
     <img src="@/assets/svg/income/task-modal-daily-example-avatar.png " alt="">
-    <span class="card-name sf-pro-font">Ежедневная награда</span>
-    <span class="fulfill-description sf-pro-font">Самый крупный telegram канал из крипто-джунглей</span>
+    <span class="card-name sf-pro-font">{{ $t('daily_reward') }}</span>
+    <span class="fulfill-description sf-pro-font">{{ $t('largest_telegram_channel') }}</span>
     <div class="fulfill-reward-grid">
       <income-daily-reward-item v-for="item in dailyRewards"
                                 :reward="item.reward"

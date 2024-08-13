@@ -4,8 +4,8 @@
 
 <template>
   <div class="settings-header-wrapper">
-    <h2 class="sf-pro-font">Настройки</h2>
-    <span class="sf-pro-font">Выполняйте задания и зарабатывайте монеты</span>
+    <h2 class="sf-pro-font">{{ $t('settings') }}</h2>
+    <span class="sf-pro-font">{{ $t('complete_tasks') }}</span>
   </div>
 </template>
 

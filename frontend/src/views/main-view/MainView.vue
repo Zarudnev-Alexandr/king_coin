@@ -124,11 +124,12 @@ onBeforeUnmount(() => {
               <span>{{ formatNumberWithSpaces(userStore.user?.money ?? 0) }}</span>
             </div>
             <div class="header-data-statistic">
-              <header-statistic-item title="Бонус колонн"
+              <header-statistic-item :title="$t('bonus_columns')"
                                      :value="(user?.taps_for_level ?? 0) + (user?.boost.one_tap ?? 0)"/>
-              <header-statistic-item title="До lvl-апа"
+              <header-statistic-item :title="$t('income_until_level_up')"
                                      :value="formatNumber(user?.next_level_data.required_money ?? 0)"/>
-              <header-statistic-item title="Доход в час" :value="formatNumber(user?.earnings_per_hour ?? 0)"/>
+              <header-statistic-item :title="$t('hourly_income')"
+                                     :value="formatNumber(user?.earnings_per_hour ?? 0)"/>
             </div>
           </div>
         </div>
@@ -161,14 +162,14 @@ onBeforeUnmount(() => {
       <div class="boost-modal-wrapper">
         <div style="height: 30px"/>
         <img src="@/assets/img/boost-icon.webp" alt="">
-        <span class="boost-modal-title sf-pro-font">Усилитель</span>
+        <span class="boost-modal-title sf-pro-font">{{ $t('booster') }}</span>
         <span class="boost-description sf-pro-font">
-          Увеличивает количество монет, которое вы можете заработать за прохождение колонн
+          {{ $t('booster_description') }}
         </span>
-        <span class="boost-description sf-pro-font">Уровень {{ userStore.user?.next_boost.lvl }}</span>
+        <span class="boost-description sf-pro-font">{{ $t('level') }} {{ userStore.user?.next_boost.lvl }}</span>
         <div class="boost-reward">
           <img src="@/assets/img/coin.webp" alt="">
-          <span class="sf-pro-font">+ {{ userStore.user?.next_boost.tap_boost }} монета</span>
+          <span class="sf-pro-font">+ {{ userStore.user?.next_boost.tap_boost }} {{ $t('plus_coin') }}</span>
         </div>
         <div class="boost-price">
           <img src="@/assets/img/coin.webp" alt="">
@@ -178,10 +179,10 @@ onBeforeUnmount(() => {
       <template #actions>
         <modal-action-button
             style="width: 133px; height: 67px"
-            button-text="Получить"
+            :button-text="$t('get_it')"
             @on-accept="upgradeBoost"
             :is-disabled="isDisabled()"
-            :disabled-text="isDisabled() ? 'Нет денег' : 'Получить'"
+            :disabled-text="isDisabled() ? $t('no_money') : $t('get_it')"
         />
       </template>
     </action-modal>

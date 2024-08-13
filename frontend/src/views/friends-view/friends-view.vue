@@ -14,17 +14,19 @@ import VibrationService from "@/shared/api/services/vibration-service.ts";
 import FriendsSkeleton from "@/views/friends-view/components/friends-skeleton.vue";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 import {ToastType} from "@/shared/api/types/toast.ts";
+import {useI18n} from "vue-i18n";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 const friendsStore = useFriendsStore();
 const appStore = useAppStore();
+const {t} = useI18n();
 const vibrationService = new VibrationService();
 const shareHref = ref('');
 const isLoading = ref(false);
 
 const copy = () => {
   copyTextToClipboard(friendsStore.referralLink || '');
-  appStore.pushToast(ToastType.SUCCESS, 'Link copied');
+  appStore.pushToast(ToastType.SUCCESS, t('link_copied'));
 }
 
 onMounted(async () => {
@@ -64,7 +66,7 @@ onMounted(async () => {
       <a :href="shareHref" style="flex: 1">
         <FloatButton style="height: 65px;">
           <div class="button-content">
-            <span>Пригласить друга</span>
+            <span>{{ $t('invite_a_friend') }}</span>
             <img src="@/assets/svg/friends/main-invite-button-icon.png" alt="">
           </div>
         </FloatButton>
@@ -77,7 +79,7 @@ onMounted(async () => {
 
     <div class="friends-list-wrap" v-if="!isLoading">
       <div class="all-friend-statistic-wrap" v-if="friendsStore.friendsList">
-        <span class="sf-pro-font">Ваши друзья ({{ friendsStore.friendsList.length }})</span>
+        <span class="sf-pro-font">{{ $t('your_friends') }} ({{ friendsStore.friendsList.length }})</span>
         <CoinCountItem :count="friendsStore.sumAllProfits"/>
       </div>
       <div class="friends-list" v-if="friendsStore.friendsList">

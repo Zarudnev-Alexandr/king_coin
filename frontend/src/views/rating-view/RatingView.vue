@@ -18,17 +18,17 @@ const changeTab = (tab: string, _: any[]) => {
         <div class="rating-list-tab-item"
              :class="{'active': activeTab === 'coins'}"
              @click="() => changeTab('coins', [])">
-          <span>Монеты</span>
+          <span>{{ $t('coins') }}</span>
         </div>
         <div class="rating-list-tab-item"
              :class="{'active': activeTab === 'columns'}"
              @click="() => changeTab('columns', [])">
-          <span>Колонны</span>
+          <span>{{ $t('columns') }}</span>
         </div>
         <div class="rating-list-tab-item"
              :class="{'active': activeTab === 'income'}"
              @click="() => changeTab('income', [])">
-          <span>Доход в час</span>
+          <span>{{ $t('hourly_income') }}</span>
         </div>
       </div>
     </div>

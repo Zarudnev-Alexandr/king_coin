@@ -27,7 +27,6 @@ export const useGameStore = defineStore('gameStore', () => {
     isPaused.value = value;
     currentActiveModal.value = value ? 'pause' : '';
     if (value) {
-      console.log("disabled background music")
       audioManager.stopBackgroundMusic();
       Gameplay.instance?.disablePhysics()
     } else {

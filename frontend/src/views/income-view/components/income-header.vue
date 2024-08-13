@@ -6,8 +6,8 @@
   <div class="income-header-wrapper">
     <img src="@/assets/svg/friends/invite-card-up-coin.png" alt="" class="up-left-coin">
     <img src="@/assets/svg/friends/invite-friends-card-down-coin.png" alt="" class="up-right-coin">
-    <h2 class="sf-pro-font">Хаслим монеты</h2>
-    <span class="sf-pro-font">Выполняйте задания и зарабатывайте монеты</span>
+    <h2 class="sf-pro-font">{{ $t('haslim_coins') }}</h2>
+    <span class="sf-pro-font">{{ $t('complete_tasks') }}</span>
   </div>
 </template>
 

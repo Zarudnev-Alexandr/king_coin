@@ -51,8 +51,8 @@ watch(() => friendsStore.friendsList, () => {
       <span>{{ formatNumberWithSpaces(displayedFriendsCount) }}</span>
       <img src="@/assets/svg/friends/crown-icon.svg" alt="t">
     </div>
-    <span class="sf-pro-font friends-header-text-1">друзей обезьян</span>
-    <span class="friends-header-text-2 sf-pro-font">Приглашайте друзей и получайте бонусы</span>
+    <span class="sf-pro-font friends-header-text-1">{{ $t('monkey_friends') }}</span>
+    <span class="friends-header-text-2 sf-pro-font">{{ $t('invite_friends') }}</span>
   </div>
 </template>
 

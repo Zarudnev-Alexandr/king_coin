@@ -15,15 +15,15 @@ const props: Props = defineProps<Props>();
       <div class="up-part-data">
         <span class="sf-pro-font">{{ props.cardItem.name }}</span>
         <div class="up-part-data-income">
-          <span class="sf-pro-font">Доход в час</span>
+          <span class="sf-pro-font">{{ $t('hourly_income') }}</span>
           <div class="up-part-data-income-value">
             <img src="@/assets/svg/coin.svg" alt="">
             <span class="sf-pro-font">+ {{ formatNumber(props.cardItem.factor ?? 0) }}</span>
           </div>
         </div>
       </div>
-      <div class="up-part-icon">
-        <img src="@/assets/img/impro-card-icon.png" alt="">
+      <div class="up-part-avatar">
+        <img :src="props.cardItem.image_url" alt="">
       </div>
     </div>
     <div style="width: 100%; border-top: 1px solid rgba(131, 101, 51, 1)"></div>
@@ -33,7 +33,7 @@ const props: Props = defineProps<Props>();
         <img src="@/assets/svg/coin.svg" alt="" v-if="props.cardItem.price_of_next_lvl">
         <span class="sf-pro-font" v-if="props.cardItem.price_of_next_lvl">
           {{ formatNumber(props.cardItem.price_of_next_lvl) }}</span>
-        <span v-else>Макс</span>
+        <span v-else>{{ $t('max') }}</span>
       </div>
     </div>
   </div>
@@ -84,6 +84,18 @@ const props: Props = defineProps<Props>();
     padding: 12px;
     display: flex;
     justify-content: space-between;
+    gap: 15px;
+
+    .up-part-avatar {
+      flex: 1;
+      display: flex;
+      justify-content: end;
+
+      img {
+        width: 53px;
+        height: auto;
+      }
+    }
 
     .up-part-data {
       display: flex;

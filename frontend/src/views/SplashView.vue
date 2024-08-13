@@ -100,7 +100,7 @@ onMounted(async () => {
           <img src="@/assets/img/splash-monet.png" alt="">
         </div>
         <div class="splash-loader-content-indicator">
-          <span class="splash-loader-content-text">Загрузка</span>
+          <span class="splash-loader-content-text">{{ $t('loading') }}</span>
           <div class="splash-loader-content-indicator-group">
             <span class="splash-loader-content-indicator-item"></span>
             <span class="splash-loader-content-indicator-item"></span>
@@ -113,7 +113,7 @@ onMounted(async () => {
         </div>
         <div class="splash-loader-content-shared">
           <span class="splash-loader-content-shred-text">
-            Наши официальные соц. сети
+            {{ $t('official_social_networks') }}
           </span>
           <div class="splash-loader-content-shared-links">
             <AppIconButton style="width: 48px; height: 48px;">

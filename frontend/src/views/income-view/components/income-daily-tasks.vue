@@ -4,8 +4,10 @@ import IncomeTaskItem from "@/views/income-view/components/income-task-item.vue"
 import Task from "@/shared/api/types/task.ts";
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import dailyRewards from "@/shared/constants/daily-rewards.ts";
+import {useI18n} from "vue-i18n";
 
 const incomeStore = useIncomeStore();
+const {t} = useI18n();
 
 const getCurrentDailyReward = computed(() => {
   const reward = dailyRewards.find((reward) => incomeStore.dailyTask?.day === reward.day);
@@ -17,8 +19,8 @@ const getCurrentDailyIsCollect = computed(() => {
 });
 
 const task = ref<Task>({
-  name: "Ежедневная награда",
-  description: "Самый крупный telegram канал из крипто-джунглей",
+  name: t('daily_reward'),
+  description: t('largest_telegram_channel'),
   type: "daily",
   reward: getCurrentDailyReward.value,
   requirement: 4,
@@ -41,7 +43,7 @@ watch(getCurrentDailyIsCollect, (newIsCollect) => {
 
 <template>
   <div class="daily-tasks-wrap">
-    <h3 class="sf-pro-font">Ежедневные задания</h3>
+    <h3 class="sf-pro-font">{{ $t('daily_tasks') }}</h3>
     <div class="task-list-wrap">
       <IncomeTaskItem :task-item="task"/>
     </div>

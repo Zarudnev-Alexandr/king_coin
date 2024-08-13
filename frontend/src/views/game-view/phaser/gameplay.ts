@@ -84,8 +84,6 @@ class Gameplay extends Phaser.Scene {
   public disablePhysics() {
     this.player?.disablePhysics();
     this.obstacleManager?.setVelocityX(0);
-    this.clearAllTimeouts();
-    this.clearTimers()
   }
 
   public enablePhysics() {

@@ -6,7 +6,7 @@
   <div class="levels-header-wrapper">
     <div class="levels-header-text-wrapper">
       <img src="@/assets/svg/friends/crown-icon.svg" alt="t">
-      <span>Уровни</span>
+      <span>{{ $t('levels') }}</span>
     </div>
   </div>
 </template>

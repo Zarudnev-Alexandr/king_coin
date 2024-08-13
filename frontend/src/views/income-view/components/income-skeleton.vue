@@ -11,18 +11,18 @@ const props = defineProps<Props>();
   <div class="income-skeleton-wrap">
     <div class="actual" v-if="props.isLoading">
       <img src="@/assets/svg/income/actual-tasks-coin-icon.png" alt="">
-      <span class="sf-pro-font">Актуальные задания</span>
+      <span class="sf-pro-font">{{ $t('current_tasks') }}</span>
       <div class="task-item skeleton-loading"></div>
     </div>
 
     <div class="actual" v-if="props.isDailyLoading">
-      <span class="sf-pro-font">Ежедневные задания</span>
+      <span class="sf-pro-font">{{ $t('daily_tasks') }}</span>
       <div class="task-item skeleton-loading"></div>
       <div class="task-item skeleton-loading"></div>
     </div>
 
     <div class="actual" v-if="props.isLoading">
-      <span class="sf-pro-font">Список заданий</span>
+      <span class="sf-pro-font">{{ $t('task_list') }}</span>
       <div class="task-item skeleton-loading"></div>
       <div class="task-item skeleton-loading"></div>
       <div class="task-item skeleton-loading"></div>

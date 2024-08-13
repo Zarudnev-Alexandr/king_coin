@@ -2,11 +2,13 @@ import {defineStore} from "pinia";
 import {LocalStorageService} from "@/shared/api/services/local-storage-service.ts";
 import {ref} from "vue";
 import Languages from "@/shared/constants/languages.ts";
+import {useI18n} from "vue-i18n";
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  const localLanguage = new LocalStorageService<{ name: string, icon: string }>('language');
+  const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('language');
   const localSoundOn = new LocalStorageService<boolean>('soundOn');
   const localVibrationOn = new LocalStorageService<boolean>('vibrationOn');
+  const { locale } = useI18n();
 
   if (localLanguage.getItem() === null) {
     localLanguage.setItem(Languages[0]);
@@ -34,9 +36,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     vibrationOn.value = value;
   };
 
-  const setLanguage = (value: { name: string, icon: string }) => {
+  const setLanguage = (value: { name: string, short: string, icon: string }) => {
     localLanguage.setItem(value);
     currenLanguage.value = value;
+    locale.value = value.short;
   };
 
   return {

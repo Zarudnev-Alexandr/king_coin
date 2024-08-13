@@ -32,7 +32,7 @@ const getIcon = () => {
   <div class="daily-reward-item-wrap"
        :class="{'active': checkIsActive(), 'opacity50': props.day > (dailyTask?.day ?? 0)}">
     <img :src="getIcon()" alt="">
-    <span class="daily-reward-day sf-pro-font">День {{ props.day }}</span>
+    <span class="daily-reward-day sf-pro-font">{{ $t('day') }} {{ props.day }}</span>
     <span class="daily-reward-reward sf-pro-font">{{ formatNumberWithSpaces(props.reward) }}</span>
   </div>
 </template>

@@ -171,23 +171,23 @@ onUnmounted(() => {
       <div class="game-modal-content-wrapper">
         <div class="content-header">
           <span v-if="gameStore.currentActiveModal === 'game-over'" class="header-text">Game over</span>
-          <span v-if="gameStore.currentActiveModal === 'exit'" class="header-text">Вы уходите?</span>
+          <span v-if="gameStore.currentActiveModal === 'exit'" class="header-text">{{ $t('are_you_leaving') }}</span>
           <div v-if="gameStore.currentActiveModal === 'pause'" class="pause-header">
             <img src="@/assets/img/game/modal-pause-icon.svg" alt="">
-            <span class="header-text">Пауза</span>
+            <span class="header-text">{{ $t('pause') }}</span>
           </div>
         </div>
         <div class="content-medium">
-          <span class="sf-pro-font">Вы заработали</span>
+          <span class="sf-pro-font">{{ $t('you_earned') }}</span>
           <div class="content-reward">
             <img src="@/assets/svg/coin.svg" alt="">
             <span class="sf-pro-font">{{ formatNumberWithSpaces(gameStore.score) }}</span>
           </div>
           <div v-if="gameStore.currentActiveModal === 'game-over' && !gameStore.adIsWatched" class="ad-block-wrap">
-            <span class="subtitle sf-pro-font">Посмотрите рекламу и сможете</span>
+            <span class="subtitle sf-pro-font">{{ $t('watch_ad_and_continue') }}</span>
             <FloatButton @click="launchAdVideo" style="width: 132px; height: 65px; margin-bottom: 10px">
               <div class="float-btn-wrap">
-                <span class="float-button-text">Продолжить</span>
+                <span class="float-button-text">{{ $t('continue') }}</span>
                 <img src="@/assets/img/game/watch-video.svg" alt="watch video icon">
               </div>
             </FloatButton>
@@ -199,15 +199,15 @@ onUnmounted(() => {
         <div class="modal-actions-wrapper"
              v-if="gameStore.currentActiveModal === 'pause' || gameStore.currentActiveModal === 'exit'">
           <ModalActionButton style="width: 133px; height: 67px;" @click="handleResumeGame">
-            <span class="action-button-title">Продолжить</span>
+            <span class="action-button-title">{{ $t('continue') }}</span>
           </ModalActionButton>
           <ModalActionButton style="width: 133px; height: 67px;" @click="handleExitGame">
-            <span class="action-button-title">Выйти</span>
+            <span class="action-button-title">{{ $t('exit') }}</span>
           </ModalActionButton>
         </div>
         <div class="modal-actions-wrapper" v-if="gameStore.currentActiveModal === 'game-over'">
           <ModalActionButton style="width: 133px; height: 67px" @click="handleRestart">
-            <span class="action-button-title" @click="handleRestart">Сыграть еще</span>
+            <span class="action-button-title" @click="handleRestart">{{ $t('play_again') }}</span>
           </ModalActionButton>
         </div>
       </template>

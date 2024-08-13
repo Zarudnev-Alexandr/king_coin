@@ -91,11 +91,11 @@ const getPlusImpro = () => {
 <template>
   <ActionModal v-if="improvementsStore.selectCoinForImpro" @close="handleClose" @on-accept="handleAccept">
     <div class="card-impro-modal-content-wrapper">
-      <img src="@/assets/img/specific/card-modal-content-example-icon.png" alt="">
+      <img :src="improvementsStore.selectCoinForImpro.image_url" alt="">
       <span class="card-name sf-pro-font">{{ improvementsStore.selectCoinForImpro.name }}</span>
       <span class="impro-description sf-pro-font">{{ improvementsStore.selectCoinForImpro.description }}</span>
       <div class="impro-data-income">
-        <span>Прибыль в час</span>
+        <span>{{ $t('hourly_profit') }}</span>
         <div class="impro-data-income-value">
           <img src="@/assets/svg/coin.svg" alt="">
           <span class="sf-pro-font">+ {{
@@ -113,10 +113,10 @@ const getPlusImpro = () => {
     <template #actions>
       <modal-action-button
           style="width: 133px; height: 67px"
-          button-text="Получить"
+          :button-text="$t('get_it')"
           @on-accept="handleAccept"
           :is-disabled="isDisabled()"
-          :disabled-text="isDisabled() ? 'Нет денег' : 'Получить'"
+          :disabled-text="isDisabled() ? $t('no_money') : $t('get_it')"
       />
     </template>
 

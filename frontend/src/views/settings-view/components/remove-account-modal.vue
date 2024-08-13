@@ -15,12 +15,12 @@ const accept = () => {
 
 <template>
   <div class="remove-modal-wrap">
-    <h2 class="title">Уверены?</h2>
-    <span class="subtitle">После удаления данные не подлежат восстановлению</span>
+    <h2 class="title">{{ $t('are_you_sure') }}</h2>
+    <span class="subtitle">{{ $t('data_cannot_be_recovered') }}</span>
 
     <div class="buttons-wrap">
       <FloatButton style="flex: 1" @click="accept">
-        <span>Нет, я остаюсь</span>
+        <span>{{ $t('no_im_staying') }}</span>
       </FloatButton>
 
       <div class="remove-icon-wrap" @click="close">

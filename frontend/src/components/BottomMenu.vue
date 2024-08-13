@@ -34,11 +34,11 @@ const handleMainButtonClick = () => {
 
 <template>
   <div class="menu-bottom-wrapper">
-    <AppMainButton title="Играть" class="main-button" @click="handleMainButtonClick">
-      <span v-if="(gameStore.isPaused || !gameStore.gameInitStarted) || route.name !== 'Gameplay'" class="pause-play-text">Играть</span>
+    <AppMainButton :title="$t('play')" class="main-button" @click="handleMainButtonClick">
+      <span v-if="(gameStore.isPaused || !gameStore.gameInitStarted) || route.name !== 'Gameplay'" class="pause-play-text">{{ $t('play') }}</span>
       <div v-else class="app-button-pause">
         <img src="@/assets/svg/bottom-menu/menu-button-pause.svg" alt="">
-        <span class="pause-play-text">Пауза</span>
+        <span class="pause-play-text">{{ $t('pause') }}</span>
       </div>
     </AppMainButton>
     <div class="button-wrapper">
@@ -46,7 +46,7 @@ const handleMainButtonClick = () => {
         <div class="button-item-content">
           <img src="@/assets/svg/bottom-menu/main-active.svg" alt="" v-if="route.name === 'Main'">
           <img src="@/assets/svg/bottom-menu/main.svg" alt="" v-else>
-          <span class="button-title">Главная</span>
+          <span class="button-title">{{ $t('home') }}</span>
         </div>
       </div>
       <div class="button-item"
@@ -55,7 +55,7 @@ const handleMainButtonClick = () => {
         <div class="button-item-content">
           <img src="@/assets/svg/bottom-menu/improvement-active.svg" alt="" v-if="route.name === 'Improvements'">
           <img src="@/assets/svg/bottom-menu/improvement.svg" alt="" v-else>
-          <span class="button-title">Улучшения</span>
+          <span class="button-title">{{ $t('upgrades') }}</span>
         </div>
       </div>
 
@@ -68,7 +68,7 @@ const handleMainButtonClick = () => {
         <div class="button-item-content">
           <img src="@/assets/svg/bottom-menu/income-active.svg" alt="" v-if="route.name === 'Income'">
           <img src="@/assets/svg/bottom-menu/income.svg" alt="" v-else>
-          <span class="button-title">Доход</span>
+          <span class="button-title">{{ $t('income') }}</span>
         </div>
       </div>
       <div class="button-item"
@@ -78,7 +78,7 @@ const handleMainButtonClick = () => {
         <div class="button-item-content">
           <img src="@/assets/svg/bottom-menu/friends-active.svg" alt="" v-if="route.name === 'Friends'">
           <img src="@/assets/svg/bottom-menu/friends.svg" alt="" v-else>
-          <span class="button-title">Друзья</span>
+          <span class="button-title">{{ $t('friends') }}</span>
         </div>
       </div>
     </div>

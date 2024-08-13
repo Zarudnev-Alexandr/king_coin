@@ -8,7 +8,7 @@ const {tasks} = useIncomeStore()
 <template>
   <div class="actual-tasks-wrap">
     <img src="@/assets/svg/income/actual-tasks-coin-icon.png" alt="">
-    <h3 class="sf-pro-font">Актуальные задания</h3>
+    <h3 class="sf-pro-font">{{ $t('current_tasks') }}</h3>
     <div class="task-list-wrap">
       <IncomeTaskItem v-for="(task, index) in tasks.filter(item => item.end_time !== null)" :key="index"
                       :task-item="task"/>

@@ -5,10 +5,10 @@
 <template>
   <div class="game-loader-wrapper">
     <div class="game-loader-content">
-      <h2>Взлетаем!</h2>
+      <h2>{{ $t('taking_off') }}</h2>
 
       <div class="loading-indicator">
-        <h3 class="sf-pro-font loading-text">Загрузка</h3>
+        <h3 class="sf-pro-font loading-text">{{ $t('loading') }}</h3>
 
         <div class="game-loader-content-indicator-group">
           <span class="game-loader-content-indicator-item"></span>

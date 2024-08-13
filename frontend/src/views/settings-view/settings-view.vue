@@ -53,7 +53,7 @@ const acceptRemoveAccount = () => {
     <div class="current-lang-wrapper" @click="openSelectLangModal">
       <img :src="settingsStore.currenLanguage?.icon" alt="" class="lang-icon">
       <div class="lang-content">
-        <h3 class="sf-pro-font">Сменить язык</h3>
+        <h3 class="sf-pro-font">{{ $t('change_language') }}</h3>
         <span class="sf-pro-font">{{ settingsStore.currenLanguage?.name }}</span>
       </div>
       <div style="flex: 1"/>
@@ -75,7 +75,7 @@ const acceptRemoveAccount = () => {
     <div style="flex: 1"></div>
     <div style="display: flex; justify-content: center;">
       <FloatButton style="width: 124px; height: 55px;" @click="openRemoveModal">
-        <span class="remove-btn">Удалить аккаунт</span>
+        <span class="remove-btn">{{ $t('delete_account') }}</span>
       </FloatButton>
     </div>
     <h1></h1>
