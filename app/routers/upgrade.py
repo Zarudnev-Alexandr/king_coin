@@ -1,6 +1,7 @@
 import json
 import os
 
+from environs import Env
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, UploadFile, File, Header
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +21,12 @@ from app.schemas import UpgradeCategorySchema, CreateUpgradeSchema, UpgradeSchem
 from app.websockets.settings import ws_manager
 
 upgrade_route = APIRouter()
+
+env = Env()
+env.read_env()
+
+SERVER_URL = env('SERVER_URL')
+
 
 
 @upgrade_route.post('/upgrade-category')
@@ -379,7 +386,7 @@ async def upload_image(upgrade_id: int, file: UploadFile = File(...), db: AsyncS
     file_name = f"{upgrade_id}.{file_extension}"
 
     # Сохранение файла на сервере
-    file_path = os.path.join("/app/uploads", file_name)  # Оставляем путь как в контейнере
+    file_path = os.path.join(f"{SERVER_URL}/uploads", file_name)  # Оставляем путь как в контейнере
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
 
