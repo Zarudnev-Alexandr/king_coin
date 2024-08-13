@@ -84,7 +84,6 @@ const props: Props = defineProps<Props>();
     padding: 12px;
     display: flex;
     justify-content: space-between;
-    gap: 15px;
 
     .up-part-avatar {
       flex: 1;
@@ -93,7 +92,6 @@ const props: Props = defineProps<Props>();
 
       img {
         width: 53px;
-        height: auto;
       }
     }
 
@@ -109,9 +107,13 @@ const props: Props = defineProps<Props>();
         line-height: 14.32px;
         text-align: left;
         color: white;
+
       }
 
       .up-part-data-income {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
         img {
           width: 14px;
           height: 14px;
@@ -120,9 +122,13 @@ const props: Props = defineProps<Props>();
         span {
           font-size: 10px;
           font-weight: 400;
-          line-height: 11.93px;
-          text-align: center;
           color: rgba(238, 214, 147, 1);
+          overflow: hidden;
+          line-height: 1.1;
+          margin: 0;
+          padding: 0;
+          display: block;
+          text-align: left;
         }
 
         .up-part-data-income-value {
