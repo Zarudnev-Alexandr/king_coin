@@ -4,7 +4,7 @@ import IncomeHeader from "@/views/income-view/components/income-header.vue";
 import IncomeActualTasks from "@/views/income-view/components/income-actual-tasks.vue";
 import IncomeDailyTasks from "@/views/income-view/components/income-daily-tasks.vue";
 import IncomeTaskList from "@/views/income-view/components/income-task-list.vue";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import TasksApiService from "@/shared/api/services/tasks-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
@@ -38,15 +38,19 @@ onMounted(async () => {
     }
   }
 })
+
+const isLoadingTasks = computed(() => {
+  return isLoading.value || isLoadingDaily.value;
+})
 </script>
 
 <template>
   <div class="income-wrapper">
     <income-header/>
-    <income-actual-tasks v-if="!isLoading"/>
-    <income-daily-tasks v-if="!isLoadingDaily"/>
-    <income-skeleton :is-loading="isLoading" :is-daily-loading="isLoadingDaily"/>
-    <income-task-list v-if="!isLoading"/>
+    <income-actual-tasks v-if="!isLoadingTasks"/>
+    <income-daily-tasks v-if="!isLoadingTasks"/>
+    <income-task-list v-if="!isLoadingTasks"/>
+    <income-skeleton v-if="isLoadingTasks"/>
   </div>
 </template>
 

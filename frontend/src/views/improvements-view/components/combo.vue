@@ -72,9 +72,9 @@ const updateImages = () => {
     <div class="combo-list">
       <ComboCardItem :title="images[0].name" :img_url="images[0].url" v-if="images.length > 0"/>
       <card-combo-unbox-item v-else/>
-      <ComboCardItem :title="images[1].name" :img_url="images[0].url" v-if="images.length > 1"/>
+      <ComboCardItem :title="images[1].name" :img_url="images[1].url" v-if="images.length > 1"/>
       <card-combo-unbox-item v-else/>
-      <ComboCardItem :title="images[2].name" :img_url="images[0].url" v-if="images.length > 2"/>
+      <ComboCardItem :title="images[2].name" :img_url="images[2].url" v-if="images.length > 2"/>
       <card-combo-unbox-item v-else/>
     </div>
   </div>

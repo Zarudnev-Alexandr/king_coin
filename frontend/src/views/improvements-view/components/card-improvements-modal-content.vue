@@ -9,6 +9,7 @@ import ComboApiService from "@/shared/api/services/combo-api-service.ts";
 import CoinUpgradeResponse from "@/shared/api/types/coin-upgrade-response.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 import ModalActionButton from "@/components/ModalActionButton.vue";
+import {computed} from "vue";
 
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
@@ -86,24 +87,34 @@ const getPlusImpro = () => {
   }
   return ((improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0) - (improvementsStore.selectCoinForImpro.factor ?? 0));
 }
+
+const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.category_id === 3);
 </script>
 
 <template>
-  <ActionModal v-if="improvementsStore.selectCoinForImpro" @close="handleClose" @on-accept="handleAccept">
+  <ActionModal v-if="improvementsStore.selectCoinForImpro"
+               @close="handleClose"
+               @on-accept="handleAccept"
+               :hide-bottom-right-bg-svg="isSpecialCategory"
+               :hide-top-left-bg-svg="isSpecialCategory"
+  >
     <div class="card-impro-modal-content-wrapper">
-      <img :src="improvementsStore.selectCoinForImpro.image_url" alt="">
-      <span class="card-name sf-pro-font">{{ improvementsStore.selectCoinForImpro.name }}</span>
-      <span class="impro-description sf-pro-font">{{ improvementsStore.selectCoinForImpro.description }}</span>
-      <div class="impro-data-income">
+      <div v-if="isSpecialCategory" style="height: 190px"/>
+      <img v-else :src="improvementsStore.selectCoinForImpro.image_url" alt="" class="simple-card-img">
+      <div v-if="isSpecialCategory" class="special-img-wrap">
+        <img :src="improvementsStore.selectCoinForImpro.image_url" alt=""/>
+        <div class="special-img-gradient"/>
+      </div>
+      <span class="card-name sf-pro-font z-10">{{ improvementsStore.selectCoinForImpro.name }}</span>
+      <span class="impro-description sf-pro-font z-10">{{ improvementsStore.selectCoinForImpro.description }}</span>
+      <div class="impro-data-income z-10">
         <span>{{ $t('hourly_profit') }}</span>
         <div class="impro-data-income-value">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ {{
-              formatNumber(getPlusImpro())
-            }}</span>
+          <span class="sf-pro-font">+ {{ formatNumber(getPlusImpro()) }}</span>
         </div>
       </div>
-      <div class="imrpo-price">
+      <div class="imrpo-price z-10">
         <img src="@/assets/svg/coin.svg" alt="">
         <span class="sf-pro-font">{{
             formatNumberWithSpaces(improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0)
@@ -132,8 +143,33 @@ const getPlusImpro = () => {
   gap: 10px;
   padding-bottom: 10px;
   padding-top: 30px;
+  position: relative;
 
-  img {
+  .special-img-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+
+    img {
+      width: 100%;
+      object-fit: cover;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .special-img-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 190px;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(57, 34, 0, 0) 0%, #392200 100%);
+    }
+  }
+
+  .simple-card-img {
     border-radius: 10px;
     width: 106px;
     height: auto;
@@ -209,5 +245,10 @@ const getPlusImpro = () => {
       color: white;
     }
   }
+}
+
+.z-10 {
+  position: relative;
+  z-index: 10;
 }
 </style>

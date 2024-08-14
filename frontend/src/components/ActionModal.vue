@@ -4,6 +4,8 @@ interface Props {
   mainButtonText?: string,
   actionButtonIsHide?: boolean,
   disableCloseOnBackgroundClick?: boolean,
+  hideBottomRightBgSvg?: boolean,
+  hideTopLeftBgSvg?: boolean,
 }
 
 const props = defineProps<Props>();
@@ -31,6 +33,7 @@ const handleBackgroundClick = () => {
           viewBox="0 0 206 206"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          v-if="!props.hideTopLeftBgSvg"
           style="position: absolute; z-index: 1; top: 0; left: 0; width: 50%"
       >
         <path d="M205.713 0L0 205.713V10C0 4.47715 4.47715 0 10 0H205.713Z" fill="#482B00"/>
@@ -40,6 +43,7 @@ const handleBackgroundClick = () => {
            fill="none"
            xmlns="http://www.w3.org/2000/svg"
            preserveAspectRatio="none"
+           v-if="!props.hideBottomRightBgSvg"
            style="position: absolute; z-index: 1; bottom: 0; right: 0; width: 100%; height: 100%; overflow: hidden; max-width: 97%; max-height: 90%;">
         <path
             d="M0.378845 338.621L339 0V329.297C339 334.82 334.523 339.297 329 339.297H4.00003C2.72291 339.297 1.5017 339.058 0.378845 338.621Z"

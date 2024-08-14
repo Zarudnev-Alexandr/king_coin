@@ -1,27 +1,21 @@
 <script setup lang="ts">
-interface Props {
-  isLoading: boolean;
-  isDailyLoading: boolean;
-}
-
-const props = defineProps<Props>();
 </script>
 
 <template>
   <div class="income-skeleton-wrap">
-    <div class="actual" v-if="props.isLoading">
+    <div class="actual">
       <img src="@/assets/svg/income/actual-tasks-coin-icon.png" alt="">
       <span class="sf-pro-font">{{ $t('current_tasks') }}</span>
       <div class="task-item skeleton-loading"></div>
     </div>
 
-    <div class="actual" v-if="props.isDailyLoading">
+    <div class="actual">
       <span class="sf-pro-font">{{ $t('daily_tasks') }}</span>
       <div class="task-item skeleton-loading"></div>
       <div class="task-item skeleton-loading"></div>
     </div>
 
-    <div class="actual" v-if="props.isLoading">
+    <div class="actual">
       <span class="sf-pro-font">{{ $t('task_list') }}</span>
       <div class="task-item skeleton-loading"></div>
       <div class="task-item skeleton-loading"></div>

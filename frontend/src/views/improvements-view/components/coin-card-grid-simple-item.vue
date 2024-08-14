@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import {formatNumber} from "@/helpers/formats.ts";
 import {Coin} from "@/shared/api/types/coin.ts";
+import GoldCoin from "@/assets/svg/coin.svg";
+import SilverCoin from "@/assets/svg/silver-coin.svg";
+import {computed} from "vue";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
 
 interface Props {
   cardItem: Coin
 }
 
+const userStore = useUserStore();
 const props: Props = defineProps<Props>();
+
+const haveMoney = computed(() => {
+  return (props.cardItem.price_of_next_lvl ?? 0) <= (userStore.user?.money ?? 0)
+});
+
+const isMinLvl = computed(() => {
+  return props.cardItem.lvl === 0;
+});
 </script>
 
 <template>
@@ -17,8 +30,10 @@ const props: Props = defineProps<Props>();
         <div class="up-part-data-income">
           <span class="sf-pro-font">{{ $t('hourly_income') }}</span>
           <div class="up-part-data-income-value">
-            <img src="@/assets/svg/coin.svg" alt="">
-            <span class="sf-pro-font">+ {{ formatNumber(props.cardItem.factor ?? 0) }}</span>
+            <img :src="isMinLvl ? SilverCoin : GoldCoin" alt="">
+            <span class="sf-pro-font">+ {{
+                formatNumber((isMinLvl ? props.cardItem.factor_at_new_lvl : props.cardItem.factor) ?? 0)
+              }}</span>
           </div>
         </div>
       </div>
@@ -30,7 +45,7 @@ const props: Props = defineProps<Props>();
     <div class="card-item-down-part">
       <span class="sf-pro-font">lvl {{ props.cardItem.lvl }}</span>
       <div class="down-part-price-wrapper">
-        <img src="@/assets/svg/coin.svg" alt="" v-if="props.cardItem.price_of_next_lvl">
+        <img :src="haveMoney ? GoldCoin : SilverCoin" alt="" v-if="props.cardItem.price_of_next_lvl">
         <span class="sf-pro-font" v-if="props.cardItem.price_of_next_lvl">
           {{ formatNumber(props.cardItem.price_of_next_lvl) }}</span>
         <span v-else>{{ $t('max') }}</span>
@@ -114,6 +129,7 @@ const props: Props = defineProps<Props>();
         display: flex;
         flex-direction: column;
         gap: 7px;
+
         img {
           width: 14px;
           height: 14px;
