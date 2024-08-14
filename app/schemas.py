@@ -152,7 +152,7 @@ class CreateDailyRewardSchema(BaseModel):
 
 
 class DailyRewardResponse(CreateDailyRewardSchema):
-    total_money: int
+    total_money: float
 
     class Config:
         orm_mode = True
