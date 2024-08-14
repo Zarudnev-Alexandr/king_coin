@@ -15,6 +15,12 @@ const images: Ref<{ url: string, name: string }[]> = ref([]);
 const {t} = useI18n();
 
 const handleConfirm = () => {
+  if (images.value.length > 2 && !improvementsStore.combo?.reward_claimed) {
+    userStore.animationPlusMoney(6000000);
+    improvementsStore.combo!.reward_claimed = true;
+    appStore.playCoinAnimation();
+  }
+
   setComboNotify(false);
 }
 
@@ -37,13 +43,6 @@ watch(() => improvementsStore.combo, (newReward, _) => {
     imgTemp.push({url: newReward.upgrade_3.image_url!, name: newReward.upgrade_3.name})
   }
   images.value = imgTemp;
-
-  if (images.value.length > 2 && !newReward.reward_claimed && newReward.combo) {
-    userStore.animationPlusMoney(6000000);
-    improvementsStore.combo!.reward_claimed = true;
-    appStore.playCoinAnimation();
-  }
-
 }, {deep: true});
 
 const getButtonText = computed(() => {

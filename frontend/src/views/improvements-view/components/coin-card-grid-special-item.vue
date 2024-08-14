@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import {formatNumber} from "@/helpers/formats.ts";
 import {Coin} from "@/shared/api/types/coin.ts";
+import {computed} from "vue";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
+import GoldCoin from "@/assets/svg/coin.svg";
+import SilverCoin from "@/assets/svg/silver-coin.svg";
 
 interface Props {
   cardItem: Coin
 }
 
+const userStore = useUserStore();
 const props: Props = defineProps<Props>();
+
+const haveMoney = computed(() => {
+  return (props.cardItem.price_of_next_lvl ?? 0) <= (userStore.user?.money ?? 0)
+});
+
+const isMinLvl = computed(() => {
+  return props.cardItem.lvl === 0;
+});
 </script>
 
 <template>
@@ -19,8 +32,10 @@ const props: Props = defineProps<Props>();
       <span class="text-style-white">{{ props.cardItem.name }}</span>
       <p class="sf-pro-font">{{ $t('hourly_income') }}</p>
       <div class="coin-special-card-income">
-        <img class="coin-img" src="@/assets/svg/coin.svg" alt="">
-        <span class="text-style-white">{{ formatNumber(props.cardItem.factor ?? 0) }}</span>
+        <img class="coin-img" :src="isMinLvl ? SilverCoin : GoldCoin" alt="">
+        <span class="text-style-white">{{
+            formatNumber((isMinLvl ? props.cardItem.factor_at_new_lvl : props.cardItem.factor) ?? 0)
+          }}</span>
       </div>
     </div>
     <div style="width: 100%; border-top: 1px solid rgba(131, 101, 51, 1)"></div>
@@ -29,8 +44,10 @@ const props: Props = defineProps<Props>();
           props.cardItem.lvl
         }}</span>
       <div class="down-part-price-wrapper">
-        <img class="coin-img" src="@/assets/svg/coin.svg" alt="">
-        <span class="text-style-white">{{ formatNumber(props.cardItem.price_of_next_lvl ?? 0) }}</span>
+        <img class="coin-img" :src="haveMoney ? GoldCoin : SilverCoin" v-if="props.cardItem.price_of_next_lvl" alt="">
+        <span class="text-style-white" v-if="props.cardItem.price_of_next_lvl">
+          {{ formatNumber(props.cardItem.price_of_next_lvl ?? 0) }}</span>
+        <span v-else class="lvl-max sf-pro-font">{{ $t('max') }}</span>
       </div>
     </div>
   </div>
@@ -104,6 +121,14 @@ const props: Props = defineProps<Props>();
     .down-part-price-wrapper {
       display: flex;
       gap: 5px;
+
+      .lvl-max {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 14.32px;
+        text-align: right;
+        color: white;
+      }
     }
   }
 }
