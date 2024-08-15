@@ -67,6 +67,14 @@ class UpgradeWithLevelsSchema(CreateUpgradeSchema):
 
     levels: List[UpgradeLevelSchema]
 
+class UpgradeConditionSchema(BaseModel):
+    type: str  # Тип условия: "invite", "reach_upgrade_level", "subscribe_telegram"
+    required_value: Optional[int] = None  # Значение, необходимое для выполнения условия
+    current_value: Optional[int] = None  # Текущее значение (для сравнения с required_value)
+    related_upgrade_id: Optional[int] = None  # ID связанного апгрейда, если тип условия REACH_UPGRADE_LEVEL
+    channel_url: Optional[str] = None  # URL канала, если тип условия SUBSCRIBE_TELEGRAM
+    description: Optional[str] = None  # Описание условия
+
 
 class UpgradeWithoutLevelsSchema(CreateUpgradeSchema):
     id: int
@@ -75,6 +83,8 @@ class UpgradeWithoutLevelsSchema(CreateUpgradeSchema):
     factor: Optional[float]
     factor_at_new_lvl: Optional[float]
     price_of_next_lvl: Optional[int]
+    conditions_met: bool  # Удовлетворены ли все условия
+    unmet_conditions: List[UpgradeConditionSchema]  # Список невыполненных условий
 
     # levels: List[UpgradeLevelSchema]
 

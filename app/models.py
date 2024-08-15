@@ -14,6 +14,12 @@ class TaskType(enum.Enum):
     GENERIC = "generic"
 
 
+class UpgradeConditionType(enum.Enum):
+    INVITE = "invite_friends"
+    REACH_UPGRADE_LEVEL = "reach_upgrade_level"
+    SUBSCRIBE_TELEGRAM = "subscribe_channel"
+
+
 class User(Base):
     __tablename__ = 'user'
 
@@ -61,6 +67,38 @@ class UpgradeCategory(Base):
     upgrades: Mapped[list["Upgrades"]] = relationship("Upgrades", back_populates="category", lazy='selectin')
 
 
+
+
+
+class UpgradeLevel(Base):
+    __tablename__ = 'upgrade_lvl'
+
+    upgrade_id: Mapped[int] = mapped_column(Integer, ForeignKey('upgrades.id'), primary_key=True, index=True)
+    lvl: Mapped[int] = mapped_column(Integer, primary_key=True)
+    factor: Mapped[float] = mapped_column(Float)
+    price: Mapped[int] = mapped_column(BigInteger)
+
+    upgrade: Mapped["Upgrades"] = relationship("Upgrades", back_populates="levels", lazy='selectin')
+
+
+class UpgradeConditions(Base):
+    __tablename__ = 'upgrade_conditions'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, unique=True, index=True)
+    upgrade_id: Mapped[int] = mapped_column(Integer, ForeignKey('upgrades.id'), index=True)
+    condition_type: Mapped[TaskType] = mapped_column(Enum(UpgradeConditionType))  # Тип условия, например "invite_friends", "reach_upgrade_level", "subscribe_channel"
+    condition_value: Mapped[int] = mapped_column(Integer,
+                                                 nullable=True)  # Значение условия (например, количество друзей, уровень)
+    related_upgrade_id: Mapped[int] = mapped_column(Integer, ForeignKey('upgrades.id'),
+                                                    nullable=True)  # Связанный апгрейд (если условие связано с другим апгрейдом)
+    channel_url: Mapped[str] = mapped_column(String, nullable=True)  # URL канала, если нужно подписаться на канал
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+
+    upgrade: Mapped["Upgrades"] = relationship("Upgrades", foreign_keys=[upgrade_id], back_populates="conditions",
+                                               lazy='selectin')
+    related_upgrade: Mapped["Upgrades"] = relationship("Upgrades", foreign_keys=[related_upgrade_id], lazy='selectin')
+
+
 class Upgrades(Base):
     __tablename__ = 'upgrades'
 
@@ -73,18 +111,16 @@ class Upgrades(Base):
 
     category: Mapped["UpgradeCategory"] = relationship("UpgradeCategory", back_populates="upgrades", lazy='selectin')
     levels: Mapped[list["UpgradeLevel"]] = relationship("UpgradeLevel", back_populates="upgrade", lazy='selectin')
-    user_upgrades: Mapped[list["UserUpgrades"]] = relationship("UserUpgrades", back_populates="upgrade", lazy='selectin')
+    user_upgrades: Mapped[list["UserUpgrades"]] = relationship("UserUpgrades", back_populates="upgrade",
+                                                               lazy='selectin')
 
-
-class UpgradeLevel(Base):
-    __tablename__ = 'upgrade_lvl'
-
-    upgrade_id: Mapped[int] = mapped_column(Integer, ForeignKey('upgrades.id'), primary_key=True, index=True)
-    lvl: Mapped[int] = mapped_column(Integer, primary_key=True)
-    factor: Mapped[float] = mapped_column(Float)
-    price: Mapped[int] = mapped_column(BigInteger)
-
-    upgrade: Mapped["Upgrades"] = relationship("Upgrades", back_populates="levels", lazy='selectin')
+    # Исправление: указываем foreign_keys явно
+    conditions: Mapped[list["UpgradeConditions"]] = relationship(
+        "UpgradeConditions",
+        foreign_keys=[UpgradeConditions.upgrade_id],  # Добавлено
+        back_populates="upgrade",
+        lazy='selectin'
+    )
 
 
 class UserUpgrades(Base):

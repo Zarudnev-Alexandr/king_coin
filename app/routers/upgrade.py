@@ -7,13 +7,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.added_funcs import decode_init_data
+from app.cruds.task import get_invited_count, check_telegram_subscription
 from app.cruds.upgrade import get_upgrade_category_by_name, create_upgrade_category, get_upgrade_category_by_id, \
     get_upgrade_by_name, add_upgrade, get_upgrade_by_id, get_all_upgrades_in_shop, get_all_upgrades, \
     get_all_upgrade_category, get_upgrade_level, add_upgrade_level, get_user_upgrades_by_upgrade_id, add_bought_upgrade, \
     process_upgrade, get_user_upgrades_in_this_category, create_combo, get_user_combo, get_latest_user_combo
 from app.cruds.user import get_user, get_user_bool
 from app.database import get_db
-from app.models import UpgradeLevel, DailyCombo, UserDailyComboProgress, Upgrades
+from app.models import UpgradeLevel, DailyCombo, UserDailyComboProgress, Upgrades, UpgradeConditionType
 from app.schemas import UpgradeCategorySchema, CreateUpgradeSchema, UpgradeSchema, \
     UpgradeLevelSchema, UpgradeWithLevelsSchema, UserUpgradeCreateSchema, UserUpgradeSchema, CreateDailyComboSchema, \
     DailyComboSchema, UserDailyComboSchema, UpgradeCategoryBaseSchema, \
@@ -65,7 +66,6 @@ async def get_upgrade_category_all(initData: str = Header(...),
 
     all_categories_with_upgrades = []
     for upgrade_category_inc in all_upgrade_categories:
-
         upgrade_category = await get_upgrade_category_by_id(db, upgrade_category_id=upgrade_category_inc.id)
         user_upgrades_in_this_category = await get_user_upgrades_in_this_category(user.tg_id,
                                                                                   upgrade_category_inc.id,
@@ -85,6 +85,47 @@ async def get_upgrade_category_all(initData: str = Header(...),
                 upgrade.lvl = 0
                 upgrade.is_bought = False
 
+            # Проверка условий
+            conditions_met = True
+            unmet_conditions = []
+            for condition in upgrade.conditions:
+                if condition.condition_type == UpgradeConditionType.INVITE:
+                    invited_count = await get_invited_count(db, user.tg_id)
+                    if invited_count < condition.condition_value:
+                        conditions_met = False
+                        unmet_conditions.append({
+                            "type": "invite",
+                            "required_value": condition.condition_value,
+                            "current_value": invited_count,
+                            "description": condition.description
+                        })
+
+                elif condition.condition_type == UpgradeConditionType.REACH_UPGRADE_LEVEL:
+                    related_upgrade = await get_user_upgrades_by_upgrade_id(user.tg_id, condition.related_upgrade_id,
+                                                                            db)
+                    if not related_upgrade or related_upgrade.lvl < condition.condition_value:
+                        conditions_met = False
+                        unmet_conditions.append({
+                            "type": "reach_upgrade_level",
+                            "related_upgrade_id": condition.related_upgrade_id,
+                            "required_value": condition.condition_value,
+                            "current_value": related_upgrade.lvl if related_upgrade else 0,
+                            "description": condition.description
+                        })
+
+                elif condition.condition_type == UpgradeConditionType.SUBSCRIBE_TELEGRAM:
+                    is_subscribed = check_telegram_subscription(int(condition.channel_url), user.tg_id)
+                    if not is_subscribed:
+                        conditions_met = False
+                        unmet_conditions.append({
+                            "type": "subscribe_telegram",
+                            "channel_url": condition.channel_url,
+                            "description": condition.description
+                        })
+
+            upgrade.conditions_met = conditions_met
+            upgrade.unmet_conditions = unmet_conditions
+
             next_upgrade_level = await db.execute(
                 select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=upgrade.lvl + 1)
             )
@@ -96,13 +137,11 @@ async def get_upgrade_category_all(initData: str = Header(...),
             current_upgrade_level = current_upgrade_level.scalars().first()
             upgrade.factor = current_upgrade_level.factor if current_upgrade_level else None
             upgrade.factor_at_new_lvl = next_upgrade_level.factor if next_upgrade_level else None
-
             upgrade.price_of_next_lvl = next_upgrade_level.price if next_upgrade_level else None
 
             filtered_upgrades.append(upgrade)
 
         upgrade_category.upgrades = filtered_upgrades
-
         all_categories_with_upgrades.append(upgrade_category)
 
     return all_categories_with_upgrades
@@ -190,6 +229,24 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
 
     if len(upgrade.levels) < 1:
         raise HTTPException(status_code=404, detail="List of levels is empty")
+
+    conditions = upgrade.conditions
+    for condition in conditions:
+        if condition.condition_type == UpgradeConditionType.INVITE:
+            invited_count = await get_invited_count(db, user.tg_id)
+            if invited_count < condition.condition_value:
+                raise HTTPException(status_code=400, detail=f"You need to invite {condition.condition_value} friends")
+
+        elif condition.condition_type == UpgradeConditionType.REACH_UPGRADE_LEVEL:
+            related_upgrade = await get_user_upgrades_by_upgrade_id(user_id, condition.related_upgrade_id, db)
+            if not related_upgrade or related_upgrade.lvl < condition.condition_value:
+                raise HTTPException(status_code=400,
+                                    detail=f"You need to reach level {condition.condition_value} of upgrade {condition.related_upgrade_id}")
+
+        elif condition.condition_type == UpgradeConditionType.SUBSCRIBE_TELEGRAM:
+            is_subscribed = check_telegram_subscription(int(condition.channel_url), user.tg_id)
+            if not is_subscribed:
+                raise HTTPException(status_code=400, detail=f"You need to subscribe to {condition.channel_url}")
 
     user_upgrade = await get_user_upgrades_by_upgrade_id(user_id, upgrade_id, db)
 
