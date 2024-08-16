@@ -29,7 +29,6 @@ env.read_env()
 SERVER_URL = env('SERVER_URL')
 
 
-
 @upgrade_route.post('/upgrade-category')
 async def create_upgrade_category_func(upgrade_category_create: UpgradeCategoryBaseSchema,
                                        db: AsyncSession = Depends(get_db)) -> UpgradeCategoryBaseSchemaWithId:
@@ -352,6 +351,44 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     })
 
     return return_data
+
+
+@upgrade_route.get('/can-i-buy-upgrade')
+async def can_i_buy_this_upgrade(upgrade_id: int,
+                                 initData: str = Header(...),
+                                 db: AsyncSession = Depends(get_db)):
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
+
+    upgrade = await get_upgrade_by_id(db, upgrade_id)
+    if not upgrade:
+        raise HTTPException(status_code=404, detail="Upgrade not found")
+
+    if not upgrade.is_in_shop:
+        raise HTTPException(status_code=404, detail="Upgrade not in shop")
+
+    if len(upgrade.levels) < 1:
+        raise HTTPException(status_code=404, detail="List of levels is empty")
+
+    conditions = upgrade.conditions
+    for condition in conditions:
+        if condition.condition_type == UpgradeConditionType.INVITE:
+            invited_count = await get_invited_count(db, user.tg_id)
+            if invited_count < condition.condition_value:
+                raise HTTPException(status_code=400, detail=f"You need to invite {condition.condition_value} friends")
+
+        elif condition.condition_type == UpgradeConditionType.REACH_UPGRADE_LEVEL:
+            related_upgrade = await get_user_upgrades_by_upgrade_id(user.tg_id, condition.related_upgrade_id, db)
+            if not related_upgrade or related_upgrade.lvl < condition.condition_value:
+                raise HTTPException(status_code=400,
+                                    detail=f"You need to reach level {condition.condition_value} of upgrade {condition.related_upgrade_id}")
+
+        elif condition.condition_type == UpgradeConditionType.SUBSCRIBE_TELEGRAM:
+            is_subscribed = check_telegram_subscription(int(condition.channel_url), user.tg_id)
+            if not is_subscribed:
+                raise HTTPException(status_code=400, detail=f"You need to subscribe to {condition.description}")
+        return HTTPException(status_code=200, detail=f"ok")
+
 
 
 @upgrade_route.post('/create-daily-combo')
