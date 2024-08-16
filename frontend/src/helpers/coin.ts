@@ -38,6 +38,7 @@ export const getTaskText = (coin: Coin) => {
 }
 
 export const availableOpenModal = (coin: Coin) => {
+  const improvementsStore = useImprovementsStore();
   if (coin.price_of_next_lvl === null) {
     return false;
   }
@@ -45,6 +46,11 @@ export const availableOpenModal = (coin: Coin) => {
   if (!coin.conditions_met) {
     if (coin.unmet_conditions.length === 0) {
       return false;
+    }
+
+    if (coin.unmet_conditions[0].type === 'reach_upgrade_level') {
+      const reachCoin = improvementsStore.getCardById(coin.unmet_conditions[0].related_upgrade_id!);
+      return (reachCoin?.lvl ?? 0) >= coin.unmet_conditions[0].required_value;
     }
 
     return coin.unmet_conditions[0].type === 'subscribe_telegram';
