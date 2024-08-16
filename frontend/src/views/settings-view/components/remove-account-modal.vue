@@ -19,11 +19,11 @@ const accept = () => {
     <span class="subtitle">{{ $t('data_cannot_be_recovered') }}</span>
 
     <div class="buttons-wrap">
-      <FloatButton style="flex: 1" @click="accept">
+      <FloatButton style="flex: 1" @click="close">
         <span>{{ $t('no_im_staying') }}</span>
       </FloatButton>
 
-      <div class="remove-icon-wrap" @click="close">
+      <div class="remove-icon-wrap" @click="accept">
         <img src="@/assets/img/remove/remove-left-top-shadow.svg" class="left-top-shadow" alt="">
         <img src="@/assets/img/remove/remove-bottom-right-shadow.svg" class="left-bottom-shadow" alt="">
         <img src="@/assets/img/remove/remove-icon.svg" alt="" style="width: 24px; height: 24px;">
