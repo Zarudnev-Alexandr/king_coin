@@ -93,6 +93,7 @@ class UpgradeConditions(Base):
                                                     nullable=True)  # Связанный апгрейд (если условие связано с другим апгрейдом)
     channel_url: Mapped[str] = mapped_column(String, nullable=True)  # URL канала, если нужно подписаться на канал
     description: Mapped[str] = mapped_column(Text, nullable=True)
+    name_of_condition_upgrade: Mapped[str] = mapped_column(String, nullable=True)
 
     upgrade: Mapped["Upgrades"] = relationship("Upgrades", foreign_keys=[upgrade_id], back_populates="conditions",
                                                lazy='selectin')

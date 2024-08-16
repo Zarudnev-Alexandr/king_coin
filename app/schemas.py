@@ -74,6 +74,7 @@ class UpgradeConditionSchema(BaseModel):
     related_upgrade_id: Optional[int] = None  # ID связанного апгрейда, если тип условия REACH_UPGRADE_LEVEL
     channel_url: Optional[str] = None  # URL канала, если тип условия SUBSCRIBE_TELEGRAM
     description: Optional[str] = None  # Описание условия
+    name_of_condition_upgrade: Optional[str] = None  # Описание условия
 
 
 class UpgradeWithoutLevelsSchema(CreateUpgradeSchema):

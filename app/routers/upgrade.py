@@ -96,7 +96,8 @@ async def get_upgrade_category_all(initData: str = Header(...),
                             "type": "invite",
                             "required_value": condition.condition_value,
                             "current_value": invited_count,
-                            "description": condition.description
+                            "description": condition.description,
+                            "name_of_condition_upgrade": condition.name_of_condition_upgrade,
                         })
 
                 elif condition.condition_type == UpgradeConditionType.REACH_UPGRADE_LEVEL:
@@ -109,7 +110,8 @@ async def get_upgrade_category_all(initData: str = Header(...),
                             "related_upgrade_id": condition.related_upgrade_id,
                             "required_value": condition.condition_value,
                             "current_value": related_upgrade.lvl if related_upgrade else 0,
-                            "description": condition.description
+                            "description": condition.description,
+                            "name_of_condition_upgrade": condition.name_of_condition_upgrade
                         })
 
                 elif condition.condition_type == UpgradeConditionType.SUBSCRIBE_TELEGRAM:
@@ -119,7 +121,8 @@ async def get_upgrade_category_all(initData: str = Header(...),
                         unmet_conditions.append({
                             "type": "subscribe_telegram",
                             "channel_url": condition.channel_url,
-                            "description": condition.description
+                            "description": condition.description,
+                            "name_of_condition_upgrade": condition.name_of_condition_upgrade
                         })
 
             upgrade.conditions_met = conditions_met
