@@ -19,6 +19,7 @@ import {useUserStore} from "@/shared/pinia/user-store.ts";
 import GameLoader from "@/views/game-view/components/game-loader.vue";
 import FloatButton from "@/components/FloatButton.vue";
 import {ShowPromiseResult} from "@/shared/api/types/adsgram";
+import {useI18n} from "vue-i18n";
 
 const phaserRef = ref<HTMLDivElement | null>(null);
 const isGameDelay = ref(true);
@@ -29,6 +30,7 @@ let game: Phaser.Game | null = null;
 const gameStore = useGameStore();
 const userStore = useUserStore();
 const router = useRouter();
+const {t} = useI18n();
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -90,11 +92,11 @@ const getTextMysteryBox = () => {
   }
 
   if (gameStore.mysteryBox! === MysteryBoxType['5X'] || gameStore.mysteryBox! === MysteryBoxType['10X']) {
-    return 'Прибыль';
+    return t('profit');
   } else if (gameStore.mysteryBox === MysteryBoxType['100COIN']) {
     return '+ 100 coins';
   } else if (gameStore.mysteryBox === MysteryBoxType['SPEED_X2.5']) {
-    return 'Скорость';
+    return t('speed');
   }
 }
 

@@ -5,6 +5,7 @@ import GoldCoin from "@/assets/svg/coin.svg";
 import SilverCoin from "@/assets/svg/silver-coin.svg";
 import {computed} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
+import {checkIsAvailable, getTaskText} from "@/helpers/coin.ts";
 
 interface Props {
   cardItem: Coin
@@ -20,6 +21,10 @@ const haveMoney = computed(() => {
 const isMinLvl = computed(() => {
   return props.cardItem.lvl === 0;
 });
+
+const isAvailable = computed(() => {
+  return checkIsAvailable(props.cardItem);
+})
 </script>
 
 <template>
@@ -38,6 +43,7 @@ const isMinLvl = computed(() => {
         </div>
       </div>
       <div class="up-part-avatar">
+        <img v-if="!isAvailable" src="@/assets/svg/unavailable-simple-card.svg" class="unavaliable-layer" alt="">
         <img :src="props.cardItem.image_url" alt="">
       </div>
     </div>
@@ -45,10 +51,10 @@ const isMinLvl = computed(() => {
     <div class="card-item-down-part">
       <span class="sf-pro-font">lvl {{ props.cardItem.lvl }}</span>
       <div class="down-part-price-wrapper">
-        <img :src="haveMoney ? GoldCoin : SilverCoin" alt="" v-if="props.cardItem.price_of_next_lvl">
-        <span class="sf-pro-font" v-if="props.cardItem.price_of_next_lvl">
+        <img :src="haveMoney ? GoldCoin : SilverCoin" alt="" v-if="props.cardItem.price_of_next_lvl && isAvailable">
+        <span class="sf-pro-font" v-if="props.cardItem.price_of_next_lvl && isAvailable">
           {{ formatNumber(props.cardItem.price_of_next_lvl) }}</span>
-        <span v-else>{{ $t('max') }}</span>
+        <span v-else>{{ isAvailable ? $t('max') : getTaskText(props.cardItem) }}</span>
       </div>
     </div>
   </div>
@@ -101,9 +107,15 @@ const isMinLvl = computed(() => {
     justify-content: space-between;
 
     .up-part-avatar {
-      flex: 1;
       display: flex;
       justify-content: end;
+      position: relative;
+
+      .unavaliable-layer {
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
 
       img {
         width: 53px;

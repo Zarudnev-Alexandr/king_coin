@@ -5,6 +5,7 @@ import {AxiosInstance} from "axios";
 
 class UserApiService {
   private userApi = '/users/logreg';
+  private readonly removeProfileApi = '/users/delete_user';
 
   constructor(private client: AxiosInstance, private errorHandler: AxiosErrorHandler) {
   }
@@ -16,6 +17,13 @@ class UserApiService {
 
     return this.errorHandler.processRequest<User>(async () => {
       const response = await this.client.post<User>(this.userApi);
+      return response.data;
+    })
+  }
+
+  public async removeProfile(): Promise<Either<CommonResponseError, { message: string }>> {
+    return this.errorHandler.processRequest<{ message: string }>(async () => {
+      const response = await this.client.delete<{ message: string }>(this.removeProfileApi);
       return response.data;
     })
   }

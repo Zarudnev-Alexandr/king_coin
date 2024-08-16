@@ -11,8 +11,11 @@ import VibrationOnSvg from "@/assets/svg/settings/vibration-on.svg"
 import VibrationOffSvg from "@/assets/svg/settings/vibration-off.svg"
 import FloatButton from "@/components/FloatButton.vue";
 import RemoveAccountModal from "@/views/settings-view/components/remove-account-modal.vue";
+import UserApiService from "@/shared/api/services/user-api-service.ts";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 
 const settingsStore = useSettingsStore();
+const userApiService = new UserApiService(axiosInstance, errorHandler);
 const selectLangIsOpen = ref(false);
 const removeModalIsVisible = ref(false);
 
@@ -40,9 +43,12 @@ const openRemoveModal = () => {
   removeModalIsVisible.value = true;
 }
 
-const acceptRemoveAccount = () => {
-  console.log('acceptRemoveAccount');
-  closeRemoveModal();
+const acceptRemoveAccount = async () => {
+  const res = await userApiService.removeProfile();
+
+  if (res && res.right) {
+    Telegram.WebApp.close();
+  }
 }
 </script>
 

@@ -5,6 +5,7 @@ import {computed} from "vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import GoldCoin from "@/assets/svg/coin.svg";
 import SilverCoin from "@/assets/svg/silver-coin.svg";
+import {checkIsAvailable, getTaskText} from "@/helpers/coin.ts";
 
 interface Props {
   cardItem: Coin
@@ -20,11 +21,16 @@ const haveMoney = computed(() => {
 const isMinLvl = computed(() => {
   return props.cardItem.lvl === 0;
 });
+
+const isAvailable = computed(() => {
+  return checkIsAvailable(props.cardItem);
+})
 </script>
 
 <template>
   <div class="coin-special-card-item-wrapper">
     <div class="bg-img">
+      <img v-if="!isAvailable" src="@/assets/svg/unavailable-special-card.svg" class="unavaliable-layer" alt="">
       <img :src="props.cardItem.image_url" alt="">
       <div class="coin-special-card-gradient"/>
     </div>
@@ -44,10 +50,11 @@ const isMinLvl = computed(() => {
           props.cardItem.lvl
         }}</span>
       <div class="down-part-price-wrapper">
-        <img class="coin-img" :src="haveMoney ? GoldCoin : SilverCoin" v-if="props.cardItem.price_of_next_lvl" alt="">
-        <span class="text-style-white" v-if="props.cardItem.price_of_next_lvl">
+        <img class="coin-img" :src="haveMoney ? GoldCoin : SilverCoin"
+             v-if="props.cardItem.price_of_next_lvl && isAvailable" alt="">
+        <span class="text-style-white" v-if="props.cardItem.price_of_next_lvl && isAvailable">
           {{ formatNumber(props.cardItem.price_of_next_lvl ?? 0) }}</span>
-        <span v-else class="lvl-max sf-pro-font">{{ $t('max') }}</span>
+        <span v-else class="lvl-max sf-pro-font">{{ isAvailable ? $t('max') : getTaskText(props.cardItem) }}</span>
       </div>
     </div>
   </div>
@@ -69,6 +76,14 @@ const isMinLvl = computed(() => {
     top: 0;
     left: 0;
     z-index: 0;
+
+    .unavaliable-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      width: 100%;
+    }
 
     img {
       width: 100%;

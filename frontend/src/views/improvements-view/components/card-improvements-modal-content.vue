@@ -9,13 +9,15 @@ import ComboApiService from "@/shared/api/services/combo-api-service.ts";
 import CoinUpgradeResponse from "@/shared/api/types/coin-upgrade-response.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 import ModalActionButton from "@/components/ModalActionButton.vue";
-import {computed} from "vue";
+import {computed, Ref, ref} from "vue";
+import {checkIsAvailable} from "@/helpers/coin.ts";
 
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
 const appStore = useAppStore();
 const coinApiService = new CoinApiService(axiosInstance, errorHandler);
 const comboApiService = new ComboApiService(axiosInstance, errorHandler);
+const isLoading: Ref<boolean> = ref(false);
 
 const handleClose = () => {
   improvementsStore.setSelectCoinForImpro(null);
@@ -54,7 +56,7 @@ const updateCombo = () => {
 }
 
 const handleAccept = async () => {
-  if (!improvementsStore.selectCoinForImpro || !userStore.user) {
+  if (!improvementsStore.selectCoinForImpro || !userStore.user || isLoading.value) {
     return;
   }
 
@@ -62,6 +64,7 @@ const handleAccept = async () => {
     return;
   }
 
+  isLoading.value = true
   const res = await coinApiService.upgradeCoin(improvementsStore.selectCoinForImpro.id, userStore.user.tg_id); // todo поправить после исправление в бэке
   if (res.right) {
     userStore.animationPlusMoney(-(improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0));
@@ -79,6 +82,7 @@ const handleAccept = async () => {
     improvementsStore.setSelectCoinForImpro(null);
     appStore.playCoinAnimation();
   }
+  isLoading.value = false;
 }
 
 const getPlusImpro = () => {
@@ -100,8 +104,18 @@ const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.c
   >
     <div class="card-impro-modal-content-wrapper">
       <div v-if="isSpecialCategory" style="height: 190px"/>
-      <img v-else :src="improvementsStore.selectCoinForImpro.image_url" alt="" class="simple-card-img">
+      <div v-else class="simple-card-img-wrap">
+        <img v-if="!checkIsAvailable(improvementsStore.selectCoinForImpro)"
+             src="@/assets/svg/unavailable-simple-modal.svg"
+             class="simple-card-unavailable"
+             alt="">
+        <img :src="improvementsStore.selectCoinForImpro.image_url" alt="" class="simple-card-img">
+      </div>
+
       <div v-if="isSpecialCategory" class="special-img-wrap">
+        <img v-if="!checkIsAvailable(improvementsStore.selectCoinForImpro)"
+             src="@/assets/svg/unavailable-special-card.svg"
+             class="unavaliable-layer" alt="">
         <img :src="improvementsStore.selectCoinForImpro.image_url" alt=""/>
         <div class="special-img-gradient"/>
       </div>
@@ -152,6 +166,14 @@ const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.c
     z-index: 0;
     width: 100%;
 
+    .unavaliable-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      width: 100%;
+    }
+
     img {
       width: 100%;
       object-fit: cover;
@@ -169,10 +191,20 @@ const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.c
     }
   }
 
-  .simple-card-img {
-    border-radius: 10px;
-    width: 106px;
-    height: auto;
+  .simple-card-img-wrap {
+    position: relative;
+
+    .simple-card-unavailable {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    .simple-card-img {
+      border-radius: 10px;
+      width: 106px;
+      height: auto;
+    }
   }
 
   .card-name {

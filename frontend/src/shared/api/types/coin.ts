@@ -1,3 +1,12 @@
+export interface MetCondition {
+  type: 'reach_upgrade_level' | 'invite' | 'subscribe_telegram',
+  required_value: number;
+  current_value: number;
+  related_upgrade_id: number;
+  channel_url?: string;
+  description?: string;
+}
+
 export interface Coin {
   name: string,
   category_id: number,
@@ -10,4 +19,6 @@ export interface Coin {
   factor: number | null,
   factor_at_new_lvl: number | null,
   price_of_next_lvl: number | null,
+  conditions_met: boolean,
+  unmet_conditions: MetCondition[],
 }

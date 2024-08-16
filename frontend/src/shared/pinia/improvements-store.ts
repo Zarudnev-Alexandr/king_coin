@@ -48,6 +48,22 @@ export const useImprovementsStore = defineStore('improvementsStore', () => {
     visibleComboNotify.value = visible;
   }
 
+  const getCardById = (id: number): Coin | null => {
+    const cryptoCoin = cryptoCoinList.value.find(coin => coin.id === id);
+    if (cryptoCoin) {
+      return cryptoCoin;
+    }
+    const actionCoin = actionCoinList.value.find(coin => coin.id === id);
+    if (actionCoin) {
+      return actionCoin;
+    }
+    const specialCoin = specialCoinList.value.find(coin => coin.id === id);
+    if (specialCoin) {
+      return specialCoin;
+    }
+    return null;
+  }
+
   const upgradePurchaseCombo = (index: 1 | 2 | 3) => {
     if (combo.value) {
       if (index === 1) {
@@ -78,5 +94,6 @@ export const useImprovementsStore = defineStore('improvementsStore', () => {
     visibleComboNotify,
     setComboNotify,
     upgradePurchaseCombo,
+    getCardById,
   }
 });

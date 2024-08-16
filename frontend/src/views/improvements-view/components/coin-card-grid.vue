@@ -3,6 +3,7 @@ import CoinCardGridSimpleItem from "@/views/improvements-view/components/coin-ca
 import CoinCardGridSpecialItem from "@/views/improvements-view/components/coin-card-grid-special-item.vue";
 import {Coin} from "@/shared/api/types/coin.ts";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
+import {availableOpenModal} from "@/helpers/coin.ts";
 
 interface Props {
   cardList: Coin[],
@@ -13,7 +14,7 @@ const props: Props = defineProps<Props>();
 const improvementsStore = useImprovementsStore();
 
 const onSelectCardForImpro = (card: Coin) => {
-  if (card.price_of_next_lvl === null) {
+  if (!availableOpenModal(card)) {
     return;
   }
   improvementsStore.setSelectCoinForImpro(card);
