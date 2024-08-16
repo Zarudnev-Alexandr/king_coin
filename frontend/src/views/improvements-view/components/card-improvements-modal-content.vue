@@ -9,12 +9,16 @@ import ComboApiService from "@/shared/api/services/combo-api-service.ts";
 import CoinUpgradeResponse from "@/shared/api/types/coin-upgrade-response.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 import ModalActionButton from "@/components/ModalActionButton.vue";
+import GoldCoin from "@/assets/svg/coin.svg";
+import SilverCoin from "@/assets/svg/silver-coin.svg";
 import {computed, Ref, ref} from "vue";
 import {checkIsAvailable} from "@/helpers/coin.ts";
+import {useI18n} from "vue-i18n";
 
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
 const appStore = useAppStore();
+const {t} = useI18n();
 const coinApiService = new CoinApiService(axiosInstance, errorHandler);
 const comboApiService = new ComboApiService(axiosInstance, errorHandler);
 const isLoading: Ref<boolean> = ref(false);
@@ -25,6 +29,19 @@ const handleClose = () => {
 
 const isDisabled = () => {
   return !improvementsStore.selectCoinForImpro || (userStore.user?.money ?? 0) < (improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0);
+}
+
+const checkSubscribe = async () => {
+  isLoading.value = true
+  const res = await coinApiService.checkIsAvailable(improvementsStore.selectCoinForImpro!);
+  isLoading.value = false
+  if (res && res.right && improvementsStore.selectCoinForImpro) {
+    improvementsStore.selectCoinForImpro.conditions_met = true;
+  }
+}
+
+const goToSubscribe = (link: string) => {
+  window.open(link, '_blank');
 }
 
 const checkCombo = (res: CoinUpgradeResponse) => {
@@ -57,6 +74,14 @@ const updateCombo = () => {
 
 const handleAccept = async () => {
   if (!improvementsStore.selectCoinForImpro || !userStore.user || isLoading.value) {
+    return;
+  }
+
+  if (!improvementsStore.selectCoinForImpro.conditions_met && improvementsStore.selectCoinForImpro.unmet_conditions[0].type === 'subscribe_telegram') {
+    goToSubscribe(improvementsStore.selectCoinForImpro.unmet_conditions[0].description!);
+    setTimeout(() => {
+      checkSubscribe();
+    }, 6000);
     return;
   }
 
@@ -93,6 +118,15 @@ const getPlusImpro = () => {
 }
 
 const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.category_id === 3);
+
+const mainButtonText = computed(() => {
+  if (!improvementsStore.selectCoinForImpro) return t('get_it');
+  if (!improvementsStore.selectCoinForImpro.conditions_met && improvementsStore.selectCoinForImpro.unmet_conditions[0].type === 'subscribe_telegram') {
+    return t('subscribe')
+  }
+
+  return t('get_it');
+})
 </script>
 
 <template>
@@ -124,12 +158,12 @@ const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.c
       <div class="impro-data-income z-10">
         <span>{{ $t('hourly_profit') }}</span>
         <div class="impro-data-income-value">
-          <img src="@/assets/svg/coin.svg" alt="">
+          <img :src="checkIsAvailable(improvementsStore.selectCoinForImpro!) ? GoldCoin : SilverCoin" alt="">
           <span class="sf-pro-font">+ {{ formatNumber(getPlusImpro()) }}</span>
         </div>
       </div>
       <div class="imrpo-price z-10">
-        <img src="@/assets/svg/coin.svg" alt="">
+        <img :src="checkIsAvailable(improvementsStore.selectCoinForImpro!) ? GoldCoin : SilverCoin" alt="">
         <span class="sf-pro-font">{{
             formatNumberWithSpaces(improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0)
           }}</span>
@@ -138,7 +172,7 @@ const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.c
     <template #actions>
       <modal-action-button
           style="width: 133px; height: 67px"
-          :button-text="$t('get_it')"
+          :button-text="mainButtonText"
           @on-accept="handleAccept"
           :is-disabled="isDisabled()"
           :disabled-text="isDisabled() ? $t('no_money') : $t('get_it')"

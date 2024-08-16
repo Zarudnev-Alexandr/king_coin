@@ -38,12 +38,12 @@ window.addEventListener('resize', () => {
 
 <template>
   <div v-set-screen-height style="width: 100%; height: 100%">
-    <SplashView v-if="!userStore.isAuth && isMobile"/>
-    <MainLayout v-if="userStore.isAuth && isMobile">
+    <SplashView v-if="!userStore.isAuth"/>
+    <MainLayout v-else>
       <router-view/>
     </MainLayout>
-    <not-available-platform-view v-if="!isMobile"/>
-    <landscape v-if="appStore.isLandscape"/>
+<!--    <not-available-platform-view v-if="!isMobile"/>-->
+    <!--    <landscape v-if="appStore.isLandscape"/>-->
   </div>
 </template>
 
