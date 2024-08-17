@@ -96,9 +96,6 @@ onMounted(async () => {
     </div>
     <div class="splash-loader">
       <div class="splash-loader-content">
-        <div class="content-monet">
-          <img src="@/assets/img/splash-monet.png" alt="">
-        </div>
         <div class="splash-loader-content-indicator">
           <span class="splash-loader-content-text">{{ $t('loading') }}</span>
           <div class="splash-loader-content-indicator-group">
