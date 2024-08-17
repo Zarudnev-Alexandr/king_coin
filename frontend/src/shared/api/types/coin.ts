@@ -5,6 +5,7 @@ export interface MetCondition {
   related_upgrade_id: number;
   channel_url?: string;
   description?: string;
+  name_of_condition_upgrade?: string;
 }
 
 export interface Coin {

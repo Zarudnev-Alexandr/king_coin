@@ -127,6 +127,15 @@ const mainButtonText = computed(() => {
 
   return t('get_it');
 })
+
+const getDescription = () => {
+  if (!improvementsStore.selectCoinForImpro?.conditions_met) {
+    if (improvementsStore.selectCoinForImpro?.unmet_conditions[0].type === 'subscribe_telegram') {
+      return `Чтобы разблокировать эту карточку сначала подпишитесь на Telegram канал ${improvementsStore.selectCoinForImpro?.unmet_conditions[0].name_of_condition_upgrade}`
+    }
+  }
+  return improvementsStore.selectCoinForImpro?.description
+}
 </script>
 
 <template>
@@ -154,7 +163,7 @@ const mainButtonText = computed(() => {
         <div class="special-img-gradient"/>
       </div>
       <span class="card-name sf-pro-font z-10">{{ improvementsStore.selectCoinForImpro.name }}</span>
-      <span class="impro-description sf-pro-font z-10">{{ improvementsStore.selectCoinForImpro.description }}</span>
+      <span class="impro-description sf-pro-font z-10">{{ getDescription() }}</span>
       <div class="impro-data-income z-10">
         <span>{{ $t('hourly_profit') }}</span>
         <div class="impro-data-income-value">
