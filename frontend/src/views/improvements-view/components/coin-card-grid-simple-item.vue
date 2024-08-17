@@ -108,7 +108,7 @@ const isAvailable = computed(() => {
 
     .up-part-avatar {
       display: flex;
-      justify-content: end;
+      justify-content: flex-end;
       position: relative;
 
       .unavaliable-layer {

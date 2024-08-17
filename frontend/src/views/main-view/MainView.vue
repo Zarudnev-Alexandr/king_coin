@@ -391,7 +391,7 @@ onBeforeUnmount(() => {
       .bottom-data-actions {
         display: flex;
         flex-direction: column;
-        align-items: end;
+        align-items: flex-end;
         gap: 20px;
       }
     }
@@ -429,6 +429,24 @@ onBeforeUnmount(() => {
   }
   50% {
     transform: scale(1.05);
+  }
+}
+
+/* Safari 14 Specific Fallbacks */
+@supports (-webkit-backdrop-filter: none) {
+  .main-view-content,
+  .header-data-scoreboard,
+  .boost-modal-wrapper {
+    display: -webkit-box;
+  }
+
+  .header-data-scoreboard {
+    opacity: 1; /* Исправление ошибки прозрачности */
+    transform: none; /* Удаление анимации для Safari 14 */
+  }
+
+  .pulse-animation {
+    animation: none; /* Удаление анимации пульса для Safari 14 */
   }
 }
 </style>

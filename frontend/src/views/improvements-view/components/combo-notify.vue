@@ -76,7 +76,7 @@ const getDescriptionText = computed(() => {
 .combo-notify-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: end;
+  justify-content: flex-end;
   align-items: center;
   position: absolute;
   top: 0;

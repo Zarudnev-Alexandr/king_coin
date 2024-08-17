@@ -30,7 +30,7 @@ const isAvailable = computed(() => {
 <template>
   <div class="coin-special-card-item-wrapper">
     <div class="bg-img">
-      <img v-if="!isAvailable" src="@/assets/svg/unavailable-special-card.svg" class="unavaliable-layer" alt="">
+      <img v-if="!isAvailable" src="@/assets/svg/unavailable-special-card.svg" class="unavailable-layer" alt="">
       <img :src="props.cardItem.image_url" alt="">
       <div class="coin-special-card-gradient"/>
     </div>
@@ -68,7 +68,7 @@ const isAvailable = computed(() => {
   flex: 1 1 45%;
   display: flex;
   flex-direction: column;
-  justify-content: end;
+  justify-content: flex-end;
   position: relative;
 
   .bg-img {
@@ -77,7 +77,7 @@ const isAvailable = computed(() => {
     left: 0;
     z-index: 0;
 
-    .unavaliable-layer {
+    .unavailable-layer {
       position: absolute;
       top: 0;
       left: 0;

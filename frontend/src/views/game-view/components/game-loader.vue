@@ -29,7 +29,7 @@
 <style scoped>
 .game-loader-wrapper {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
   position: absolute;
   z-index: 15;
   width: 100%;

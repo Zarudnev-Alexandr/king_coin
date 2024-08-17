@@ -59,7 +59,7 @@ const subtitleText = computed(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: end;
+  justify-content: flex-end;
   position: absolute;
   top: 0;
   left: 0;

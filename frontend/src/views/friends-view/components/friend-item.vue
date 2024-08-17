@@ -44,7 +44,7 @@ const props: Props = defineProps<Props>();
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: end;
+    align-items: flex-end;
     gap: 5px;
 
     .friend-invite-count-wrap {
