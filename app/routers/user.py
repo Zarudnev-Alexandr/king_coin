@@ -199,6 +199,14 @@ user_route = APIRouter()
 
 @user_route.post('/logreg')
 async def logreg(initData: str = Header(...), ref: Optional[int] = Query(None), db: AsyncSession = Depends(get_db)):
+    if ref == "None":
+        ref = None
+    else:
+        try:
+            ref = int(ref) if ref is not None else None
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid ref parameter")
+
     data_from_init_data = await decode_init_data(initData, db)
 
     tg_id = data_from_init_data["tg_id"]
