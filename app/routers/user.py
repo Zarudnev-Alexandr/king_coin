@@ -198,7 +198,7 @@ user_route = APIRouter()
 
 
 @user_route.post('/logreg')
-async def logreg(initData: str = Header(...), ref: Optional[int] = Query(None), db: AsyncSession = Depends(get_db)):
+async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
     if ref == "None":
         ref = None
     else:
