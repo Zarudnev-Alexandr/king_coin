@@ -1,6 +1,7 @@
 import asyncio
 import json
 from datetime import datetime, timedelta
+from typing import Optional
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.errors import KafkaError
@@ -197,7 +198,7 @@ user_route = APIRouter()
 
 
 @user_route.post('/logreg')
-async def logreg(initData: str = Header(...), ref: int = Query(None), db: AsyncSession = Depends(get_db)):
+async def logreg(initData: str = Header(...), ref: Optional[int] = Query(None), db: AsyncSession = Depends(get_db)):
     data_from_init_data = await decode_init_data(initData, db)
 
     tg_id = data_from_init_data["tg_id"]
@@ -302,7 +303,7 @@ async def logreg(initData: str = Header(...), ref: int = Query(None), db: AsyncS
             tg_id=tg_id,
             username=username,
             fio=first_name + ' ' + last_name,
-            invited_tg_id=ref if ref is not None else None,
+            invited_tg_id=ref,
             is_premium=is_premium
         )
         if not new_user:
@@ -310,20 +311,22 @@ async def logreg(initData: str = Header(...), ref: int = Query(None), db: AsyncS
 
         # Начисление бонусных монет
         bonus = 5000
-        if ref is not None:
+        if ref:
             bonus = 15000
             if is_premium:
                 bonus = 25000
+        new_user.user.money += bonus
+        await db.commit()
+        await db.refresh(new_user)
+
+        if ref:
             inviter = await get_user(db, ref)
             if inviter:
                 inviter.money += bonus
                 await db.commit()
                 await db.refresh(inviter)
 
-        new_user.user.money += bonus
-        await db.commit()
         await db.refresh(new_user)
-
         boost_data = {
             "boost_id": new_user.boost.lvl,
             "name": new_user.boost.name,
@@ -377,7 +380,6 @@ async def logreg(initData: str = Header(...), ref: int = Query(None), db: AsyncS
 
         await db.close()
         return user_data
-
 
 
 
