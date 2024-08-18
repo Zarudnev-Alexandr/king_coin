@@ -696,11 +696,11 @@ async def collect_ad_reward(initData: str = Header(...), db: AsyncSession = Depe
         )
     )
 
-    if ad_watch.is_collected:
-        raise HTTPException(status_code=200, detail="Награда сегодня уже получена")
-
     if not ad_watch or ad_watch.ads_watched < 3:
         raise HTTPException(status_code=400, detail="Недостаточно просмотров для получения награды")
+
+    if ad_watch.is_collected:
+        raise HTTPException(status_code=200, detail="Награда сегодня уже получена")
 
     # Здесь добавьте логику для начисления награды пользователю
 
@@ -709,6 +709,7 @@ async def collect_ad_reward(initData: str = Header(...), db: AsyncSession = Depe
     user.money += 10000
     await db.commit()
     await db.refresh(user)
+    await db.refresh(ad_watch)
 
     return {"message": "Награда успешно получена", "current_user_money": user.money, "is_ads_collected":
             ad_watch.is_collected if ad_watch else False}
