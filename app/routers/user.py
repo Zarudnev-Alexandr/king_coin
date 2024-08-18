@@ -634,9 +634,9 @@ async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = D
     return {
         "day": daily_reward.day,
         "is_collect": is_collect,
-        "ads_watched_today": ads_watched_today.ads_watched or 0,
+        "ads_watched_today": ads_watched_today.ads_watched if ads_watched_today else 0 or 0,
         "ads_reward": 10000,
-        "is_ads_collected": ads_watched_today.is_collected,
+        "is_ads_collected": ads_watched_today.is_collected if ads_watched_today else False,
     }
 
 
@@ -674,7 +674,8 @@ async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_d
     await db.commit()
     await db.refresh(ad_watch)
 
-    return {"ads_watched_today": ad_watch.ads_watched, "reward": 10000, "is_ads_collected": ad_watch.is_collected}
+    return {"ads_watched_today": ad_watch.ads_watched if ad_watch else 0, "reward": 10000,
+            "is_ads_collected": ad_watch.is_collected if ad_watch else False}
 
 
 @user_route.post('/collect-ad-reward')
@@ -709,7 +710,8 @@ async def collect_ad_reward(initData: str = Header(...), db: AsyncSession = Depe
     await db.commit()
     await db.refresh(user)
 
-    return {"message": "Награда успешно получена", "current_user_money": user.money, "is_ads_collected": ad_watch.is_collected}
+    return {"message": "Награда успешно получена", "current_user_money": user.money, "is_ads_collected":
+            ad_watch.is_collected if ad_watch else False}
 
 
 @user_route.get('/get-referral-link')
