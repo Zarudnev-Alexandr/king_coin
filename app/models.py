@@ -149,6 +149,7 @@ class UserAdWatch(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('user.tg_id'), nullable=False)
     watched_date: Mapped[DateTime] = mapped_column(DateTime)
     ads_watched: Mapped[int] = mapped_column(Integer, default=0)
+    is_collected: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class DailyCombo(Base):
