@@ -662,7 +662,11 @@ async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_d
         ad_watch = UserAdWatch(user_id=user.tg_id, watched_date=today, ads_watched=1)
         db.add(ad_watch)
     else:
-        # Если запись есть, увеличиваем счетчик
+        # Если запись есть, проверяем количество просмотренных реклам
+        if ad_watch.ads_watched >= 3:
+            raise HTTPException(status_code=400, detail="Вы уже посмотрели 3 рекламы сегодня")
+
+        # Если количество меньше 3, увеличиваем счетчик
         ad_watch.ads_watched += 1
 
     await db.commit()
@@ -699,8 +703,9 @@ async def collect_ad_reward(initData: str = Header(...), db: AsyncSession = Depe
     # ad_watch.ads_watched = 0
     user.money += 10000
     await db.commit()
+    await db.refresh(user)
 
-    return {"message": "Награда успешно получена"}
+    return {"message": "Награда успешно получена", "current_user_money": user.money}
 
 
 @user_route.get('/get-referral-link')
