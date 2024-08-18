@@ -93,7 +93,7 @@ const handleAccept = async () => {
   const res = await coinApiService.upgradeCoin(improvementsStore.selectCoinForImpro.id, userStore.user.tg_id); // todo поправить после исправление в бэке
   if (res.right) {
     userStore.animationPlusMoney(-(improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0));
-    userStore.user.earnings_per_hour += improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0;
+    userStore.user.earnings_per_hour += ((improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0) - (improvementsStore.selectCoinForImpro.factor ?? 0));
     improvementsStore.selectCoinForImpro.price_of_next_lvl = res.right.price_of_next_lvl;
     improvementsStore.selectCoinForImpro.factor_at_new_lvl = res.right.factor_at_new_lvl;
     improvementsStore.selectCoinForImpro.factor = res.right.current_factor;

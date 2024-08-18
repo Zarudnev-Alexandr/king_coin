@@ -30,7 +30,7 @@ export const getTaskText = (coin: Coin) => {
   }
 
   if (coin.unmet_conditions[0].type === 'subscribe_telegram') return 'Subscribe TG channel';
-  if (coin.unmet_conditions[0].type === 'invite') return 'Invite 3 friends'
+  if (coin.unmet_conditions[0].type === 'invite') return `Invite ${coin.unmet_conditions[0].required_value} friends`;
   if (coin.unmet_conditions[0].type === 'reach_upgrade_level') {
     const coinName = improvementsStore.getCardById(coin.unmet_conditions[0].related_upgrade_id!)?.name ?? ''
     return `${coinName} - ${coin.unmet_conditions[0].required_value} lvl`;

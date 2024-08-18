@@ -2,16 +2,27 @@
 
 import ActionModal from "@/components/ActionModal.vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
+import {computed} from "vue";
+import {useRoute} from "vue-router";
 
 const userStore = useUserStore();
+const route = useRoute();
 
 const handleClose = () => {
   userStore.setLevelUpVisible(false);
 }
+
+const getPlusCoin = () => {
+  return (userStore.levelUpData?.new_taps_for_lvl ?? 0) - (userStore.user?.taps_for_level ?? 0);
+}
+
+const isVisible = computed(() => {
+  return userStore.levelUpData && userStore.levelUpVisible && route.name !== 'Gameplay';
+})
 </script>
 
 <template>
-  <action-modal @close="handleClose" @on-accept="handleClose" v-if="userStore.levelUpData && userStore.levelUpVisible">
+  <action-modal @close="handleClose" @on-accept="handleClose" v-if="isVisible">
     <div class="level-up-modal-wrapper">
       <div style="height: 30px"/>
       <img src="@/assets/img/game/player.png" alt="">
@@ -19,10 +30,12 @@ const handleClose = () => {
       <span class="level-up-description sf-pro-font">{{ $t('cool_gorilla') }}</span>
       <div style="height: 20px"/>
       <div style="display: flex; flex-direction: column; gap: 5px; align-items: center">
-        <span class="level-up-description sf-pro-font">{{ $t('level') }} {{ userStore.levelUpData?.new_lvl ?? 0 }}</span>
+        <span class="level-up-description sf-pro-font">{{ $t('level') }} {{
+            userStore.levelUpData?.new_lvl ?? 0
+          }}</span>
         <div class="level-up-reward">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ {{ userStore.levelUpData?.new_taps_for_lvl ?? 0 }} {{ $t('plus_coin') }}</span>
+          <span class="sf-pro-font">+ {{ getPlusCoin() }} {{ $t('plus_coin') }}</span>
         </div>
       </div>
 
