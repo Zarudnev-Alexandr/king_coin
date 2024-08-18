@@ -142,6 +142,15 @@ class DailyReward(Base):
     reward: Mapped[int] = mapped_column(Integer)
 
 
+class UserAdWatch(Base):
+    __tablename__ = 'user_ad_watch'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.tg_id'), nullable=False)
+    watched_date: Mapped[DateTime] = mapped_column(DateTime)
+    ads_watched: Mapped[int] = mapped_column(Integer, default=0)
+
+
 class DailyCombo(Base):
     __tablename__ = 'daily_combo'
 

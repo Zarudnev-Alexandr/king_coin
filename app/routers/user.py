@@ -16,7 +16,7 @@ from ..api.added_funcs import decode_init_data, transform_init_data, validate
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
-from ..models import DailyReward, User
+from ..models import DailyReward, User, UserAdWatch
 from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
     InitDataSchema, GameResultsSchema
 from ..websockets.settings import ws_manager
@@ -390,8 +390,6 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         return user_data
 
 
-
-
 @user_route.post('/boost')
 async def create_upgrade(boost_create: BoostCreateSchema,
                          db: AsyncSession = Depends(get_db)):
@@ -474,32 +472,33 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
         "boost_at_max_level": next_boost_after_bought is None
     }
 
-    await ws_manager.notify_user(user.tg_id, {"event": "upgrade_boost", "data": {"lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
-                                                                                 "price":
-                                                                                     next_boost_after_bought.price if next_boost_after_bought else None,
-                                                                                 "tap_boost":
-                                                                                     next_boost_after_bought.tap_boost if next_boost_after_bought else None,
-                                                                                 "one_tap":
-                                                                                     next_boost_after_bought.one_tap if next_boost_after_bought else None,
-                                                                                 "pillars_10":
-                                                                                     next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
-                                                                                 "pillars_30":
-                                                                                     next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
-                                                                                 "pillars_100":
-                                                                                     next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
-                                                                                 "user_id": user_boost.user_id,
-                                                                                 "boost_id": user_boost.boost_id,
-                                                                                 "user_money": user.money,
-                                                                                 "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
-                                                                                 "boost_at_max_level": next_boost_after_bought is None
-                                                                                 }})
+    await ws_manager.notify_user(user.tg_id, {"event": "upgrade_boost", "data": {
+        "lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
+        "price":
+            next_boost_after_bought.price if next_boost_after_bought else None,
+        "tap_boost":
+            next_boost_after_bought.tap_boost if next_boost_after_bought else None,
+        "one_tap":
+            next_boost_after_bought.one_tap if next_boost_after_bought else None,
+        "pillars_10":
+            next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
+        "pillars_30":
+            next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
+        "pillars_100":
+            next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
+        "user_id": user_boost.user_id,
+        "boost_id": user_boost.boost_id,
+        "user_money": user.money,
+        "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
+        "boost_at_max_level": next_boost_after_bought is None
+        }})
 
     return response
 
 
 @user_route.get("/next-upgrade")
 async def get_next_upgrade_func(initData: str = Header(...),
-                                  db: AsyncSession = Depends(get_db)) -> BoostCreateSchema:
+                                db: AsyncSession = Depends(get_db)) -> BoostCreateSchema:
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
@@ -600,7 +599,7 @@ async def create_daily_reward(daily_reward: CreateDailyRewardSchema,
 @user_route.get('/daily-reward')
 async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     """
-    Получаем все дневные награды
+    Получаем все дневные награды и количество просмотренных реклам за сегодня.
     """
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
@@ -626,10 +625,82 @@ async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = D
     if not daily_reward:
         raise HTTPException(status_code=404, detail="Daily reward not found for the current day")
 
+    # Получаем количество просмотренных реклам за сегодня
+    ads_watched_today = await db.scalar(
+        select(UserAdWatch.ads_watched).filter(UserAdWatch.user_id == user.tg_id,
+                                               func.date(UserAdWatch.watched_date) == today.date())
+    )
+
     return {
         "day": daily_reward.day,
-        "is_collect": is_collect
+        "is_collect": is_collect,
+        "ads_watched_today": ads_watched_today or 0
     }
+
+
+@user_route.post('/watch-ad')
+async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    """
+    Увеличиваем счетчик просмотренных реклам.
+    """
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
+
+    # Получаем текущую дату и время
+    today = datetime.utcnow()
+
+    # Ищем запись о просмотрах реклам за сегодня (сравнение по дате)
+    ad_watch = await db.scalar(
+        select(UserAdWatch).filter(
+            UserAdWatch.user_id == user.tg_id,
+            func.date(UserAdWatch.watched_date) == today.date()  # Сравниваем только дату
+        )
+    )
+
+    if not ad_watch:
+        # Если записи нет, создаем новую
+        ad_watch = UserAdWatch(user_id=user.tg_id, watched_date=today, ads_watched=1)
+        db.add(ad_watch)
+    else:
+        # Если запись есть, увеличиваем счетчик
+        ad_watch.ads_watched += 1
+
+    await db.commit()
+    await db.refresh(ad_watch)
+
+    return {"ads_watched_today": ad_watch.ads_watched}
+
+
+@user_route.post('/collect-ad-reward')
+async def collect_ad_reward(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    """
+    Начисляем награду пользователю за просмотр 3 реклам.
+    """
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
+
+    today = datetime.utcnow()
+
+    # Проверяем, сколько реклам посмотрел пользователь за сегодня
+    ad_watch = await db.scalar(
+        select(UserAdWatch).filter(
+            UserAdWatch.user_id == user.tg_id,
+            func.date(UserAdWatch.watched_date) == today.date()  # Сравниваем только дату
+        )
+    )
+
+    if not ad_watch or ad_watch.ads_watched < 3:
+        raise HTTPException(status_code=400, detail="Недостаточно просмотров для получения награды")
+
+    # Здесь добавьте логику для начисления награды пользователю
+    # Например: user.balance += reward_amount
+
+    # Сброс счетчика просмотров рекламы на 0
+    # ad_watch.ads_watched = 0
+    user.money += 10000
+    await db.commit()
+
+    return {"message": "Награда успешно получена"}
 
 
 @user_route.get('/get-referral-link')
