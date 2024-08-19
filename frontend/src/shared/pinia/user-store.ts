@@ -84,9 +84,11 @@ export const useUserStore = defineStore('userStore', () => {
   const setLevelUpData = (data: LvlUpData) => {
     levelUpData.value = data;
     if (user.value) {
+      const oldTap = user.value?.taps_for_level;
       user.value.user_lvl = data.new_lvl;
       user.value.taps_for_level = data.new_taps_for_lvl;
       user.value.next_level_data.required_money = getLevelByIndex(data.new_lvl + 1).reward;
+      levelUpData.value.new_taps_for_lvl = user.value.taps_for_level - oldTap;
     }
   }
 
