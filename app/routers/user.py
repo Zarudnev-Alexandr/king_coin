@@ -643,7 +643,7 @@ async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = D
 @user_route.post('/watch-ad')
 async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     """
-    Увеличиваем счетчик просмотренных реклам.
+    Увеличиваем счетчик просмотренных реклам и начисляем награду.
     """
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
@@ -663,56 +663,25 @@ async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_d
         # Если записи нет, создаем новую
         ad_watch = UserAdWatch(user_id=user.tg_id, watched_date=today, ads_watched=1)
         db.add(ad_watch)
+        user.money += 10000  # Начисляем награду за первую рекламу
     else:
         # Если запись есть, проверяем количество просмотренных реклам
         if ad_watch.ads_watched >= 3:
             raise HTTPException(status_code=400, detail="Вы уже посмотрели 3 рекламы сегодня")
 
-        # Если количество меньше 3, увеличиваем счетчик
+        # Если количество меньше 3, увеличиваем счетчик и начисляем награду
         ad_watch.ads_watched += 1
+        user.money += 10000  # Начисляем награду за каждый просмотр
 
     await db.commit()
     await db.refresh(ad_watch)
-
-    return {"ads_watched_today": ad_watch.ads_watched if ad_watch else 0, "reward": 10000,
-            "is_ads_collected": ad_watch.is_collected if ad_watch else False}
-
-
-@user_route.post('/collect-ad-reward')
-async def collect_ad_reward(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
-    """
-    Начисляем награду пользователю за просмотр 3 реклам.
-    """
-    init_data_decode = await decode_init_data(initData, db)
-    user = init_data_decode["user"]
-
-    today = datetime.utcnow()
-
-    # Проверяем, сколько реклам посмотрел пользователь за сегодня
-    ad_watch = await db.scalar(
-        select(UserAdWatch).filter(
-            UserAdWatch.user_id == user.tg_id,
-            func.date(UserAdWatch.watched_date) == today.date()  # Сравниваем только дату
-        )
-    )
-
-    if not ad_watch or ad_watch.ads_watched < 3:
-        raise HTTPException(status_code=400, detail="Недостаточно просмотров для получения награды")
-
-    if ad_watch.is_collected:
-        raise HTTPException(status_code=200, detail="Награда сегодня уже получена")
-
-    # Здесь добавьте логику для начисления награды пользователю
-
-    # Сброс счетчика просмотров рекламы на 0
-    ad_watch.is_collected = True
-    user.money += 10000
-    await db.commit()
     await db.refresh(user)
-    await db.refresh(ad_watch)
 
-    return {"message": "Награда успешно получена", "current_user_money": user.money, "is_ads_collected":
-            ad_watch.is_collected if ad_watch else False}
+    return {
+        "ads_watched_today": ad_watch.ads_watched,
+        "current_user_money": user.money,
+        "is_ads_collected": ad_watch.ads_watched >= 3
+    }
 
 
 @user_route.get('/get-referral-link')
