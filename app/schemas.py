@@ -213,6 +213,7 @@ class TaskResponseSchema(TaskBaseSchema):
 
 class GameResultsSchema(BaseModel):
     encrypted_information: str
+    number_of_columns_passed: int
 
 
 class Message(BaseModel):
