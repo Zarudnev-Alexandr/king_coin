@@ -45,7 +45,7 @@ const checkSubscribe = async () => {
   if (res && res.right && improvementsStore.selectCoinForImpro) {
     const card = improvementsStore.getCardById(cardId);
     if (card) card.conditions_met = true;
-  } else if (res && res.left && improvementsStore.selectCoinForImpro) {
+  } else if (res && res.left) {
     appStore.pushToast(ToastType.ERROR, t('no_subscription'));
   }
 }

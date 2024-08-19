@@ -3,27 +3,27 @@ import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 import FloatButton from "@/components/FloatButton.vue";
 import {computed} from "vue";
 
-const {selectCoinForImpro} = useImprovementsStore();
+const improStore = useImprovementsStore();
 
 const getDescription = () => {
-  if (selectCoinForImpro?.conditions_met) return selectCoinForImpro?.description;
+  if (improStore.selectCoinForImpro?.conditions_met) return improStore.selectCoinForImpro?.description;
 
-  const type = selectCoinForImpro?.unmet_conditions[0].type;
-  const name = selectCoinForImpro?.unmet_conditions[0].name_of_condition_upgrade;
+  const type = improStore.selectCoinForImpro?.unmet_conditions[0].type;
+  const name = improStore.selectCoinForImpro?.unmet_conditions[0].name_of_condition_upgrade;
 
   if (type === 'subscribe_telegram') {
     return `Чтобы разблокировать эту карточку сначала подпишитесь на Telegram канал ${name}`;
   }
-  return selectCoinForImpro?.description
+  return improStore.selectCoinForImpro?.description
 }
 
 const goToSubscribe = () => {
-  window.open(selectCoinForImpro?.unmet_conditions[0].description, '_blank');
+  window.open(improStore.selectCoinForImpro?.unmet_conditions[0].description, '_blank');
 }
 
 const isSubscribeType = computed(() => {
-  const type = selectCoinForImpro?.unmet_conditions[0].type;
-  return !selectCoinForImpro?.conditions_met && type === 'subscribe_telegram';
+  const type = improStore.selectCoinForImpro?.unmet_conditions[0].type;
+  return !improStore.selectCoinForImpro?.conditions_met && type === 'subscribe_telegram';
 })
 </script>
 
