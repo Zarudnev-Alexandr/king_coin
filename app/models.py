@@ -240,3 +240,6 @@ class UserTask(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="tasks", lazy='selectin')
     task: Mapped["Task"] = relationship("Task", lazy='selectin')
+
+
+

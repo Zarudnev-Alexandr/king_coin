@@ -6,7 +6,7 @@ from typing import Optional
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from aiokafka.errors import KafkaError
 from fastapi import APIRouter, Depends, HTTPException, Path, Header, Query
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, update, desc, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
@@ -361,6 +361,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         } if next_boost else None
 
         next_level = await update_user_level(db, new_user.user)
+        print('😀😀😀', next_level.__dict__)
         if next_level:
             await db.refresh(next_level)
         await db.refresh(new_user)
@@ -777,7 +778,81 @@ async def delete_user(initData: str = Header(...), db: AsyncSession = Depends(ge
     )
 
     # Удалите пользователя
+    await db.execute(delete(UserAdWatch).where(UserAdWatch.user_id == user.tg_id))
     await db.delete(user)
     await db.commit()
 
     return {"detail": "User and all related records have been deleted"}
+
+
+@user_route.get('/leaderboard')
+async def get_leaderboard(
+    category: str = Query(..., regex="^(columns|money|hourly_income)$"),
+    initData: str = Header(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Получаем топ 10 игроков в выбранной категории: количество пройденных колонн (columns),
+    количество накопленных денег (money) или ежечасный доход (hourly_income).
+    """
+    # Декодируем данные пользователя
+    data_from_init_data = await decode_init_data(initData, db)
+    tg_id = data_from_init_data["tg_id"]
+
+    # Формируем запросы для каждой категории
+    if category == "columns":
+        query = select(User).order_by(desc(User.number_of_columns_passed)).limit(10)
+        user_rank_query = select(
+            func.rank().over(order_by=desc(User.number_of_columns_passed)).label("rank")
+        ).where(User.tg_id == tg_id)
+    elif category == "money":
+        query = select(User).order_by(desc(User.money)).limit(10)
+        user_rank_query = select(
+            func.rank().over(order_by=desc(User.money)).label("rank")
+        ).where(User.tg_id == tg_id)
+    elif category == "hourly_income":
+        query = select(User).order_by(desc(User.current_factor)).limit(10)
+        user_rank_query = select(
+            func.rank().over(order_by=desc(User.current_factor)).label("rank")
+        ).where(User.tg_id == tg_id)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid category")
+
+    # Получаем топ 10 игроков
+    top_players = await db.execute(query)
+    top_players_list = top_players.scalars().all()
+
+    # Получаем текущего пользователя и его место
+    user_rank_result = await db.execute(user_rank_query)
+    user_rank = user_rank_result.scalar()
+
+    current_user = await db.get(User, tg_id)
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Формируем список топ игроков
+    leaderboard = [
+        {
+            "rank": index + 1,
+            "tg_id": player.tg_id,
+            "username": player.username,
+            "fio": player.fio,
+            "columns_passed": player.number_of_columns_passed,
+            "money": player.money,
+            "hourly_income": player.current_factor
+        }
+        for index, player in enumerate(top_players_list)
+    ]
+
+    # Формируем данные текущего пользователя
+    current_user_data = {
+        "rank": user_rank,
+        "tg_id": current_user.tg_id,
+        "username": current_user.username,
+        "fio": current_user.fio,
+        "columns_passed": current_user.number_of_columns_passed,
+        "money": current_user.money,
+        "hourly_income": current_user.current_factor
+    }
+
+    return {"leaderboard": leaderboard, "current_user": current_user_data}
