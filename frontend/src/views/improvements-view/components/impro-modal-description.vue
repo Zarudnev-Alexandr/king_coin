@@ -62,4 +62,9 @@ const isSubscribeType = computed(() => {
     width: 80%;
   }
 }
+
+.z-10 {
+  position: relative;
+  z-index: 10;
+}
 </style>
