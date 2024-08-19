@@ -90,6 +90,11 @@ async def update_user_level(db: AsyncSession, user):
         await db.commit()
         await db.refresh(user)
 
+    if new_level == 1:
+        user.taps_for_level = 2
+        await db.commit()
+        await db.refresh(user)
+
     return next_level
 
 
