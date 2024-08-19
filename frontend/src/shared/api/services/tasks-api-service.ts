@@ -11,7 +11,7 @@ class TasksApiService {
   private readonly dailyTaskApi = '/users/daily-reward';
   private readonly dailyClaimApi = '/users/claim-daily-reward';
   private readonly checkTaskApi = '/tasks/check/';
-  private readonly confirmWatchAd = '/users/collect-ad-reward'
+  private readonly confirmWatchAd = '/users/watch-ad'
 
   constructor(private client: AxiosInstance, private errorHandler: AxiosErrorHandler) {
   }
