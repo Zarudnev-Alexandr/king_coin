@@ -44,7 +44,7 @@ const task = ref<Task>({
 });
 
 const adTask: Ref<Task> = ref({
-  name: `Посмотрите рекламу (${getWatchedAdsCount.value}/3)`,
+  name: t('watch_an_ad', {count: incomeStore.dailyTask?.ads_watched_today ?? 0}),
   description: "Посмотрите рекламу и получите 3 монеты",
   type: "ad",
   reward: incomeStore.dailyTask?.ads_reward ?? 0,
@@ -65,7 +65,7 @@ const handleDailyAd = async () => {
     if (res && res.right && incomeStore.dailyTask) {
       userStore.moneyPlus(adTask.value.reward);
       incomeStore.dailyTask.ads_watched_today += 1;
-      adTask.value.name = `Посмотрите рекламу (${incomeStore.dailyTask?.ads_watched_today ?? 0}/3)`;
+      adTask.value.name = t('watch_an_ad', {count: incomeStore.dailyTask?.ads_watched_today ?? 0});
       adTask.value.completed = incomeStore.dailyTask.ads_watched_today >= 3;
       userStore.vibrationService.medium();
       appStore.playCoinAnimation();
