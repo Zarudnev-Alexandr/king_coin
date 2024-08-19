@@ -65,6 +65,7 @@ const handleDailyAd = async () => {
     if (res && res.right && incomeStore.dailyTask) {
       userStore.moneyPlus(adTask.value.reward);
       incomeStore.dailyTask.ads_watched_today += 1;
+      adTask.value.name = `Посмотрите рекламу (${incomeStore.dailyTask?.ads_watched_today ?? 0}/3)`;
       userStore.vibrationService.medium();
       appStore.playCoinAnimation();
     }
