@@ -29,7 +29,7 @@ const appStore = useAppStore();
   position: absolute;
   top: 20px;
   left: 0;
-  z-index: 20;
+  z-index: 102;
   width: 100%;
 
   .toast-item {

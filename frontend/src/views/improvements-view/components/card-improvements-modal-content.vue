@@ -15,6 +15,7 @@ import {computed, Ref, ref} from "vue";
 import {checkIsAvailable} from "@/helpers/coin.ts";
 import {useI18n} from "vue-i18n";
 import ImproModalDescription from "@/views/improvements-view/components/impro-modal-description.vue";
+import {ToastType} from "@/shared/api/types/toast.ts";
 
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
@@ -44,6 +45,8 @@ const checkSubscribe = async () => {
   if (res && res.right && improvementsStore.selectCoinForImpro) {
     const card = improvementsStore.getCardById(cardId);
     if (card) card.conditions_met = true;
+  } else if (res && res.left && improvementsStore.selectCoinForImpro) {
+    appStore.pushToast(ToastType.ERROR, t('no_subscription'));
   }
 }
 
