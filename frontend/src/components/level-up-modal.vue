@@ -12,10 +12,6 @@ const handleClose = () => {
   userStore.setLevelUpVisible(false);
 }
 
-const getPlusCoin = () => {
-  return (userStore.levelUpData?.new_taps_for_lvl ?? 0) - (userStore.user?.taps_for_level ?? 0);
-}
-
 const isVisible = computed(() => {
   return userStore.levelUpData && userStore.levelUpVisible && route.name !== 'Gameplay';
 })
@@ -35,7 +31,7 @@ const isVisible = computed(() => {
           }}</span>
         <div class="level-up-reward">
           <img src="@/assets/svg/coin.svg" alt="">
-          <span class="sf-pro-font">+ {{ getPlusCoin() }} {{ $t('plus_coin') }}</span>
+          <span class="sf-pro-font">+ {{ userStore.levelUpData?.new_taps_for_lvl }} {{ $t('plus_coin') }}</span>
         </div>
       </div>
 
