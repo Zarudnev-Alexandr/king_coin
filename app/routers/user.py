@@ -715,6 +715,9 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     earned_coins = int(encrypted_information.encrypted_information)
 
     user.money += earned_coins
+    if user.number_of_columns_passed is None or \
+            user.number_of_columns_passed < encrypted_information.number_of_columns_passed:
+        user.number_of_columns_passed = encrypted_information.number_of_columns_passed
     await db.commit()
     await db.refresh(user)
 
