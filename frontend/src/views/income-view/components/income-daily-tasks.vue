@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import {computed, ref, watch} from 'vue';
+import {computed, Ref, ref, watch} from 'vue';
 import IncomeTaskItem from "@/views/income-view/components/income-task-item.vue";
 import Task from "@/shared/api/types/task.ts";
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import dailyRewards from "@/shared/constants/daily-rewards.ts";
 import {useI18n} from "vue-i18n";
+import {ShowPromiseResult} from "@/shared/api/types/adsgram";
+import {useUserStore} from "@/shared/pinia/user-store.ts";
+import TasksApiService from "@/shared/api/services/tasks-api-service.ts";
+import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
 
 const incomeStore = useIncomeStore();
+const appStore = useAppStore();
+const tasksApiService = new TasksApiService(axiosInstance, errorHandler)
+const userStore = useUserStore();
+const AdController = window.Adsgram?.init({blockId: "2070"});
 const {t} = useI18n();
 
 const getCurrentDailyReward = computed(() => {
@@ -16,6 +25,10 @@ const getCurrentDailyReward = computed(() => {
 
 const getCurrentDailyIsCollect = computed(() => {
   return incomeStore.dailyTask?.is_collect ?? false;
+});
+
+const getWatchedAdsCount = computed(() => {
+  return incomeStore.dailyTask?.ads_watched_today ?? 0;
 });
 
 const task = ref<Task>({
@@ -30,6 +43,37 @@ const task = ref<Task>({
   end_time: null,
 });
 
+const adTask: Ref<Task> = ref({
+  name: `Посмотрите рекламу (${getWatchedAdsCount.value}/3)`,
+  description: "Посмотрите рекламу и получите 3 монеты",
+  type: "ad",
+  reward: incomeStore.dailyTask?.ads_reward ?? 0,
+  requirement: 3,
+  link: null,
+  id: 1,
+  completed: getWatchedAdsCount.value >= 3,
+  end_time: null,
+});
+
+const handleDailyAd = async () => {
+  if (getWatchedAdsCount.value >= 3) return;
+
+  AdController?.show().then(async (result: ShowPromiseResult) => {
+    if (!result.done) return;
+
+    const res = await tasksApiService.confirmWatchedAd();
+    if (res && res.right && incomeStore.dailyTask) {
+      userStore.moneyPlus(adTask.value.reward);
+      incomeStore.dailyTask.ads_watched_today += 1;
+      userStore.vibrationService.medium();
+      appStore.playCoinAnimation();
+    }
+
+  }).catch((result: ShowPromiseResult) => {
+    console.log(result);
+  })
+}
+
 watch(getCurrentDailyReward, (newReward) => {
   task.value.reward = newReward;
 });
@@ -38,7 +82,6 @@ watch(getCurrentDailyIsCollect, (newIsCollect) => {
   task.value.completed = newIsCollect;
 });
 
-
 </script>
 
 <template>
@@ -46,6 +89,7 @@ watch(getCurrentDailyIsCollect, (newIsCollect) => {
     <h3 class="sf-pro-font">{{ $t('daily_tasks') }}</h3>
     <div class="task-list-wrap">
       <IncomeTaskItem :task-item="task"/>
+      <income-task-item :task-item="adTask" :custom-handle="handleDailyAd"/>
     </div>
   </div>
 </template>

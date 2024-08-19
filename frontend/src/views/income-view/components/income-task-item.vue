@@ -4,13 +4,19 @@ import {useAppStore} from "@/shared/pinia/app-store.ts";
 import Task from "@/shared/api/types/task.ts";
 
 interface Props {
-  taskItem: Task
+  taskItem: Task;
+  customHandle?: () => void;
 }
 
 const appStore = useAppStore();
 const props: Props = defineProps<Props>();
 
 const handleClick = () => {
+  if (props.customHandle) {
+    props.customHandle();
+    return;
+  }
+
   if (props.taskItem.type === 'invite') {
     return;
   }
