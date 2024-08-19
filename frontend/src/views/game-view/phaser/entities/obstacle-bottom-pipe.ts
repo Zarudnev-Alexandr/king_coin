@@ -29,6 +29,7 @@ class ObstacleBottomPipe extends Phaser.Physics.Arcade.Sprite {
       }
 
       this.gameStore.setScore(this.gameStore.score + one_tap);
+      this.gameStore.setColumnsCount(this.gameStore.columnsCount + 1);
       this.rewardIsGiven = true;
       this.gameStore.vibrationService.light();
     }

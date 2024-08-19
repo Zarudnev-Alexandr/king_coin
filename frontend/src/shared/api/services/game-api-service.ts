@@ -9,11 +9,11 @@ class GameApiService {
   constructor(private client: AxiosInstance, private errorHandler: AxiosErrorHandler) {
   }
 
-  public async sendGameResult(score: number): Promise<Either<CommonResponseError, GameResult>> {
+  public async sendGameResult(score: number, obstacleCount: number): Promise<Either<CommonResponseError, GameResult>> {
     return this.errorHandler.processRequest<GameResult>(async () => {
       const response = await this.client.post<GameResult>(
         this.gameResultApi,
-        {"encrypted_information": score.toString()});
+        {"encrypted_information": score.toString(), "number_of_columns_passed": obstacleCount});
       return response.data;
     })
   }

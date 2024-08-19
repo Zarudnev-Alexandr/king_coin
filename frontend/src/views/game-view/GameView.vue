@@ -101,7 +101,7 @@ const getTextMysteryBox = () => {
 }
 
 const sendGameResult = async () => {
-  const res = await gameApiService.sendGameResult(gameStore.score);
+  const res = await gameApiService.sendGameResult(gameStore.score, gameStore.columnsCount);
   if (res && res.right) {
     userStore.moneyPlus(res.right.money_added);
   }

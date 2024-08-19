@@ -14,6 +14,7 @@ import SilverCoin from "@/assets/svg/silver-coin.svg";
 import {computed, Ref, ref} from "vue";
 import {checkIsAvailable} from "@/helpers/coin.ts";
 import {useI18n} from "vue-i18n";
+import ImproModalDescription from "@/views/improvements-view/components/impro-modal-description.vue";
 
 const improvementsStore = useImprovementsStore();
 const userStore = useUserStore();
@@ -28,20 +29,22 @@ const handleClose = () => {
 }
 
 const isDisabled = () => {
+  if (!improvementsStore.selectCoinForImpro?.conditions_met) return false;
+
   return !improvementsStore.selectCoinForImpro || (userStore.user?.money ?? 0) < (improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0);
 }
 
 const checkSubscribe = async () => {
+  if (!improvementsStore.selectCoinForImpro || isLoading.value) return
+
   isLoading.value = true
+  const cardId = improvementsStore.selectCoinForImpro?.id;
   const res = await coinApiService.checkIsAvailable(improvementsStore.selectCoinForImpro!);
   isLoading.value = false
   if (res && res.right && improvementsStore.selectCoinForImpro) {
-    improvementsStore.selectCoinForImpro.conditions_met = true;
+    const card = improvementsStore.getCardById(cardId);
+    if (card) card.conditions_met = true;
   }
-}
-
-const goToSubscribe = (link: string) => {
-  window.open(link, '_blank');
 }
 
 const checkCombo = (res: CoinUpgradeResponse) => {
@@ -78,10 +81,7 @@ const handleAccept = async () => {
   }
 
   if (!improvementsStore.selectCoinForImpro.conditions_met && improvementsStore.selectCoinForImpro.unmet_conditions[0].type === 'subscribe_telegram') {
-    goToSubscribe(improvementsStore.selectCoinForImpro.unmet_conditions[0].description!);
-    setTimeout(() => {
-      checkSubscribe();
-    }, 6000);
+    await checkSubscribe();
     return;
   }
 
@@ -122,20 +122,11 @@ const isSpecialCategory = computed(() => improvementsStore.selectCoinForImpro?.c
 const mainButtonText = computed(() => {
   if (!improvementsStore.selectCoinForImpro) return t('get_it');
   if (!improvementsStore.selectCoinForImpro.conditions_met && improvementsStore.selectCoinForImpro.unmet_conditions[0].type === 'subscribe_telegram') {
-    return t('subscribe')
+    return t('check')
   }
 
   return t('get_it');
 })
-
-const getDescription = () => {
-  if (!improvementsStore.selectCoinForImpro?.conditions_met) {
-    if (improvementsStore.selectCoinForImpro?.unmet_conditions[0].type === 'subscribe_telegram') {
-      return `Чтобы разблокировать эту карточку сначала подпишитесь на Telegram канал ${improvementsStore.selectCoinForImpro?.unmet_conditions[0].name_of_condition_upgrade}`
-    }
-  }
-  return improvementsStore.selectCoinForImpro?.description
-}
 </script>
 
 <template>
@@ -163,7 +154,7 @@ const getDescription = () => {
         <div class="special-img-gradient"/>
       </div>
       <span class="card-name sf-pro-font z-10">{{ improvementsStore.selectCoinForImpro.name }}</span>
-      <span class="impro-description sf-pro-font z-10">{{ getDescription() }}</span>
+      <impro-modal-description/>
       <div class="impro-data-income z-10">
         <span>{{ $t('hourly_profit') }}</span>
         <div class="impro-data-income-value">

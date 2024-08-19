@@ -17,7 +17,7 @@ class ObstacleManager {
   private level: number;
   private obstacleCount: number;
   private distanceBetweenPipesY: number;
-  private distanceBetweenPipesX: number;
+  private readonly distanceBetweenPipesX: number;
   private distanceBetweenPairs: number;
   private timeSinceLastObstacle: number;
   private speed: number;

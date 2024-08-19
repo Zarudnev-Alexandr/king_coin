@@ -8,6 +8,7 @@ import VibrationService from "@/shared/api/services/vibration-service.ts";
 
 export const useGameStore = defineStore('gameStore', () => {
   const score = ref(0);
+  const columnsCount = ref(0);
   const isPaused = ref(false);
   const gameInitStarted = ref(false);
   const currentActiveModal: Ref<'game-over' | 'pause' | 'exit' | ''> = ref('');
@@ -42,6 +43,7 @@ export const useGameStore = defineStore('gameStore', () => {
 
   const initGameState = () => {
     score.value = 0;
+    columnsCount.value = 0;
     isPaused.value = false;
     gameInitStarted.value = false;
     currentActiveModal.value = '';
@@ -72,6 +74,10 @@ export const useGameStore = defineStore('gameStore', () => {
     adIsWatched.value = value;
   }
 
+  const setColumnsCount = (value: number) => {
+    columnsCount.value = value;
+  }
+
   return {
     score,
     setScore,
@@ -94,5 +100,7 @@ export const useGameStore = defineStore('gameStore', () => {
     isInvulnerable,
     setAdIsWatched,
     adIsWatched,
+    setColumnsCount,
+    columnsCount,
   };
 });
