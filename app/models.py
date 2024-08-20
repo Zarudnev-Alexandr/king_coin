@@ -106,6 +106,7 @@ class Upgrades(Base):
     image_url: Mapped[str] = mapped_column(String)
     is_in_shop: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
+    english_description: Mapped[str] = mapped_column(Text, nullable=True)
 
     category: Mapped["UpgradeCategory"] = relationship("UpgradeCategory", back_populates="upgrades", lazy='selectin')
     levels: Mapped[list["UpgradeLevel"]] = relationship("UpgradeLevel", back_populates="upgrade", lazy='selectin')
@@ -214,6 +215,7 @@ class Task(Base):
     requirement: Mapped[int] = mapped_column(BigInteger, nullable=True)
     link: Mapped[str] = mapped_column(String, nullable=True)
     end_time: Mapped[DateTime] = mapped_column(DateTime, nullable=True, default=None)
+    icon_type: Mapped[str] = mapped_column(String, nullable=True)
 
     def to_dict(self):
         return {
@@ -225,6 +227,7 @@ class Task(Base):
             "link": self.link,
             "requirement": self.requirement,
             "end_time": self.end_time,
+            "icon_type": self.icon_type,
         }
 
 

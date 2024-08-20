@@ -160,7 +160,8 @@ async def create_upgrade(upgrade_create: CreateUpgradeSchema,
         "category_id": upgrade_create.category_id,
         "image_url": upgrade_create.image_url,
         "is_in_shop": upgrade_create.is_in_shop,
-        "description": upgrade_create.description
+        "description": upgrade_create.description,
+        "english_description": upgrade_create.english_description
     }
 
     upgrade = await get_upgrade_by_name(db, upgrade_name=upgrade_create.name)
