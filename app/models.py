@@ -67,9 +67,6 @@ class UpgradeCategory(Base):
     upgrades: Mapped[list["Upgrades"]] = relationship("Upgrades", back_populates="category", lazy='selectin')
 
 
-
-
-
 class UpgradeLevel(Base):
     __tablename__ = 'upgrade_lvl'
 
@@ -188,6 +185,7 @@ class Boost(Base):
     lvl: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     tap_boost: Mapped[int] = mapped_column(Integer)
     one_tap: Mapped[int] = mapped_column(Integer)
+    pillars_2: Mapped[int] = mapped_column(Integer, nullable=True)
     pillars_10: Mapped[int] = mapped_column(Integer)
     pillars_30: Mapped[int] = mapped_column(Integer)
     pillars_100: Mapped[int] = mapped_column(Integer)
