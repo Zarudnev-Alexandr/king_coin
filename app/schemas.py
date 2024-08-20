@@ -55,6 +55,7 @@ class CreateUpgradeSchema(BaseModel):
     image_url: str
     is_in_shop: bool
     description: Optional[str]
+    english_description: Optional[str]
 
 
 # Улучшение (карточка) без уровней
@@ -191,6 +192,7 @@ class TaskBaseSchema(BaseModel):
     requirement: Optional[int] = None
     link: Optional[str] = None
     end_time: Optional[datetime] = None
+    icon_type: Optional[str] = None
 
 
 class TaskCreateSchema(TaskBaseSchema):
