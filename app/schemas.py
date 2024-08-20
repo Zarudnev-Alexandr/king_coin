@@ -14,6 +14,7 @@ class BoostCreateSchema(BaseModel):
     lvl: int
     tap_boost: int
     one_tap: int
+    pillars_2: int
     pillars_10: int
     pillars_30: int
     pillars_100: int

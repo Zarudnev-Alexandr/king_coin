@@ -251,6 +251,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
                     "lvl": current_boost.lvl,
                     "tap_boost": current_boost.tap_boost,
                     "one_tap": current_boost.one_tap,
+                    "pillars_2": current_boost.pillars_2,
                     "pillars_10": current_boost.pillars_10,
                     "pillars_30": current_boost.pillars_30,
                     "pillars_100": current_boost.pillars_100
@@ -264,6 +265,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
                     "lvl": next_boost.lvl,
                     "tap_boost": next_boost.tap_boost,
                     "one_tap": next_boost.one_tap,
+                    "pillars_2": current_boost.pillars_2,
                     "pillars_10": next_boost.pillars_10,
                     "pillars_30": next_boost.pillars_30,
                     "pillars_100": next_boost.pillars_100
@@ -342,6 +344,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             "lvl": new_user.boost.lvl,
             "tap_boost": new_user.boost.tap_boost,
             "one_tap": new_user.boost.one_tap,
+            "pillars_2": new_user.boost.pillars_2,
             "pillars_10": new_user.boost.pillars_10,
             "pillars_30": new_user.boost.pillars_30,
             "pillars_100": new_user.boost.pillars_100
@@ -355,13 +358,13 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             "lvl": next_boost.lvl,
             "tap_boost": next_boost.tap_boost,
             "one_tap": next_boost.one_tap,
+            "pillars_2": next_boost.pillars_2,
             "pillars_10": next_boost.pillars_10,
             "pillars_30": next_boost.pillars_30,
             "pillars_100": next_boost.pillars_100
         } if next_boost else None
 
         next_level = await update_user_level(db, new_user.user)
-        print('😀😀😀', next_level.__dict__)
         if next_level:
             await db.refresh(next_level)
         await db.refresh(new_user)
@@ -400,6 +403,7 @@ async def create_upgrade(boost_create: BoostCreateSchema,
         "price": boost_create.price,
         'tap_boost': boost_create.tap_boost,
         'one_tap': boost_create.one_tap,
+        'pillars_2': boost_create.pillars_2,
         'pillars_10': boost_create.pillars_10,
         'pillars_30': boost_create.pillars_30,
         'pillars_100': boost_create.pillars_100
@@ -460,6 +464,7 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
         "price": next_boost_after_bought.price if next_boost_after_bought else None,
         "tap_boost": next_boost_after_bought.tap_boost if next_boost_after_bought else None,
         "one_tap": next_boost_after_bought.one_tap if next_boost_after_bought else None,
+        "pillars_2": next_boost_after_bought.pillars_2 if next_boost_after_bought else None,
         "pillars_10": next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
         "pillars_30": next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
         "pillars_100": next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
@@ -481,6 +486,8 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
             next_boost_after_bought.tap_boost if next_boost_after_bought else None,
         "one_tap":
             next_boost_after_bought.one_tap if next_boost_after_bought else None,
+        "pillars_2":
+            next_boost_after_bought.pillars_2 if next_boost_after_bought else None,
         "pillars_10":
             next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
         "pillars_30":
@@ -801,20 +808,9 @@ async def get_leaderboard(
 
     # Формируем запросы для каждой категории
     if category == "columns":
-        query = select(User).order_by(desc(User.number_of_columns_passed)).limit(10)
-        user_rank_query = select(
-            func.rank().over(order_by=desc(User.number_of_columns_passed)).label("rank")
-        ).where(User.tg_id == tg_id)
+        query = select(User).order_by(desc(func.coalesce(User.number_of_columns_passed, 0))).limit(10)
     elif category == "money":
-        query = select(User).order_by(desc(User.money)).limit(10)
-        user_rank_query = select(
-            func.rank().over(order_by=desc(User.money)).label("rank")
-        ).where(User.tg_id == tg_id)
-    elif category == "hourly_income":
-        query = select(User).order_by(desc(User.current_factor)).limit(10)
-        user_rank_query = select(
-            func.rank().over(order_by=desc(User.current_factor)).label("rank")
-        ).where(User.tg_id == tg_id)
+        query = select(User).order_by(desc(func.coalesce(User.money, 0))).limit(10)
     else:
         raise HTTPException(status_code=400, detail="Invalid category")
 
@@ -822,13 +818,29 @@ async def get_leaderboard(
     top_players = await db.execute(query)
     top_players_list = top_players.scalars().all()
 
-    # Получаем текущего пользователя и его место
-    user_rank_result = await db.execute(user_rank_query)
-    user_rank = user_rank_result.scalar()
-
+    # Проверяем, входит ли текущий пользователь в топ-10
     current_user = await db.get(User, tg_id)
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    user_in_top = next((index for index, player in enumerate(top_players_list) if player.tg_id == tg_id), None)
+
+    # Если пользователь в топ-10, используем этот ранг
+    if user_in_top is not None:
+        user_rank = user_in_top + 1
+    else:
+        # Иначе вычисляем ранг пользователя, если он не в топ-10
+        if category == "columns":
+            user_rank_query = select(func.count(User.tg_id)).where(
+                func.coalesce(User.number_of_columns_passed, 0) > func.coalesce(current_user.number_of_columns_passed, 0)
+            )
+        elif category == "money":
+            user_rank_query = select(func.count(User.tg_id)).where(
+                func.coalesce(User.money, 0) > func.coalesce(current_user.money, 0)
+            )
+
+        user_rank_result = await db.execute(user_rank_query)
+        user_rank = user_rank_result.scalar() + 1  # Корректируем, чтобы начался с 1
 
     # Формируем список топ игроков
     leaderboard = [
@@ -839,7 +851,6 @@ async def get_leaderboard(
             "fio": player.fio,
             "columns_passed": player.number_of_columns_passed,
             "money": player.money,
-            "hourly_income": player.current_factor
         }
         for index, player in enumerate(top_players_list)
     ]
@@ -852,7 +863,6 @@ async def get_leaderboard(
         "fio": current_user.fio,
         "columns_passed": current_user.number_of_columns_passed,
         "money": current_user.money,
-        "hourly_income": current_user.current_factor
     }
 
     return {"leaderboard": leaderboard, "current_user": current_user_data}
