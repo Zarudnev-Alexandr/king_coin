@@ -319,12 +319,15 @@ onBeforeUnmount(() => {
         .header-data-content {
           display: flex;
           flex-direction: column;
+          align-items: center;
+          width: 100%;
           gap: 15px;
         }
 
         .header-data-statistic {
+          width: 75%;
           display: flex;
-          gap: 20px;
+          justify-content: space-between;
         }
 
         .header-data-score-count {

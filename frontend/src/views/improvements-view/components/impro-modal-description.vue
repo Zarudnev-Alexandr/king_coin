@@ -22,6 +22,8 @@ const goToSubscribe = () => {
 }
 
 const isSubscribeType = computed(() => {
+  if (improStore.selectCoinForImpro?.conditions_met) return false
+
   const type = improStore.selectCoinForImpro?.unmet_conditions[0].type;
   return !improStore.selectCoinForImpro?.conditions_met && type === 'subscribe_telegram';
 })
