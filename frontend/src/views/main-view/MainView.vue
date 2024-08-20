@@ -325,9 +325,9 @@ onBeforeUnmount(() => {
         }
 
         .header-data-statistic {
-          width: 75%;
           display: flex;
-          justify-content: space-between;
+          justify-content: center;
+          gap: 10px;
         }
 
         .header-data-score-count {
