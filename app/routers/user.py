@@ -849,6 +849,7 @@ async def get_leaderboard(
             "tg_id": player.tg_id,
             "username": player.username,
             "fio": player.fio,
+            "lvl": player.lvl,
             "columns_passed": player.number_of_columns_passed,
             "money": player.money,
         }
