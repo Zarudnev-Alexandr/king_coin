@@ -737,28 +737,62 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
 
 
 @user_route.get('/invited-users')
-async def get_invited_users(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+async def get_invited_users(
+        initData: str = Header(...),
+        db: AsyncSession = Depends(get_db)
+):
+    # Расшифровываем initData и получаем текущего пользователя
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
-    invited_users = await db.execute(select(User).where(User.invited_tg_id == user.tg_id))
+    # Получаем всех приглашенных пользователей
+    invited_users_query = select(User).where(User.invited_tg_id == user.tg_id)
+    invited_users = await db.execute(invited_users_query)
     invited_users = invited_users.scalars().all()
 
     invited_users_data = []
+
     for invited_user in invited_users:
+        # Получаем апгрейды пользователя
         user_upgrades = await get_user_upgrades(invited_user.tg_id, db)
         upgrades = await asyncio.gather(
             *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
         )
 
+        # Рассчитываем общий ежечасный доход пользователя
         total_hourly_income = sum(
             next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
             for user_upgrade, upgrade in zip(user_upgrades, upgrades)
         )
 
-        # Подсчет количества приглашенных пользователей
+        # Подсчет количества пользователей, приглашенных данным пользователем
         invited_count = await db.scalar(select(func.count()).where(User.invited_tg_id == invited_user.tg_id))
 
+        # Определяем вознаграждение по реферальной программе
+        referral_rewards = {
+            1: {"no_premium": 15000, "premium": 25000},
+            2: {"no_premium": 35000, "premium": 55000},
+            3: {"no_premium": 40000, "premium": 65000},
+            4: {"no_premium": 65000, "premium": 90000},
+            5: {"no_premium": 95000, "premium": 140000},
+            6: {"no_premium": 200000, "premium": 400000},
+            7: {"no_premium": 500000, "premium": 1000000},
+            8: {"no_premium": 1500000, "premium": 3000000},
+            9: {"no_premium": 3500000, "premium": 6000000},
+            10: {"no_premium": 10000000, "premium": 20000000},
+        }
+
+        # Определяем значение полученного вознаграждения на основе уровня и премиума
+        reward_level = referral_rewards.get(invited_user.lvl, None)
+        if reward_level:
+            if invited_user.is_premium:
+                earned_money = reward_level["premium"]
+            else:
+                earned_money = reward_level["no_premium"]
+        else:
+            earned_money = 0  # Если уровень больше 10, можно задать значение по умолчанию
+
+        # Добавляем информацию о приглашенном пользователе в список
         invited_users_data.append({
             "tg_id": invited_user.tg_id,
             "username": invited_user.username,
@@ -767,7 +801,8 @@ async def get_invited_users(initData: str = Header(...), db: AsyncSession = Depe
             "money": invited_user.money,
             "total_hourly_income": total_hourly_income,
             "is_premium": invited_user.is_premium if invited_user.is_premium else None,
-            "invited_count": invited_count
+            "invited_count": invited_count,
+            "earned_money": earned_money  # Добавляем рассчитанное значение
         })
 
     return {"invited_users": invited_users_data}
