@@ -14,6 +14,7 @@ class BoostCreateSchema(BaseModel):
     lvl: int
     tap_boost: int
     one_tap: int
+    pillars_2: int
     pillars_10: int
     pillars_30: int
     pillars_100: int
@@ -54,6 +55,8 @@ class CreateUpgradeSchema(BaseModel):
     image_url: str
     is_in_shop: bool
     description: Optional[str]
+    english_description: Optional[str]
+    sort_position: Optional[int]
 
 
 # Улучшение (карточка) без уровней
@@ -190,6 +193,7 @@ class TaskBaseSchema(BaseModel):
     requirement: Optional[int] = None
     link: Optional[str] = None
     end_time: Optional[datetime] = None
+    icon_type: Optional[str] = None
 
 
 class TaskCreateSchema(TaskBaseSchema):

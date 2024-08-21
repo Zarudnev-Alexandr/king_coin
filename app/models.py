@@ -67,9 +67,6 @@ class UpgradeCategory(Base):
     upgrades: Mapped[list["Upgrades"]] = relationship("Upgrades", back_populates="category", lazy='selectin')
 
 
-
-
-
 class UpgradeLevel(Base):
     __tablename__ = 'upgrade_lvl'
 
@@ -109,6 +106,8 @@ class Upgrades(Base):
     image_url: Mapped[str] = mapped_column(String)
     is_in_shop: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
+    english_description: Mapped[str] = mapped_column(Text, nullable=True)
+    sort_position: Mapped[int] = mapped_column(Integer, nullable=True)
 
     category: Mapped["UpgradeCategory"] = relationship("UpgradeCategory", back_populates="upgrades", lazy='selectin')
     levels: Mapped[list["UpgradeLevel"]] = relationship("UpgradeLevel", back_populates="upgrade", lazy='selectin')
@@ -188,6 +187,7 @@ class Boost(Base):
     lvl: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     tap_boost: Mapped[int] = mapped_column(Integer)
     one_tap: Mapped[int] = mapped_column(Integer)
+    pillars_2: Mapped[int] = mapped_column(Integer, nullable=True)
     pillars_10: Mapped[int] = mapped_column(Integer)
     pillars_30: Mapped[int] = mapped_column(Integer)
     pillars_100: Mapped[int] = mapped_column(Integer)
@@ -216,6 +216,7 @@ class Task(Base):
     requirement: Mapped[int] = mapped_column(BigInteger, nullable=True)
     link: Mapped[str] = mapped_column(String, nullable=True)
     end_time: Mapped[DateTime] = mapped_column(DateTime, nullable=True, default=None)
+    icon_type: Mapped[str] = mapped_column(String, nullable=True)
 
     def to_dict(self):
         return {
@@ -227,6 +228,7 @@ class Task(Base):
             "link": self.link,
             "requirement": self.requirement,
             "end_time": self.end_time,
+            "icon_type": self.icon_type,
         }
 
 
