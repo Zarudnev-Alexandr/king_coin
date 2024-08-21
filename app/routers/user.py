@@ -847,7 +847,7 @@ async def get_leaderboard(
         {
             "rank": index + 1,
             "tg_id": player.tg_id,
-            "username": player.username,
+            # "username": player.username,
             "fio": player.fio,
             "lvl": player.lvl,
             "columns_passed": player.number_of_columns_passed,
@@ -860,8 +860,9 @@ async def get_leaderboard(
     current_user_data = {
         "rank": user_rank,
         "tg_id": current_user.tg_id,
-        "username": current_user.username,
+        # "username": current_user.username,
         "fio": current_user.fio,
+        "lvl": current_user.lvl,
         "columns_passed": current_user.number_of_columns_passed,
         "money": current_user.money,
     }
