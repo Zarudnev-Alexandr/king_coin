@@ -56,6 +56,7 @@ class CreateUpgradeSchema(BaseModel):
     is_in_shop: bool
     description: Optional[str]
     english_description: Optional[str]
+    sort_position: Optional[int]
 
 
 # Улучшение (карточка) без уровней
