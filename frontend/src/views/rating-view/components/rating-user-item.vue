@@ -15,12 +15,12 @@ const {item, activeTab} = defineProps<Props>();
 
 <template>
   <div class="rating-user-item-wrap">
-    <img :src="Levels[0].image" alt="">
+    <img :src="Levels[item.lvl - 1].image" alt="">
     <div class="name-lvl-wrap">
       <span class="name sf-pro-font">{{ item.fio }}</span>
       <div class="lvl-wrap">
         <img src="@/assets/svg/friends/friend-grandmaster-league-icon.png" alt="">
-        <span class="lvl sf-pro-font">{{ Levels[0].name }}</span>
+        <span class="lvl sf-pro-font">{{ Levels[item.lvl - 1].name }}</span>
       </div>
     </div>
     <div style="flex: 1"/>

@@ -3,6 +3,7 @@ export interface UserBoost {
   lvl: number,
   name: string,
   one_tap: number,
+  pillars_2: number,
   pillars_10: number,
   pillars_30: number,
   pillars_100: number,
