@@ -107,6 +107,7 @@ class Upgrades(Base):
     is_in_shop: Mapped[bool] = mapped_column(Boolean, default=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     english_description: Mapped[str] = mapped_column(Text, nullable=True)
+    sort_position: Mapped[int] = mapped_column(Integer, nullable=True)
 
     category: Mapped["UpgradeCategory"] = relationship("UpgradeCategory", back_populates="upgrades", lazy='selectin')
     levels: Mapped[list["UpgradeLevel"]] = relationship("UpgradeLevel", back_populates="upgrade", lazy='selectin')

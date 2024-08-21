@@ -72,7 +72,7 @@ async def get_upgrade_category_all(initData: str = Header(...),
         user_upgrades_dict = {upgrade.upgrade_id: upgrade for upgrade in user_upgrades_in_this_category}
 
         filtered_upgrades = []
-        for upgrade in upgrade_category.upgrades:
+        for upgrade in sorted(upgrade_category.upgrades, key=lambda x: x.sort_position or 0):
             if not upgrade.is_in_shop:
                 continue
 
@@ -161,7 +161,8 @@ async def create_upgrade(upgrade_create: CreateUpgradeSchema,
         "image_url": upgrade_create.image_url,
         "is_in_shop": upgrade_create.is_in_shop,
         "description": upgrade_create.description,
-        "english_description": upgrade_create.english_description
+        "english_description": upgrade_create.english_description,
+        "sort_position": upgrade_create.sort_position,
     }
 
     upgrade = await get_upgrade_by_name(db, upgrade_name=upgrade_create.name)

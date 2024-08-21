@@ -36,7 +36,8 @@ async def create_task(task: TaskCreateSchema, db: AsyncSession = Depends(get_db)
         "reward": task.reward,
         "requirement": task.requirement,
         "link": task.link,
-        "end_time": end_time
+        "end_time": end_time,
+        "icon_type": task.icon_type,
     }
 
     new_task = await add_task(db, **task_data)
