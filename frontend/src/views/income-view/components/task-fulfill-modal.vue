@@ -42,7 +42,7 @@ const handleAccept = () => {
     } else {
       setTimeout(() => {
         setIsReady();
-      }, 5000);
+      }, 1000);
 
       if (appStore.selectTaskForFulfill?.link) {
         window.open(appStore.selectTaskForFulfill?.link, '_blank');
