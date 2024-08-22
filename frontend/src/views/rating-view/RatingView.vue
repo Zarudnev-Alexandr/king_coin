@@ -2,7 +2,7 @@
 
 import RatingHeader from "@/views/rating-view/components/RatingHeader.vue";
 import {onMounted, ref, Ref} from "vue";
-import RatingSkeleton from "@/views/main-view/components/rating-skeleton.vue";
+import RatingSkeleton from "@/views/rating-view/components/rating-skeleton.vue";
 import RatingApiService from "@/shared/api/services/rating-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import RatingUserItem from "@/views/rating-view/components/rating-user-item.vue";
@@ -72,6 +72,7 @@ onMounted(() => {
         <div class="rating-list">
           <div style="height: 40px"/>
           <div class="img-wrap">
+            <span class="top-10-text">{{ $t('top') }} - 10</span>
             <img src="@/assets/svg/rating-top-100.svg" alt="">
           </div>
 
@@ -140,6 +141,22 @@ onMounted(() => {
           width: 100%;
           display: flex;
           justify-content: center;
+
+          .top-10-text {
+            font-family: 'SuperSquadRus', sans-serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 27.79px;
+            text-align: center;
+            color: white;
+            position: absolute;
+            top: 40%;
+            bottom: 50%;
+            text-shadow: -3px 3px 0 rgba(57, 34, 0, 1),
+            1px 1px 0 rgba(57, 34, 0, 1),
+            1px -1px 0 rgba(57, 34, 0, 1),
+            -1px -1px 0 rgba(57, 34, 0, 1);
+          }
 
           img {
             width: 232px;

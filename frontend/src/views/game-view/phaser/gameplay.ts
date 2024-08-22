@@ -88,7 +88,11 @@ class Gameplay extends Phaser.Scene {
 
   public enablePhysics() {
     this.player?.enablePhysics();
-    this.obstacleManager?.setVelocityX(-120);
+    if (this.gameStore.mysteryBox && this.gameStore.mysteryBox === 'SPEED_X2.5') {
+      this.obstacleManager?.setVelocityX(-300);
+    } else {
+      this.obstacleManager?.setVelocityX(-120);
+    }
   }
 
   handleCollision() {
@@ -136,7 +140,7 @@ class Gameplay extends Phaser.Scene {
         Gameplay.instance?.setSpeed(-300);
 
         this.addTimer(8000, () => {
-          if (!this.gameStore.isPaused) Gameplay.instance?.setSpeed(-120);
+          Gameplay.instance?.setSpeed(-120);
           this.gameStore.setMysteryBox(null);
         })
         return;

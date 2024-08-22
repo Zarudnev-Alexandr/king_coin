@@ -15,6 +15,7 @@ import FriendsSkeleton from "@/views/friends-view/components/friends-skeleton.vu
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 import {ToastType} from "@/shared/api/types/toast.ts";
 import {useI18n} from "vue-i18n";
+import {Friend} from "@/shared/api/types/friend.ts";
 
 const friendApiService = new FriendsApiService(axiosInstance, errorHandler);
 const friendsStore = useFriendsStore();
@@ -47,8 +48,8 @@ onMounted(async () => {
         friendsStore.setFriendsList(res.right);
         let sumIncome = 0;
 
-        res.right.forEach((friend: any) => {
-          sumIncome += friend.external_income_field;
+        res.right.forEach((friend: Friend) => {
+          sumIncome += friend.earned_money;
         });
         friendsStore.setSumAllProfits(sumIncome);
         isLoading.value = false;

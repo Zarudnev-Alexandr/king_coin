@@ -21,6 +21,7 @@
     <div class="rating-skeleton-actual">
       <div style="height: 40px"/>
       <div class="img-wrap">
+        <span class="top-10-text">{{ $t('top') }} - 10</span>
         <img src="@/assets/svg/rating-top-100.svg" alt="">
       </div>
       <div class="user-item skeleton-loading"></div>
@@ -55,6 +56,22 @@
       width: 100%;
       display: flex;
       justify-content: center;
+
+      .top-10-text {
+        font-family: 'SuperSquadRus', sans-serif;
+        font-size: 18px;
+        font-weight: 400;
+        line-height: 27.79px;
+        text-align: center;
+        color: white;
+        position: absolute;
+        top: 40%;
+        bottom: 50%;
+        text-shadow: -3px 3px 0 rgba(57, 34, 0, 1),
+        1px 1px 0 rgba(57, 34, 0, 1),
+        1px -1px 0 rgba(57, 34, 0, 1),
+        -1px -1px 0 rgba(57, 34, 0, 1);
+      }
 
       img {
         width: 232px;

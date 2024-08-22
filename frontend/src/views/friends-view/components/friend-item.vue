@@ -21,7 +21,7 @@ const props: Props = defineProps<Props>();
       </div>
     </div>
     <div class="friend-item-profit-wrap">
-      <CoinCountItem :count="props.friendData.external_income_field"/>
+      <CoinCountItem :count="props.friendData.earned_money"/>
       <div class="friend-invite-count-wrap">
         <img src="@/assets/svg/friends/friend-group-icon.png" alt="">
         <span class="sf-pro-font">+ {{ props.friendData.invited_count }}</span>

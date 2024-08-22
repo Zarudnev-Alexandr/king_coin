@@ -6,7 +6,7 @@ interface Friend {
   money: number;
   invited_count: number;
   total_hourly_income: number;
-  external_income_field: number;
+  earned_money: number;
 }
 
 export type {Friend};
