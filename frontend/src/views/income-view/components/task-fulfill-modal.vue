@@ -10,6 +10,7 @@ import {useUserStore} from "@/shared/pinia/user-store.ts";
 import {Ref, ref} from "vue";
 import ModalActionButton from "@/components/ModalActionButton.vue";
 import {useI18n} from "vue-i18n";
+import {ToastType} from "@/shared/api/types/toast.ts";
 
 const appStore = useAppStore();
 const taskStore = useIncomeStore();
@@ -31,6 +32,11 @@ const handleAccept = () => {
   if (appStore.selectTaskForFulfill?.type === 'daily' && !taskStore.dailyTask?.is_collect) {
     claimDailyReward();
   } else if (!appStore.selectTaskForFulfill?.completed) {
+    if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram') {
+      checkTask();
+      return;
+    }
+
     if (isReady.value) {
       checkTask();
     } else {
@@ -61,19 +67,23 @@ const claimDailyReward = async () => {
 }
 
 const checkTask = async () => {
+  const checkTaskId = appStore.selectTaskForFulfill!.id;
   const res = await taskApiService.checkTask(appStore.selectTaskForFulfill!.id);
   if (res && res.right) {
-    taskStore.taskCompleted(appStore.selectTaskForFulfill!.id);
+    taskStore.taskCompleted(checkTaskId);
     userStore.user!.money += res.right.money_received;
     appStore.setSelectTaskForFulfill(null);
     appStore.playCoinAnimation();
+  } else {
+    appStore.pushToast(ToastType.ERROR, t('no_subscription'));
   }
 }
 
 const getMainButtonText = () => {
-  if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram' || appStore.selectTaskForFulfill?.type === 'generic') {
-    console.log("isReady", isReady.value)
+  if (appStore.selectTaskForFulfill?.type === 'generic') {
     return isReady.value ? t('get_it') : t('complete');
+  } else if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram') {
+    return t('get_it')
   }
   return t('claim');
 }

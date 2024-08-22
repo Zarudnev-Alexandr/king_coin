@@ -14,6 +14,7 @@ export interface Coin {
   image_url: string,
   is_in_shop: boolean,
   description: string,
+  english_description: string,
   id: number,
   lvl: number,
   is_bought: boolean,

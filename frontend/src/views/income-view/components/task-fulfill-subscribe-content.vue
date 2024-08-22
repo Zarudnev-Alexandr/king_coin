@@ -1,15 +1,27 @@
 <script setup lang="ts">
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
+import FloatButton from "@/components/FloatButton.vue";
 
 const {selectTaskForFulfill} = useAppStore();
+
+const goToSubscribe = () => {
+  window.open(selectTaskForFulfill?.link ?? '', '_blank');
+}
 </script>
 
 <template>
   <div class="fulfill-modal-wrap">
     <img src="@/assets/svg/income/task-fulfill-example-avatar.png" alt="">
     <span class="card-name sf-pro-font">{{ selectTaskForFulfill?.name }}</span>
-    <span class="fulfill-description sf-pro-font">{{ selectTaskForFulfill?.description }}</span>
+    <div class="description-wrap">
+      <span class="fulfill-description sf-pro-font">{{ selectTaskForFulfill?.description }}</span>
+      <FloatButton @click="goToSubscribe" style="width: 128px; height: 55.69px"
+                   v-if="selectTaskForFulfill?.type === 'subscribe_telegram'"
+      >
+        <h3 class="subscribe-btn">{{ $t('subscribe') }}</h3>
+      </FloatButton>
+    </div>
     <div class="fulfill-price">
       <img src="@/assets/svg/coin.svg" alt="">
       <span class="sf-pro-font">{{ formatNumberWithSpaces(selectTaskForFulfill?.reward ?? 0) }}</span>
@@ -26,6 +38,22 @@ const {selectTaskForFulfill} = useAppStore();
   gap: 15px;
   padding-bottom: 10px;
   padding-top: 30px;
+
+  .description-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+
+    .subscribe-btn {
+      font-family: 'SuperSquadRus', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 21.62px;
+      text-align: center;
+      color: rgba(93, 56, 0, 1);
+    }
+  }
 
   img {
     border-radius: 10px;

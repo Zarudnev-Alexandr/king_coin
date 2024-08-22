@@ -2,11 +2,17 @@
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
 import FloatButton from "@/components/FloatButton.vue";
 import {computed} from "vue";
+import {useSettingsStore} from "@/shared/pinia/settings-store.ts";
 
 const improStore = useImprovementsStore();
+const settingsStore = useSettingsStore();
+
+const descriptionByLang = settingsStore.currenLanguage?.short === 'ru' ?
+    improStore.selectCoinForImpro?.description :
+    improStore.selectCoinForImpro?.english_description;
 
 const getDescription = () => {
-  if (improStore.selectCoinForImpro?.conditions_met) return improStore.selectCoinForImpro?.description;
+  if (improStore.selectCoinForImpro?.conditions_met) return descriptionByLang;
 
   const type = improStore.selectCoinForImpro?.unmet_conditions[0].type;
   const name = improStore.selectCoinForImpro?.unmet_conditions[0].name_of_condition_upgrade;
@@ -14,7 +20,7 @@ const getDescription = () => {
   if (type === 'subscribe_telegram') {
     return `Чтобы разблокировать эту карточку сначала подпишитесь на Telegram канал ${name}`;
   }
-  return improStore.selectCoinForImpro?.description
+  return descriptionByLang;
 }
 
 const goToSubscribe = () => {
