@@ -10,6 +10,8 @@ import {useUserStore} from "@/shared/pinia/user-store.ts";
 import TasksApiService from "@/shared/api/services/tasks-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
+import AdTaskAvatar from "@/assets/svg/income/ad-task-avatar.webp";
+import DailyTaskAvatar from "@/assets/svg/income/daily-task-avatar.svg";
 
 const incomeStore = useIncomeStore();
 const appStore = useAppStore();
@@ -40,6 +42,7 @@ const task = ref<Task>({
   link: null,
   id: 0,
   completed: getCurrentDailyIsCollect.value,
+  image_url: DailyTaskAvatar,
   end_time: null,
 });
 
@@ -53,6 +56,7 @@ const adTask: Ref<Task> = ref({
   id: 1,
   completed: getWatchedAdsCount.value >= 3,
   end_time: null,
+  image_url: AdTaskAvatar
 });
 
 const handleDailyAd = async () => {

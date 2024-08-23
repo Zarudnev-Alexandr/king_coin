@@ -27,7 +27,7 @@ const handleClick = () => {
 <template>
   <div class="task-item-wrapper" @click="handleClick">
     <div class="task-item-avatar">
-      <img src="@/assets/svg/income/task-item-avatar-example.png" alt="" class="task-avatar">
+      <img :src="props.taskItem.image_url" alt="" class="task-avatar">
       <img src="@/assets/svg/income/task-is-done-icon.png" alt="" class="is-done-icon" v-if="props.taskItem.completed">
     </div>
     <h2 class="sf-pro-font">{{ props.taskItem.name }}</h2>
@@ -63,7 +63,6 @@ const handleClick = () => {
     .task-avatar {
       width: 40px;
       height: 40px;
-      border-radius: 50%;
     }
 
     .is-done-icon {
