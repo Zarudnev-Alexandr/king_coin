@@ -194,6 +194,7 @@ class TaskBaseSchema(BaseModel):
     link: Optional[str] = None
     end_time: Optional[datetime] = None
     icon_type: Optional[str] = None
+    image_url: Optional[str] = None
 
 
 class TaskCreateSchema(TaskBaseSchema):

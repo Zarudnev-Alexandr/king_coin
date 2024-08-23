@@ -1,7 +1,9 @@
+import os
 from datetime import datetime, timedelta
 import json
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from environs import Env
+from fastapi import APIRouter, Depends, Header, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.added_funcs import decode_init_data
@@ -9,11 +11,16 @@ from app.cruds.task import add_task, get_task, get_user_task, get_invited_count,
     check_telegram_subscription, get_all_tasks, get_user_tasks
 from app.cruds.user import get_user
 from app.database import get_db
-from app.models import TaskType
-from app.schemas import TaskCreateSchema, TaskBaseSchema, TaskResponseSchema
+from app.models import TaskType, Task
+from app.schemas import TaskCreateSchema, TaskBaseSchema, TaskResponseSchema, ImageUploadResponse
 from app.websockets.settings import ws_manager
 
 task_route = APIRouter()
+
+env = Env()
+env.read_env()
+
+SERVER_URL = env('SERVER_URL')
 
 
 @task_route.post("/", response_model=TaskBaseSchema)
@@ -38,6 +45,7 @@ async def create_task(task: TaskCreateSchema, db: AsyncSession = Depends(get_db)
         "link": task.link,
         "end_time": end_time,
         "icon_type": task.icon_type,
+        "image_url": task.image_url,
     }
 
     new_task = await add_task(db, **task_data)
@@ -124,3 +132,29 @@ async def get_tasks_for_user(initData: str = Header(...), db: AsyncSession = Dep
         tasks_with_completion_flag.append(task_dict)
 
     return tasks_with_completion_flag
+
+
+@task_route.post('/task/{task_id}/upload_image', response_model=ImageUploadResponse)
+async def upload_image(task_id: int, file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+    """
+    Добавление изображения к таскам
+    """
+    # Проверка, существует ли апгрейд
+    task = await db.get(Task, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # Генерация уникального имени файла
+    file_extension = file.filename.split(".")[-1]
+    file_name = f"task_{task_id}.{file_extension}"
+
+    # Сохранение файла на сервере
+    file_path = os.path.join("/app/uploads", file_name)  # Оставляем путь как в контейнере
+    with open(file_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    # Обновление записи в базе данных
+    task.image_url = f"{SERVER_URL}/uploads/{file_name}"
+    await db.commit()
+
+    return ImageUploadResponse(image_url=file_path)

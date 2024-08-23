@@ -217,6 +217,7 @@ class Task(Base):
     link: Mapped[str] = mapped_column(String, nullable=True)
     end_time: Mapped[DateTime] = mapped_column(DateTime, nullable=True, default=None)
     icon_type: Mapped[str] = mapped_column(String, nullable=True)
+    image_url: Mapped[str] = mapped_column(String, nullable=True)
 
     def to_dict(self):
         return {
@@ -229,6 +230,7 @@ class Task(Base):
             "requirement": self.requirement,
             "end_time": self.end_time,
             "icon_type": self.icon_type,
+            "image_url": self.image_url,
         }
 
 
