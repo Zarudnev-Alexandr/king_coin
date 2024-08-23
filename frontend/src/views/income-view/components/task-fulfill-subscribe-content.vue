@@ -12,7 +12,7 @@ const goToSubscribe = () => {
 
 <template>
   <div class="fulfill-modal-wrap">
-    <img src="@/assets/svg/income/task-fulfill-example-avatar.png" alt="">
+    <img :src="selectTaskForFulfill?.image_url" alt="">
     <span class="card-name sf-pro-font">{{ selectTaskForFulfill?.name }}</span>
     <div class="description-wrap">
       <span class="fulfill-description sf-pro-font">{{ selectTaskForFulfill?.description }}</span>

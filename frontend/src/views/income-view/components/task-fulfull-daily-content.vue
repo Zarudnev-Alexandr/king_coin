@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import IncomeDailyRewardItem from "@/views/income-view/components/income-daily-reward-item.vue";
 import dailyRewards from "@/shared/constants/daily-rewards.ts";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
+
+const {selectTaskForFulfill} = useAppStore();
 </script>
 
 <template>
   <div class="fulfill-modal-wrap">
-    <img src="@/assets/svg/income/task-modal-daily-example-avatar.png " alt="">
+    <img :src="selectTaskForFulfill?.image_url" alt="">
     <span class="card-name sf-pro-font">{{ $t('daily_reward') }}</span>
     <span class="fulfill-description sf-pro-font">{{ $t('largest_telegram_channel') }}</span>
     <div class="fulfill-reward-grid">
