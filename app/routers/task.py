@@ -55,6 +55,31 @@ async def create_task(task: TaskCreateSchema, db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=400, detail="Failed to create task")
 
 
+@task_route.post("/start_generic/{task_id}")
+async def start_generic_task(task_id: int, initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
+
+    task = await get_task(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if task.type != TaskType.GENERIC:
+        raise HTTPException(status_code=400, detail="Task is not of type GENERIC")
+
+    user_task = await get_user_task(db, task_id, user.tg_id)
+    if user_task:
+        raise HTTPException(status_code=400, detail="Task already started")
+
+    # Создаем запись о начале выполнения задания
+    user_task = await create_user_task(db, task_id, user.tg_id)
+    user_task.created = datetime.utcnow()
+    await db.commit()
+    await db.refresh(user_task)
+
+    return {"status": "Task started", "message": "You can claim your reward after 15 minutes."}
+
+
 @task_route.post("/check/{task_id}")
 async def check_task_completion(task_id: int, initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     init_data_decode = await decode_init_data(initData, db)
@@ -68,51 +93,37 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
         raise HTTPException(status_code=400, detail="Task timed out")
 
     user_task = await get_user_task(db, task_id, user.tg_id)
-    if user_task and user_task.completed:
+    if not user_task:
+        raise HTTPException(status_code=400, detail="Task not started yet")
+
+    if user_task.completed:
         raise HTTPException(status_code=400, detail="Task already completed")
 
-    # Если задание на приглашение пользователей
-    if task.type == TaskType.INVITE:
-        invited_count = await get_invited_count(db, user.tg_id)
-        if invited_count < task.requirement:
-            if not user_task:
-                await create_user_task(db, task_id, user.tg_id)
-            raise HTTPException(status_code=400,
-                                detail="The task was not completed, the number of invited users is not enough")
-
-        if not user_task:
-            user_task = await create_user_task(db, task_id, user.tg_id)
-        await complete_user_task(db, user, task, user_task)
-
-    # Если задание - это подписаться на тг канал
-    elif task.type == TaskType.SUBSCRIBE_TELEGRAM:
-        is_subscribed = check_telegram_subscription(task.requirement, user.tg_id)
-        if not is_subscribed:
-            if not user_task:
-                await create_user_task(db, task_id, user.tg_id)
-            raise HTTPException(status_code=400,
-                                detail="The task was not completed, the user is not subscribed to the channel")
-
-        if not user_task:
-            user_task = await create_user_task(db, task_id, user.tg_id)
-        await complete_user_task(db, user, task, user_task)
-
-    # Если это задание без проверки
-    elif task.type == TaskType.GENERIC:
-        if not user_task:
-            # Создаем запись о выполнении задания, но не завершаем его
-            user_task = await create_user_task(db, task_id, user.tg_id)
-            user_task.created = datetime.utcnow()
-            await db.commit()
-            await db.refresh(user_task)
-            raise HTTPException(status_code=200, detail="Task created. You can claim your reward after 15 minutes.")
-
+    # Если это задание без проверки (GENERIC)
+    if task.type == TaskType.GENERIC:
         # Проверяем, прошло ли 15 минут с момента создания задания
         time_elapsed = datetime.utcnow() - user_task.created
         if time_elapsed < timedelta(minutes=15):
             raise HTTPException(status_code=400, detail="You need to wait 15 minutes before claiming your reward.")
 
         # Если прошло 15 минут, завершаем задание и выдаем награду
+        await complete_user_task(db, user, task, user_task)
+
+    # Остальные типы заданий обрабатываются как раньше
+    elif task.type == TaskType.INVITE:
+        invited_count = await get_invited_count(db, user.tg_id)
+        if invited_count < task.requirement:
+            raise HTTPException(status_code=400,
+                                detail="The task was not completed, the number of invited users is not enough")
+
+        await complete_user_task(db, user, task, user_task)
+
+    elif task.type == TaskType.SUBSCRIBE_TELEGRAM:
+        is_subscribed = check_telegram_subscription(task.requirement, user.tg_id)
+        if not is_subscribed:
+            raise HTTPException(status_code=400,
+                                detail="The task was not completed, the user is not subscribed to the channel")
+
         await complete_user_task(db, user, task, user_task)
 
     await db.refresh(user)
