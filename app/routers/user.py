@@ -770,16 +770,16 @@ async def get_invited_users(
 
         # Определяем вознаграждение по реферальной программе
         referral_rewards = {
-            1: {"no_premium": 15000, "premium": 25000},
-            2: {"no_premium": 35000, "premium": 55000},
-            3: {"no_premium": 40000, "premium": 65000},
-            4: {"no_premium": 65000, "premium": 90000},
-            5: {"no_premium": 95000, "premium": 140000},
-            6: {"no_premium": 200000, "premium": 400000},
-            7: {"no_premium": 500000, "premium": 1000000},
-            8: {"no_premium": 1500000, "premium": 3000000},
-            9: {"no_premium": 3500000, "premium": 6000000},
-            10: {"no_premium": 10000000, "premium": 20000000},
+            2: {"no_premium": 15000, "premium": 25000},
+            3: {"no_premium": 35000, "premium": 55000},
+            4: {"no_premium": 40000, "premium": 65000},
+            5: {"no_premium": 65000, "premium": 90000},
+            6: {"no_premium": 95000, "premium": 140000},
+            7: {"no_premium": 200000, "premium": 400000},
+            8: {"no_premium": 500000, "premium": 1000000},
+            9: {"no_premium": 1500000, "premium": 3000000},
+            10: {"no_premium": 3500000, "premium": 6000000},
+            # 10: {"no_premium": 10000000, "premium": 20000000},
         }
 
         # Определяем значение полученного вознаграждения на основе уровня и премиума
