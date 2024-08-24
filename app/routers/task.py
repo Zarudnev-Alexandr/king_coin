@@ -68,7 +68,6 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
         raise HTTPException(status_code=400, detail="Task timed out")
 
     user_task = await get_user_task(db, task_id, user.tg_id)
-    # print('🤑 user_task 🤑', user_task.__dict__)
     if user_task and user_task.completed:
         raise HTTPException(status_code=400, detail="Task already completed")
 
@@ -101,7 +100,19 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
     # Если это задание без проверки
     elif task.type == TaskType.GENERIC:
         if not user_task:
+            # Создаем запись о выполнении задания, но не завершаем его
             user_task = await create_user_task(db, task_id, user.tg_id)
+            user_task.created = datetime.utcnow()
+            await db.commit()
+            await db.refresh(user_task)
+            raise HTTPException(status_code=200, detail="Task created. You can claim your reward after 15 minutes.")
+
+        # Проверяем, прошло ли 15 минут с момента создания задания
+        time_elapsed = datetime.utcnow() - user_task.created
+        if time_elapsed < timedelta(minutes=15):
+            raise HTTPException(status_code=400, detail="You need to wait 15 minutes before claiming your reward.")
+
+        # Если прошло 15 минут, завершаем задание и выдаем награду
         await complete_user_task(db, user, task, user_task)
 
     await db.refresh(user)
