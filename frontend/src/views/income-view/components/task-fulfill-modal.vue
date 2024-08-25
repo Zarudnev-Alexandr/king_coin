@@ -7,20 +7,18 @@ import TasksApiService from "@/shared/api/services/tasks-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
-import {Ref, ref} from "vue";
 import ModalActionButton from "@/components/ModalActionButton.vue";
 import {useI18n} from "vue-i18n";
 import {ToastType} from "@/shared/api/types/toast.ts";
+import TaskFulfillInivteContent from "@/views/income-view/components/task-fulfill-inivte-content.vue";
 
 const appStore = useAppStore();
 const taskStore = useIncomeStore();
 const userStore = useUserStore()
 const taskApiService = new TasksApiService(axiosInstance, errorHandler);
-const isReady: Ref<boolean> = ref(false);
 const {t} = useI18n();
 
 const handleClose = () => {
-  isReady.value = false;
   appStore.setSelectTaskForFulfill(null);
 }
 
@@ -32,28 +30,8 @@ const handleAccept = () => {
   if (appStore.selectTaskForFulfill?.type === 'daily' && !taskStore.dailyTask?.is_collect) {
     claimDailyReward();
   } else if (!appStore.selectTaskForFulfill?.completed) {
-    if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram') {
-      checkTask();
-      return;
-    }
-
-    if (isReady.value) {
-      checkTask();
-    } else {
-      setTimeout(() => {
-        setIsReady();
-      }, 1000);
-
-      if (appStore.selectTaskForFulfill?.link) {
-        window.open(appStore.selectTaskForFulfill?.link, '_blank');
-      }
-    }
-
+    checkTask();
   }
-}
-
-const setIsReady = () => {
-  isReady.value = true;
 }
 
 const claimDailyReward = async () => {
@@ -74,16 +52,30 @@ const checkTask = async () => {
     userStore.user!.money += res.right.money_received;
     appStore.setSelectTaskForFulfill(null);
     appStore.playCoinAnimation();
-  } else {
-    appStore.pushToast(ToastType.ERROR, t('no_subscription'));
+  }
+
+  if (res && res.left) {
+    console.log(res.left);
+    if (appStore.selectTaskForFulfill?.type === 'generic') {
+      if (res.left.message === 'Task not started yet') {
+        appStore.pushToast(ToastType.ERROR, t('not_completed_task'));
+      } else {
+        appStore.pushToast(ToastType.WARNING, t('wait_20_min'))
+      }
+      return;
+    }
+
+    appStore.pushToast(ToastType.ERROR, t('not_completed_task'));
   }
 }
 
 const getMainButtonText = () => {
   if (appStore.selectTaskForFulfill?.type === 'generic') {
-    return isReady.value ? t('get_it') : t('complete');
+    return t('check');
   } else if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram') {
-    return t('get_it')
+    return t('get_it');
+  } else if (appStore.selectTaskForFulfill?.type === 'invite') {
+    return t('check');
   }
   return t('claim');
 }
@@ -107,7 +99,7 @@ const getMainButtonText = () => {
       <task-fulfill-subribe-content
           v-if="appStore.selectTaskForFulfill.type === 'subscribe_telegram' || appStore.selectTaskForFulfill?.type === 'generic'"/>
       <task-fulfull-daily-content v-if="appStore.selectTaskForFulfill.type === 'daily'"/>
-      <task-fulfill-subribe-content v-if="appStore.selectTaskForFulfill.type === 'invite'"/>
+      <task-fulfill-inivte-content v-if="appStore.selectTaskForFulfill.type === 'invite'"/>
     </template>
   </ActionModal>
 </template>

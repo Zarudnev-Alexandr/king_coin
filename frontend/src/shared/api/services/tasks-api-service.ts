@@ -11,7 +11,8 @@ class TasksApiService {
   private readonly dailyTaskApi = '/users/daily-reward';
   private readonly dailyClaimApi = '/users/claim-daily-reward';
   private readonly checkTaskApi = '/tasks/check/';
-  private readonly confirmWatchAd = '/users/watch-ad'
+  private readonly confirmWatchAd = '/users/watch-ad';
+  private readonly startGenericTask = '/tasks/start_generic';
 
   constructor(private client: AxiosInstance, private errorHandler: AxiosErrorHandler) {
   }
@@ -47,6 +48,13 @@ class TasksApiService {
   public async confirmWatchedAd(): Promise<Either<CommonResponseError, { message: string }>> {
     return this.errorHandler.processRequest<{ message: string }>(async () => {
       const response = await this.client.post<{ message: string }>(this.confirmWatchAd);
+      return response.data;
+    })
+  }
+
+  public async startGeneric(id: number): Promise<Either<CommonResponseError, { message: string }>> {
+    return this.errorHandler.processRequest<{ message: string }>(async () => {
+      const response = await this.client.post<{ message: string }>(`${this.startGenericTask}/${id}`);
       return response.data;
     })
   }

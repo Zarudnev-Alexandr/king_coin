@@ -12,7 +12,7 @@ const appStore = useAppStore();
         <img src="@/assets/svg/toast/success.svg" alt="success" v-if="item.type === ToastType.SUCCESS">
         <img src="@/assets/svg/toast/error.svg" alt="error" v-if="item.type === ToastType.ERROR">
         <img src="@/assets/svg/toast/warning.svg" alt="warning" v-if="item.type === ToastType.WARNING">
-        <span class="sf-pro-font">{{ item.message }}</span>
+        <span class="sf-pro-font" v-html="item.message.replace(/\n/g, '<br>')"></span>
         <div style="width: 30px"/>
         <img src="@/assets/svg/toast/close.svg" alt="close" @click="appStore.removeToast(index)">
       </div>

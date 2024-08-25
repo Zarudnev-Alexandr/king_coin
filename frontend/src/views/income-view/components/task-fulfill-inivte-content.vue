@@ -1,20 +1,8 @@
 <script setup lang="ts">
 import {formatNumberWithSpaces} from "@/helpers/formats.ts";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
-import FloatButton from "@/components/FloatButton.vue";
-import TasksApiService from "@/shared/api/services/tasks-api-service.ts";
-import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 
 const {selectTaskForFulfill} = useAppStore();
-const taskService = new TasksApiService(axiosInstance, errorHandler);
-
-const goToSubscribe = async () => {
-  window.open(selectTaskForFulfill?.link ?? '', '_blank');
-
-  if (selectTaskForFulfill?.type === 'generic') {
-    await taskService.startGeneric(selectTaskForFulfill?.id ?? 0);
-  }
-}
 </script>
 
 <template>
@@ -23,9 +11,6 @@ const goToSubscribe = async () => {
     <span class="card-name sf-pro-font">{{ selectTaskForFulfill?.name }}</span>
     <div class="description-wrap">
       <span class="fulfill-description sf-pro-font">{{ selectTaskForFulfill?.description }}</span>
-      <FloatButton @click="goToSubscribe" style="width: 128px; height: 55.69px">
-        <h3 class="subscribe-btn">{{ $t('subscribe') }}</h3>
-      </FloatButton>
     </div>
     <div class="fulfill-price">
       <img src="@/assets/svg/coin.svg" alt="">
@@ -72,6 +57,7 @@ const goToSubscribe = async () => {
     line-height: 33.41px;
     text-align: center;
     color: white;
+    max-width: 245px;
   }
 
   .fulfill-description {

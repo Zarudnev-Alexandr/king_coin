@@ -17,9 +17,6 @@ const handleClick = () => {
     return;
   }
 
-  if (props.taskItem.type === 'invite') {
-    return;
-  }
   appStore.setSelectTaskForFulfill(props.taskItem);
 }
 </script>

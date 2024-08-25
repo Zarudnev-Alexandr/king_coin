@@ -80,5 +80,7 @@
   "no_subscription": "No subscription",
   "check": "Check",
   "soon": "Soon",
-  "top": "TOP"
+  "top": "TOP",
+  "not_completed_task": "You haven’t completed the task",
+  "wait_20_min": "Wait ~20 min.\n Checking the subscription."
 }
