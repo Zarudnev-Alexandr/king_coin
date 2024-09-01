@@ -24,7 +24,7 @@ import {useI18n} from "vue-i18n";
 const phaserRef = ref<HTMLDivElement | null>(null);
 const isGameDelay = ref(true);
 const gameApiService = new GameApiService(axiosInstance, errorHandler);
-const AdController = window.Adsgram?.init({blockId: "1770"});
+const AdController = window.Adsgram?.init({blockId: "2583"});
 
 let game: Phaser.Game | null = null;
 const gameStore = useGameStore();

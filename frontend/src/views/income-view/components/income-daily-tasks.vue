@@ -17,7 +17,7 @@ const incomeStore = useIncomeStore();
 const appStore = useAppStore();
 const tasksApiService = new TasksApiService(axiosInstance, errorHandler)
 const userStore = useUserStore();
-const AdController = window.Adsgram?.init({blockId: "1770"});
+const AdController = window.Adsgram?.init({blockId: "2584"});
 const {t} = useI18n();
 
 const getCurrentDailyReward = computed(() => {
