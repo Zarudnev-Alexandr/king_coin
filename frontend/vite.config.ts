@@ -16,7 +16,7 @@ export default defineConfig({
           // Выделяем Vue в отдельный бандл
           'vue-vendor': ['vue'],
           // Выделяем другие зависимости в отдельный бандл
-          'vendor': ['vue-router', 'vuex', 'axios'],
+          'vendor': ['vue-router', 'axios'],
         },
       },
     },
