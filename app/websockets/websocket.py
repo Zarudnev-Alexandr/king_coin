@@ -17,7 +17,8 @@ websocket_router = APIRouter()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
+
+async def user_income_task(user_id: int, user, levels_list):
     referral_rewards = {
         2: {"no_premium": 15000, "premium": 25000},
         3: {"no_premium": 35000, "premium": 55000},
@@ -33,92 +34,82 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
 
     while True:
         try:
-            # Обновление данных пользователя перед каждым циклом
-            await db.refresh(user)
+            async with get_db_for_websockets() as db:
+                # Обновление данных пользователя перед каждым циклом
+                await db.refresh(user)
 
-            # Получение всех апгрейдов пользователя
-            user_upgrades = await get_user_upgrades(user.tg_id, db)
-            upgrades = await asyncio.gather(
-                *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-            )
+                # Получение всех апгрейдов пользователя
+                user_upgrades = await get_user_upgrades(user.tg_id, db)
+                upgrades = await asyncio.gather(
+                    *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+                )
 
-            # Пересчет общего дохода
-            total_hourly_income = sum(
-                next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-                for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-            )
+                # Пересчет общего дохода
+                total_hourly_income = sum(
+                    next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+                    for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+                )
 
-            # Доход за каждые 5 секунд (1/720 от часового дохода)
-            income_per_interval = total_hourly_income / 360
+                # Доход за каждые 5 секунд (1/720 от часового дохода)
+                income_per_interval = total_hourly_income / 360
 
-            # Обновление денег пользователя
-            user.money += income_per_interval
-            await db.commit()
-            await db.refresh(user)
+                # Обновление денег пользователя
+                user.money += income_per_interval
+                await db.commit()
+                await db.refresh(user)
 
-            # Проверка на достижение новых уровней
-            # new_levels = []
-            for level in levels_list:
-                await db.refresh(level)
-                if user.money >= level.required_money and user.lvl < level.lvl:
-                    old_lvl = user.lvl
-                    user.lvl = level.lvl
-                    user.taps_for_level = level.taps_for_level
-                    await db.commit()
-                    await db.refresh(user)
+                # Проверка на достижение новых уровней
+                # new_levels = []
+                for level in levels_list:
+                    await db.refresh(level)
+                    if user.money >= level.required_money and user.lvl < level.lvl:
+                        old_lvl = user.lvl
+                        user.lvl = level.lvl
+                        user.taps_for_level = level.taps_for_level
+                        await db.commit()
+                        await db.refresh(user)
 
-                    # Начисление бонусов пригласившему
-                    if user.invited_tg_id:
-                        inviter = await get_user(db, user.invited_tg_id)
-                        if inviter:
-                            reward = referral_rewards.get(user.lvl, {}).get("premium" if user.is_premium else "no_premium", 0)
-                            inviter.money += reward
-                            await db.commit()
-                            await db.refresh(inviter)
+                        # Начисление бонусов пригласившему
+                        if user.invited_tg_id:
+                            inviter = await get_user(db, user.invited_tg_id)
+                            if inviter:
+                                reward = referral_rewards.get(user.lvl, {}).get("premium" if user.is_premium else "no_premium", 0)
+                                inviter.money += reward
+                                await db.commit()
+                                await db.refresh(inviter)
 
-                            try:
-                                await db.refresh(user)
-                                await ws_manager.send_message(
-                                    {"event": "referral_reward", "data": {"referral_level": user.lvl, "reward": reward}},
-                                    inviter.tg_id
-                                )
-                            except Exception as e:
-                                logger.error(f"Failed to send referral reward message: {e}")
+                                try:
+                                    await db.refresh(user)
+                                    await ws_manager.send_message(
+                                        {"event": "referral_reward", "data": {"referral_level": user.lvl, "reward": reward}},
+                                        inviter.tg_id
+                                    )
+                                except Exception as e:
+                                    logger.error(f"Failed to send referral reward message: {e}")
 
-                    await ws_manager.send_message(
-                        {"event": "new_lvl", "data": {"old_lvl": old_lvl,
-                                                      "new_lvl": user.lvl,
-                                                      "new_taps_for_lvl": user.taps_for_level}},
-                        user_id)
-            #     else:
-            #         new_levels.append(level)
-            #
-            # levels_list[:] = new_levels
+                        await ws_manager.send_message(
+                            {"event": "new_lvl", "data": {"old_lvl": old_lvl,
+                                                          "new_lvl": user.lvl,
+                                                          "new_taps_for_lvl": user.taps_for_level}},
+                            user_id)
 
-            # Определение денег до следующего уровня
-            # if levels_list:
-            #     next_level_money = levels_list[0].required_money
-            #     money_to_next_level = next_level_money - user.money
-            # else:
-            #     next_level_money = None
-            #     money_to_next_level = None
+                next_level = next((level for level in levels_list if level.lvl > user.lvl), None)
+                money_to_next_level = next_level.required_money - user.money if next_level else None
 
-            next_level = next((level for level in levels_list if level.lvl > user.lvl), None)
-            money_to_next_level = next_level.required_money - user.money if next_level else None
+                # Отправка обновленного значения денег и информации о доходах пользователю
+                await ws_manager.send_message(
+                    {"event": "update",
+                     "data": {"money": int(user.money),
+                              "hourly_income": total_hourly_income,
+                              "money_to_next_level": money_to_next_level}},
+                    user_id
+                )
 
-            # Отправка обновленного значения денег и информации о доходах пользователю
-            await ws_manager.send_message(
-                {"event": "update",
-                 "data": {"money": int(user.money),
-                          "hourly_income": total_hourly_income,
-                          "money_to_next_level": money_to_next_level}},
-                user_id
-            )
+                # Логирование отправленных данных
+                logger.info(f"Sent update to user {user_id}: money={int(user.money)}, hourly_income={total_hourly_income}, money_to_next_level={money_to_next_level}")
 
-            # Логирование отправленных данных
-            logger.info(f"Sent update to user {user_id}: money={int(user.money)}, hourly_income={total_hourly_income}, money_to_next_level={money_to_next_level}")
-
-            # Ожидание 10 секунд перед следующей отправкой
+                # Ожидание 10 секунд перед следующей отправкой
+                await db.close()
             await asyncio.sleep(10)
 
         except Exception as e:
@@ -140,12 +131,13 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
         levels = levels.unique().scalars().all()
 
         levels_list = [level for level in levels if level.lvl > user.lvl]
+        await db.close()
 
         try:
             await ws_manager.connect(user_id, websocket)
 
             # Запуск задачи для обновления дохода пользователя
-            task = asyncio.create_task(user_income_task(user_id, db, user, levels_list))
+            task = asyncio.create_task(user_income_task(user_id, user, levels_list))
             ws_manager.tasks[user_id] = task
 
             # Ожидание сообщений от клиента
@@ -153,9 +145,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 await websocket.receive_text()
         except WebSocketDisconnect:
             logger.info(f"WebSocket disconnected for user {user_id}")
-            ws_manager.disconnect(user_id, db)
+            ws_manager.disconnect(user_id)
         finally:
-            ws_manager.disconnect(user_id, db)
+            ws_manager.disconnect(user_id)
             if task:
                 task.cancel()  # Отменяем задачу при отключении вебсокета
                 try:

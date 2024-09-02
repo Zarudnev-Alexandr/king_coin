@@ -19,7 +19,7 @@ class ConnectionManager:
     def disconnect(self, user_id: int, db):
         # Отменить существующую задачу, если она есть
         if task := self.tasks.pop(user_id, None):
-            await db.close()
+            # db.close()
             task.cancel()
         self.active_connections.pop(user_id, None)
 
