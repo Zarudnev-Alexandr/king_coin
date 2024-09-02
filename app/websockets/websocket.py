@@ -1,24 +1,19 @@
 import asyncio
-
-from fastapi import APIRouter, WebSocket,WebSocketDisconnect, WebSocketException, status, Depends
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.cruds.upgrade import get_user_upgrades, get_upgrade_by_id
-from app.cruds.user import get_user, update_user_level
-from app.database import sessionmanager, get_db, get_db_for_websockets
+from app.cruds.user import get_user
+from app.database import get_db_for_websockets
 from app.models import Level
 from app.websockets.settings import ws_manager
 import logging
 
 websocket_router = APIRouter()
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-async def user_income_task(user_id: int, user, levels_list):
+async def user_income_task(user_id: int, levels_list):
     referral_rewards = {
         2: {"no_premium": 15000, "premium": 25000},
         3: {"no_premium": 35000, "premium": 55000},
@@ -29,12 +24,17 @@ async def user_income_task(user_id: int, user, levels_list):
         8: {"no_premium": 500000, "premium": 1000000},
         9: {"no_premium": 1500000, "premium": 3000000},
         10: {"no_premium": 3500000, "premium": 6000000},
-        # 10: {"no_premium": 10000000, "premium": 20000000},
     }
 
     while True:
         try:
             async with get_db_for_websockets() as db:
+                # Заново извлекаем пользователя в каждой новой сессии
+                user = await get_user(db, user_id)
+                if not user:
+                    logger.error(f"User {user_id} not found")
+                    break
+
                 # Обновление данных пользователя перед каждым циклом
                 await db.refresh(user)
 
@@ -59,7 +59,6 @@ async def user_income_task(user_id: int, user, levels_list):
                 await db.refresh(user)
 
                 # Проверка на достижение новых уровней
-                # new_levels = []
                 for level in levels_list:
                     await db.refresh(level)
                     if user.money >= level.required_money and user.lvl < level.lvl:
@@ -79,7 +78,6 @@ async def user_income_task(user_id: int, user, levels_list):
                                 await db.refresh(inviter)
 
                                 try:
-                                    await db.refresh(user)
                                     await ws_manager.send_message(
                                         {"event": "referral_reward", "data": {"referral_level": user.lvl, "reward": reward}},
                                         inviter.tg_id
@@ -108,15 +106,11 @@ async def user_income_task(user_id: int, user, levels_list):
                 # Логирование отправленных данных
                 logger.info(f"Sent update to user {user_id}: money={int(user.money)}, hourly_income={total_hourly_income}, money_to_next_level={money_to_next_level}")
 
-                # Ожидание 10 секунд перед следующей отправкой
-                await db.close()
             await asyncio.sleep(10)
 
         except Exception as e:
             logger.error(f"Error in user_income_task for user {user_id}: {e}")
-            await db.rollback()
             await asyncio.sleep(10)  # Немного подождем перед повтором цикла в случае ошибки
-
 
 @websocket_router.websocket("/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
@@ -131,13 +125,12 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
         levels = levels.unique().scalars().all()
 
         levels_list = [level for level in levels if level.lvl > user.lvl]
-        await db.close()
 
         try:
             await ws_manager.connect(user_id, websocket)
 
             # Запуск задачи для обновления дохода пользователя
-            task = asyncio.create_task(user_income_task(user_id, user, levels_list))
+            task = asyncio.create_task(user_income_task(user_id, levels_list))
             ws_manager.tasks[user_id] = task
 
             # Ожидание сообщений от клиента
@@ -154,4 +147,3 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                     await task
                 except asyncio.CancelledError:
                     logger.info(f"Task for user {user_id} cancelled")
-
