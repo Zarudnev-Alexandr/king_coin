@@ -126,6 +126,7 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
             await db.rollback()
             await asyncio.sleep(10)  # Немного подождем перед повтором цикла в случае ошибки
 
+
 @websocket_router.websocket("/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
     async with get_db_for_websockets() as db:
@@ -152,9 +153,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 await websocket.receive_text()
         except WebSocketDisconnect:
             logger.info(f"WebSocket disconnected for user {user_id}")
-            ws_manager.disconnect(user_id)
+            ws_manager.disconnect(user_id, db)
         finally:
-            ws_manager.disconnect(user_id)
+            ws_manager.disconnect(user_id, db)
             if task:
                 task.cancel()  # Отменяем задачу при отключении вебсокета
                 try:
