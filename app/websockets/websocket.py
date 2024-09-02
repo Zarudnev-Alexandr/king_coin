@@ -17,7 +17,8 @@ websocket_router = APIRouter()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
+
+async def user_income_task(user_id: int, user, levels_list):
     referral_rewards = {
         2: {"no_premium": 15000, "premium": 25000},
         3: {"no_premium": 35000, "premium": 55000},
@@ -33,6 +34,7 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
 
     while True:
         try:
+            db = sessionmanager.session()
             # Обновление данных пользователя перед каждым циклом
             await db.refresh(user)
 
@@ -90,18 +92,6 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
                                                       "new_lvl": user.lvl,
                                                       "new_taps_for_lvl": user.taps_for_level}},
                         user_id)
-            #     else:
-            #         new_levels.append(level)
-            #
-            # levels_list[:] = new_levels
-
-            # Определение денег до следующего уровня
-            # if levels_list:
-            #     next_level_money = levels_list[0].required_money
-            #     money_to_next_level = next_level_money - user.money
-            # else:
-            #     next_level_money = None
-            #     money_to_next_level = None
 
             next_level = next((level for level in levels_list if level.lvl > user.lvl), None)
             money_to_next_level = next_level.required_money - user.money if next_level else None
@@ -119,6 +109,7 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
             logger.info(f"Sent update to user {user_id}: money={int(user.money)}, hourly_income={total_hourly_income}, money_to_next_level={money_to_next_level}")
 
             # Ожидание 10 секунд перед следующей отправкой
+            await db.close()
             await asyncio.sleep(10)
 
         except Exception as e:
@@ -145,7 +136,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
             await ws_manager.connect(user_id, websocket)
 
             # Запуск задачи для обновления дохода пользователя
-            task = asyncio.create_task(user_income_task(user_id, db, user, levels_list))
+            task = asyncio.create_task(user_income_task(user_id, user, levels_list))
             ws_manager.tasks[user_id] = task
 
             # Ожидание сообщений от клиента
