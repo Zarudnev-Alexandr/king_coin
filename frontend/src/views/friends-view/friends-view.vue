@@ -36,7 +36,7 @@ onMounted(async () => {
     friendApiService.getRefLink().then((res) => {
       if (res && res.right) {
         friendsStore.setReferralLink(res.right.referral_link);
-        shareHref.value = `https://t.me/share/url?url=${res.right.referral_link}&text=Приглашаю тебя в игру!`;
+        shareHref.value = `https://t.me/share/url?url=${res.right.referral_link}&text=${t('invite_text')}`;
       }
     });
   }

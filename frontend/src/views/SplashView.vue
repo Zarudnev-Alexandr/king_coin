@@ -37,6 +37,7 @@ onMounted(async () => {
   };
 
   await router.isReady();
+  await Telegram.WebApp.ready();
 
   Telegram.WebApp.expand();
   Telegram.WebApp.disableVerticalSwipes();
