@@ -6,7 +6,7 @@ from environs import Env
 from fastapi import APIRouter, Depends, Header, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.added_funcs import decode_init_data
+from app.api.added_funcs import decode_init_data, user_check_and_update
 from app.cruds.task import add_task, get_task, get_user_task, get_invited_count, create_user_task, complete_user_task, \
     check_telegram_subscription, get_all_tasks, get_user_tasks
 from app.cruds.user import get_user
@@ -60,6 +60,8 @@ async def start_generic_task(task_id: int, initData: str = Header(...), db: Asyn
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
+    await user_check_and_update(initData, db)
+
     task = await get_task(db, task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -77,13 +79,19 @@ async def start_generic_task(task_id: int, initData: str = Header(...), db: Asyn
     await db.commit()
     await db.refresh(user_task)
 
-    return {"status": "Task started", "message": "You can claim your reward after 15 minutes."}
+    user_check = await user_check_and_update(initData, db)
+
+    return {"status": "Task started",
+            "user_check": user_check,
+            "message": "You can claim your reward after 15 minutes."}
 
 
 @task_route.post("/check/{task_id}")
 async def check_task_completion(task_id: int, initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
+
+    await user_check_and_update(initData, db)
 
     task = await get_task(db, task_id)
     if not task:
@@ -133,14 +141,17 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
             user_task = await create_user_task(db, task_id, user.tg_id)
         await complete_user_task(db, user, task, user_task)
 
+    user_check = await user_check_and_update(initData, db)
     await db.refresh(user)
     await db.refresh(task)
-    await ws_manager.notify_user(user.tg_id, {"event": "complete_task", "data": {"money_received": task.reward,
-                                                                                 "users_money": user.money,
-                                                                                 "task_name": task.name}})
+
+    # await ws_manager.notify_user(user.tg_id, {"event": "complete_task", "data": {"money_received": task.reward,
+    #                                                                              "users_money": user.money,
+    #                                                                              "task_name": task.name}})
     return {"status": "Task checked and updated",
             "money_received": task.reward,
-            "current_user_money": user.money}
+            "current_user_money": user.money,
+            "user_check": user_check}
 
 
 @task_route.get("/tasks", response_model=list[TaskResponseSchema])

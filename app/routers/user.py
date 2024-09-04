@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
     get_boost_by_lvl, get_next_boost, upgrade_user_boost, get_user_bool, get_daily_reward, add_daily_reward, \
     update_user_level, get_daily_reward_all
-from ..api.added_funcs import decode_init_data, transform_init_data, validate
+from ..api.added_funcs import decode_init_data, transform_init_data, validate, user_check_and_update
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
@@ -429,6 +429,8 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
+    user_check = await user_check_and_update(initData, db)
+
     user_boost = await get_user_boost(db, user.tg_id)
     if not user_boost:
         raise HTTPException(status_code=404, detail="User boost not found")
@@ -445,7 +447,8 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
             "boost_id": user_boost.boost_id,
             "user_money": user.money,
             "next_boost": None,
-            "boost_at_max_level": True
+            "boost_at_max_level": True,
+            "user_check": user_check
         }
         return response
 
@@ -470,36 +473,39 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
         "pillars_100": next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
     }
 
+    user_check = await user_check_and_update(initData, db)
+
     response = {
         "user_id": user_boost.user_id,
         "boost_id": user_boost.boost_id,
         "user_money": user.money,
         "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
-        "boost_at_max_level": next_boost_after_bought is None
+        "boost_at_max_level": next_boost_after_bought is None,
+        "user_check": user_check
     }
 
-    await ws_manager.notify_user(user.tg_id, {"event": "upgrade_boost", "data": {
-        "lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
-        "price":
-            next_boost_after_bought.price if next_boost_after_bought else None,
-        "tap_boost":
-            next_boost_after_bought.tap_boost if next_boost_after_bought else None,
-        "one_tap":
-            next_boost_after_bought.one_tap if next_boost_after_bought else None,
-        "pillars_2":
-            next_boost_after_bought.pillars_2 if next_boost_after_bought else None,
-        "pillars_10":
-            next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
-        "pillars_30":
-            next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
-        "pillars_100":
-            next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
-        "user_id": user_boost.user_id,
-        "boost_id": user_boost.boost_id,
-        "user_money": user.money,
-        "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
-        "boost_at_max_level": next_boost_after_bought is None
-    }})
+    # await ws_manager.notify_user(user.tg_id, {"event": "upgrade_boost", "data": {
+    #     "lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
+    #     "price":
+    #         next_boost_after_bought.price if next_boost_after_bought else None,
+    #     "tap_boost":
+    #         next_boost_after_bought.tap_boost if next_boost_after_bought else None,
+    #     "one_tap":
+    #         next_boost_after_bought.one_tap if next_boost_after_bought else None,
+    #     "pillars_2":
+    #         next_boost_after_bought.pillars_2 if next_boost_after_bought else None,
+    #     "pillars_10":
+    #         next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
+    #     "pillars_30":
+    #         next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
+    #     "pillars_100":
+    #         next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
+    #     "user_id": user_boost.user_id,
+    #     "boost_id": user_boost.boost_id,
+    #     "user_money": user.money,
+    #     "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
+    #     "boost_at_max_level": next_boost_after_bought is None
+    # }})
 
     return response
 
@@ -529,13 +535,15 @@ async def get_next_upgrade_func(initData: str = Header(...),
     return next_boost
 
 
-@user_route.post('/claim-daily-reward', response_model=DailyRewardResponse)
+@user_route.post('/claim-daily-reward')
 async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
     """
     Получаем дневную награду
     """
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
+
+    await user_check_and_update(initData, db)
 
     current_time = datetime.utcnow()
     received_last_daily_reward = user.received_last_daily_reward or current_time
@@ -569,19 +577,24 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
     if user.days_in_row >= max_reward_day:
         user.days_in_row = 0
 
+    user_check = await user_check_and_update(initData, db)
     await db.commit()
     await db.refresh(user)
     await db.refresh(daily_reward)
 
     await ws_manager.notify_user(user.tg_id, {"event": "claim_daily_reward", "data": {"day": daily_reward.day,
                                                                                       "reward": daily_reward.reward,
-                                                                                      "users_money": user.money}})
+                                                                                      "users_money": user.money}, "user_check": user_check})
 
-    return DailyRewardResponse(
-        day=daily_reward.day,
-        reward=daily_reward.reward,
-        total_money=user.money
-    )
+    # return DailyRewardResponse(
+    #     day=daily_reward.day,
+    #     reward=daily_reward.reward,
+    #     total_money=user.money
+    # )
+    return {"data": {"day": daily_reward.day,
+                     "reward": daily_reward.reward,
+                     "users_money": user.money},
+            "user_check": user_check}
 
 
 @user_route.post('/create-daily-reward')
@@ -656,6 +669,8 @@ async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_d
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
+    await user_check_and_update(initData, db)
+
     # Получаем текущую дату и время
     today = datetime.utcnow()
 
@@ -681,6 +696,7 @@ async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_d
         ad_watch.ads_watched += 1
         user.money += 10000  # Начисляем награду за каждый просмотр
 
+    user_check = await user_check_and_update(initData, db)
     await db.commit()
     await db.refresh(ad_watch)
     await db.refresh(user)
@@ -688,7 +704,8 @@ async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_d
     return {
         "ads_watched_today": ad_watch.ads_watched,
         "current_user_money": user.money,
-        "is_ads_collected": ad_watch.ads_watched >= 3
+        "is_ads_collected": ad_watch.ads_watched >= 3,
+        "user_check": user_check
     }
 
 
@@ -733,7 +750,8 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     await ws_manager.notify_user(user.tg_id, {"event": "game_result", "data": {"money_added": earned_coins,
                                                                                "users_money": user.money}})
 
-    return {"money_added": earned_coins, "users_money": user.money}
+    user_check = await user_check_and_update(initData, db)
+    return {"money_added": earned_coins, "users_money": user.money, "user_check": user_check}
 
 
 @user_route.get('/invited-users')
