@@ -80,7 +80,8 @@ const upgradeBoost = async () => {
 
   const res = await boostApiService.upgradeBoost();
   if (res && res.right) {
-    userStore.animationPlusMoney(-user!.next_boost.price);
+    userStore.animationPlusMoney(res.right.user_check.money - user!.money);
+    userStore.user!.earnings_per_hour = res.right.user_check.total_hourly_income;
     userStore.updateBoostData(res.right.next_boost);
     visibleBoostModal.value = false;
   }

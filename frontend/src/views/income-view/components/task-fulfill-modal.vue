@@ -38,9 +38,14 @@ const claimDailyReward = async () => {
   const res = await taskApiService.claimDailyTask();
   if (res && res.right) {
     taskStore.claimDailyTask();
-    userStore.moneyPlus(res.right.reward);
+    userStore.moneyPlus(res.right.user_check.money - userStore.user!.money);
     appStore.setSelectTaskForFulfill(null);
     appStore.playCoinAnimation();
+
+    if (res.right.user_check.info) {
+      userStore.setLevelUpData(res.right.user_check.info.data);
+      userStore.setLevelUpVisible(true);
+    }
   }
 }
 
@@ -49,9 +54,14 @@ const checkTask = async () => {
   const res = await taskApiService.checkTask(appStore.selectTaskForFulfill!.id);
   if (res && res.right) {
     taskStore.taskCompleted(checkTaskId);
-    userStore.user!.money += res.right.money_received;
+    userStore.moneyPlus(res.right.user_check.money - userStore.user!.money);
     appStore.setSelectTaskForFulfill(null);
     appStore.playCoinAnimation();
+
+    if (res.right.user_check.info) {
+      userStore.setLevelUpData(res.right.user_check.info.data);
+      userStore.setLevelUpVisible(true);
+    }
   }
 
   if (res && res.left) {

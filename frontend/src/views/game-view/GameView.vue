@@ -103,7 +103,12 @@ const getTextMysteryBox = () => {
 const sendGameResult = async () => {
   const res = await gameApiService.sendGameResult(gameStore.score, gameStore.columnsCount);
   if (res && res.right) {
-    userStore.moneyPlus(res.right.money_added);
+    userStore.moneyPlus(res.right.user_check.money - userStore.user!.money);
+
+    if (res.right.user_check.info) {
+      userStore.setLevelUpData(res.right.user_check.info.data);
+      userStore.setLevelUpVisible(true);
+    }
   }
 }
 

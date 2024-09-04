@@ -95,8 +95,8 @@ const handleAccept = async () => {
   isLoading.value = true
   const res = await coinApiService.upgradeCoin(improvementsStore.selectCoinForImpro.id, userStore.user.tg_id); // todo поправить после исправление в бэке
   if (res.right) {
-    userStore.animationPlusMoney(-(improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0));
-    userStore.user.earnings_per_hour += ((improvementsStore.selectCoinForImpro.factor_at_new_lvl ?? 0) - (improvementsStore.selectCoinForImpro.factor ?? 0));
+    userStore.animationPlusMoney(res.right.user_check.money - userStore.user.money);
+    userStore.user.earnings_per_hour = res.right.user_check.total_hourly_income;
     improvementsStore.selectCoinForImpro.price_of_next_lvl = res.right.price_of_next_lvl;
     improvementsStore.selectCoinForImpro.factor_at_new_lvl = res.right.factor_at_new_lvl;
     improvementsStore.selectCoinForImpro.factor = res.right.current_factor;
@@ -109,6 +109,11 @@ const handleAccept = async () => {
     }
     improvementsStore.setSelectCoinForImpro(null);
     appStore.playCoinAnimation();
+
+    if (res.right.user_check.info) {
+      userStore.setLevelUpData(res.right.user_check.info.data);
+      userStore.setLevelUpVisible(true);
+    }
   }
   isLoading.value = false;
 }

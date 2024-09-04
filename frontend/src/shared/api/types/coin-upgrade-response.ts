@@ -1,3 +1,5 @@
+import {UserCheck} from "@/shared/api/types/user-check.ts";
+
 interface CoinUpgradeResponse {
   user_remaining_money: number,
   upgrade_id: number,
@@ -13,7 +15,8 @@ interface CoinUpgradeResponse {
     upgrade_1_purchased: boolean,
     upgrade_2_purchased: boolean,
     upgrade_3_purchased: boolean,
-  }
+  },
+  user_check: UserCheck,
 }
 
 export default CoinUpgradeResponse;

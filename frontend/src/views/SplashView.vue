@@ -4,10 +4,7 @@ import AppIconButton from "@/components/AppIconButton.vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import UserApiService from "@/shared/api/services/user-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
-import log from 'loglevel';
-import SocketEventUpdate from "@/shared/api/types/socket-event-update.ts";
 import {useRoute, useRouter} from "vue-router";
-import LvlUpData from "@/shared/api/types/lvl-up-data.ts";
 import BonusImg from "@/assets/img/bonus.png";
 
 const userStore = useUserStore();
@@ -37,7 +34,6 @@ onMounted(async () => {
   };
 
   await router.isReady();
-  await Telegram.WebApp.ready();
 
   Telegram.WebApp.expand();
   Telegram.WebApp.disableVerticalSwipes();
@@ -62,31 +58,6 @@ onMounted(async () => {
   }
   userStore.setAuth(true);
   updateEachSecond();
-
-  const socket = new WebSocket(`wss://king-coin.online/api/ws/${userStore.user?.tg_id}`);
-  socket.onopen = () => {
-    log.info('Соединение установлено');
-  };
-
-  socket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    console.log("Socket data", data);
-    if (data.event === 'update') {
-      userStore.setMoneyUpdate(data.data as SocketEventUpdate);
-    } else if (data.event === 'new_lvl') {
-      userStore.setLevelUpData(data.data as LvlUpData);
-      userStore.setLevelUpVisible(true);
-    }
-  };
-
-  socket.onclose = (event) => {
-    if (event.wasClean) {
-      log.info('Соединение закрыто чисто');
-    } else {
-      log.info('Обрыв соединения');
-    }
-    log.info(`Код: ${event.code} | Причина: ${event.reason}`);
-  };
 })
 </script>
 
@@ -263,18 +234,6 @@ onMounted(async () => {
     .splash-loader-content-indicator-item:nth-child(7) {
       animation-delay: 1.2s;
     }
-  }
-}
-
-.content-monet {
-  position: absolute;
-
-  top: 0;
-  left: -44px;
-
-  img {
-    width: 57px;
-    height: 40px;
   }
 }
 
