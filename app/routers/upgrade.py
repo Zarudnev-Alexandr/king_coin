@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path, UploadFile, 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.added_funcs import decode_init_data, user_check_and_update_without_init_data
+from app.api.added_funcs import decode_init_data, user_check_and_update_without_init_data, \
+    user_check_and_update_without_init_data_only_money
 from app.cruds.task import get_invited_count, check_telegram_subscription
 from app.cruds.upgrade import get_upgrade_category_by_name, create_upgrade_category, get_upgrade_category_by_id, \
     get_upgrade_by_name, add_upgrade, get_upgrade_by_id, get_all_upgrades_in_shop, get_all_upgrades, \
@@ -224,7 +225,7 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await user_check_and_update_without_init_data(user, db)
+    await user_check_and_update_without_init_data_only_money(user, db)
 
     upgrade = await get_upgrade_by_id(db, upgrade_id)
     if not upgrade:

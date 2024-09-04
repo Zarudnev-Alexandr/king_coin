@@ -6,7 +6,7 @@ from environs import Env
 from fastapi import APIRouter, Depends, Header, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.added_funcs import decode_init_data, user_check_and_update
+from app.api.added_funcs import decode_init_data, user_check_and_update, user_check_and_update_only_money
 from app.cruds.task import add_task, get_task, get_user_task, get_invited_count, create_user_task, complete_user_task, \
     check_telegram_subscription, get_all_tasks, get_user_tasks
 from app.cruds.user import get_user
@@ -60,7 +60,7 @@ async def start_generic_task(task_id: int, initData: str = Header(...), db: Asyn
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
-    await user_check_and_update(initData, db)
+    await user_check_and_update_only_money(initData, db)
 
     task = await get_task(db, task_id)
     if not task:
@@ -91,7 +91,7 @@ async def check_task_completion(task_id: int, initData: str = Header(...), db: A
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
-    await user_check_and_update(initData, db)
+    await user_check_and_update_only_money(initData, db)
 
     task = await get_task(db, task_id)
     if not task:

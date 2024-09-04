@@ -12,7 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
     get_boost_by_lvl, get_next_boost, upgrade_user_boost, get_user_bool, get_daily_reward, add_daily_reward, \
     update_user_level, get_daily_reward_all
-from ..api.added_funcs import decode_init_data, transform_init_data, validate, user_check_and_update
+from ..api.added_funcs import decode_init_data, transform_init_data, validate, user_check_and_update, \
+    user_check_and_update_only_money
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
 from ..database import get_db
@@ -429,7 +430,7 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
-    user_check = await user_check_and_update(initData, db)
+    await user_check_and_update_only_money(initData, db)
 
     user_boost = await get_user_boost(db, user.tg_id)
     if not user_boost:
@@ -441,6 +442,7 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
 
     next_boost = await get_next_boost(db, current_boost.lvl)
     if not next_boost:
+        user_check = await user_check_and_update(initData, db)
         # Если следующего буста нет, возвращаем текущий статус с флагом "буст на максимальном уровне"
         response = {
             "user_id": user_boost.user_id,
@@ -543,7 +545,7 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
-    await user_check_and_update(initData, db)
+    await user_check_and_update_only_money(initData, db)
 
     current_time = datetime.utcnow()
     received_last_daily_reward = user.received_last_daily_reward or current_time
@@ -669,7 +671,7 @@ async def watch_ad(initData: str = Header(...), db: AsyncSession = Depends(get_d
     init_data_decode = await decode_init_data(initData, db)
     user = init_data_decode["user"]
 
-    await user_check_and_update(initData, db)
+    await user_check_and_update_only_money(initData, db)
 
     # Получаем текущую дату и время
     today = datetime.utcnow()
