@@ -126,39 +126,39 @@ async def user_income_task(user_id: int, db: AsyncSession, user, levels_list):
             await db.rollback()
             await asyncio.sleep(10)  # Немного подождем перед повтором цикла в случае ошибки
 
-@websocket_router.websocket("/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int):
-    async with get_db_for_websockets() as db:
-        user = await get_user(db, user_id)
-
-        if not user:
-            await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA)
-            return
-
-        levels = await db.execute(select(Level).order_by(Level.lvl))
-        levels = levels.unique().scalars().all()
-
-        levels_list = [level for level in levels if level.lvl > user.lvl]
-
-        try:
-            await ws_manager.connect(user_id, websocket)
-
-            # Запуск задачи для обновления дохода пользователя
-            task = asyncio.create_task(user_income_task(user_id, db, user, levels_list))
-            ws_manager.tasks[user_id] = task
-
-            # Ожидание сообщений от клиента
-            while True:
-                await websocket.receive_text()
-        except WebSocketDisconnect:
-            logger.info(f"WebSocket disconnected for user {user_id}")
-            ws_manager.disconnect(user_id)
-        finally:
-            ws_manager.disconnect(user_id)
-            if task:
-                task.cancel()  # Отменяем задачу при отключении вебсокета
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    logger.info(f"Task for user {user_id} cancelled")
+# @websocket_router.websocket("/{user_id}")
+# async def websocket_endpoint(websocket: WebSocket, user_id: int):
+#     async with get_db_for_websockets() as db:
+#         user = await get_user(db, user_id)
+#
+#         if not user:
+#             await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA)
+#             return
+#
+#         levels = await db.execute(select(Level).order_by(Level.lvl))
+#         levels = levels.unique().scalars().all()
+#
+#         levels_list = [level for level in levels if level.lvl > user.lvl]
+#
+#         try:
+#             await ws_manager.connect(user_id, websocket)
+#
+#             # Запуск задачи для обновления дохода пользователя
+#             task = asyncio.create_task(user_income_task(user_id, db, user, levels_list))
+#             ws_manager.tasks[user_id] = task
+#
+#             # Ожидание сообщений от клиента
+#             while True:
+#                 await websocket.receive_text()
+#         except WebSocketDisconnect:
+#             logger.info(f"WebSocket disconnected for user {user_id}")
+#             ws_manager.disconnect(user_id)
+#         finally:
+#             ws_manager.disconnect(user_id)
+#             if task:
+#                 task.cancel()  # Отменяем задачу при отключении вебсокета
+#                 try:
+#                     await task
+#                 except asyncio.CancelledError:
+#                     logger.info(f"Task for user {user_id} cancelled")
 
