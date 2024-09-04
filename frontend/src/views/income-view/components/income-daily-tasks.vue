@@ -67,12 +67,17 @@ const handleDailyAd = async () => {
 
     const res = await tasksApiService.confirmWatchedAd();
     if (res && res.right && incomeStore.dailyTask) {
-      userStore.moneyPlus(adTask.value.reward);
+      userStore.moneyPlus(res.right.user_check.money - userStore.user!.money);
       incomeStore.dailyTask.ads_watched_today += 1;
       adTask.value.name = t('watch_an_ad', {count: incomeStore.dailyTask?.ads_watched_today ?? 0});
       adTask.value.completed = incomeStore.dailyTask.ads_watched_today >= 3;
       userStore.vibrationService.medium();
       appStore.playCoinAnimation();
+
+      if (res.right.user_check.info) {
+        userStore.setLevelUpData(res.right.user_check.info.data);
+        userStore.setLevelUpVisible(true);
+      }
     }
 
   }).catch((result: ShowPromiseResult) => {

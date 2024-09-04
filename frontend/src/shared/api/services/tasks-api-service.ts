@@ -5,6 +5,7 @@ import Task from "@/shared/api/types/task.ts";
 import TaskDaily from "@/shared/api/types/task-daily.ts";
 import TaskDailyClaim from "@/shared/api/types/task-daily-claim.ts";
 import CheckTask from "@/shared/api/types/check-task.ts";
+import {UserCheck} from "@/shared/api/types/user-check.ts";
 
 class TasksApiService {
   private readonly taskApi = '/tasks/tasks';
@@ -45,9 +46,9 @@ class TasksApiService {
     })
   }
 
-  public async confirmWatchedAd(): Promise<Either<CommonResponseError, { message: string }>> {
-    return this.errorHandler.processRequest<{ message: string }>(async () => {
-      const response = await this.client.post<{ message: string }>(this.confirmWatchAd);
+  public async confirmWatchedAd(): Promise<Either<CommonResponseError, { message: string, user_check: UserCheck }>> {
+    return this.errorHandler.processRequest<{ message: string, user_check: UserCheck }>(async () => {
+      const response = await this.client.post<{ message: string, user_check: UserCheck }>(this.confirmWatchAd);
       return response.data;
     })
   }
