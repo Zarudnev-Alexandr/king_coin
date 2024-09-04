@@ -584,18 +584,18 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
     await db.refresh(user)
     await db.refresh(daily_reward)
 
-    await ws_manager.notify_user(user.tg_id, {"event": "claim_daily_reward", "data": {"day": daily_reward.day,
-                                                                                      "reward": daily_reward.reward,
-                                                                                      "users_money": user.money}, "user_check": user_check})
+    # await ws_manager.notify_user(user.tg_id, {"event": "claim_daily_reward", "data": {"day": daily_reward.day,
+    #                                                                                   "reward": daily_reward.reward,
+    #                                                                                   "users_money": user.money}, "user_check": user_check})
 
     # return DailyRewardResponse(
     #     day=daily_reward.day,
     #     reward=daily_reward.reward,
     #     total_money=user.money
     # )
-    return {"data": {"day": daily_reward.day,
-                     "reward": daily_reward.reward,
-                     "users_money": user.money},
+    return {"day": daily_reward.day,
+            "reward": daily_reward.reward,
+            "users_money": user.money,
             "user_check": user_check}
 
 
@@ -849,9 +849,9 @@ async def delete_user(initData: str = Header(...), db: AsyncSession = Depends(ge
 
 @user_route.get('/leaderboard')
 async def get_leaderboard(
-    category: str = Query(..., regex="^(columns|money|hourly_income)$"),
-    initData: str = Header(...),
-    db: AsyncSession = Depends(get_db)
+        category: str = Query(..., regex="^(columns|money|hourly_income)$"),
+        initData: str = Header(...),
+        db: AsyncSession = Depends(get_db)
 ):
     """
     Получаем топ 10 игроков в выбранной категории: количество пройденных колонн (columns),
@@ -887,7 +887,8 @@ async def get_leaderboard(
         # Иначе вычисляем ранг пользователя, если он не в топ-10
         if category == "columns":
             user_rank_query = select(func.count(User.tg_id)).where(
-                func.coalesce(User.number_of_columns_passed, 0) > func.coalesce(current_user.number_of_columns_passed, 0)
+                func.coalesce(User.number_of_columns_passed, 0) > func.coalesce(current_user.number_of_columns_passed,
+                                                                                0)
             )
         elif category == "money":
             user_rank_query = select(func.count(User.tg_id)).where(
@@ -923,3 +924,10 @@ async def get_leaderboard(
     }
 
     return {"leaderboard": leaderboard, "current_user": current_user_data}
+
+
+@user_route.get("/get_current_user_state")
+async def get_current_user_state(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    user_check = await user_check_and_update(initData, db)
+    if user_check:
+        return user_check
