@@ -10,7 +10,32 @@ import BonusImg from "@/assets/img/bonus.png";
 const userStore = useUserStore();
 const route = useRoute();
 const router = useRouter();
+
 const userApiService = new UserApiService(axiosInstance, errorHandler);
+
+const checkUserState = async () => {
+  if (!userStore.user?.next_level_data.lvl) {
+    return;
+  }
+
+  if (userStore.user.next_level_data.required_money === 0 || userStore.checkUserLoading) {
+    return;
+  }
+
+  if (userStore.user.next_level_data.required_money > userStore.user.money) return;
+
+  userStore.setCheckUserLoading(true)
+  const res = await userApiService.currentState();
+
+  if (res && res.right) {
+    userStore.moneyPlus(res.right.money - userStore.user!.money);
+
+    if (res.right.info) {
+      userStore.setLevelUpData(res.right.info.data);
+      userStore.setLevelUpVisible(true);
+    }
+  }
+}
 
 const updateEachSecond = () => {
 
@@ -21,7 +46,7 @@ const updateEachSecond = () => {
 
     const moneyOnSec = userStore.user.earnings_per_hour / 3600;
     userStore.moneyPlus(moneyOnSec);
-
+    checkUserState();
   }, 1000);
 }
 

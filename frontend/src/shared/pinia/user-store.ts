@@ -14,6 +14,8 @@ export const useUserStore = defineStore('userStore', () => {
   const levelUpData = ref<LvlUpData | null>(null);
   const offlineBonusConfirm = ref(false);
   const vibrationService = new VibrationService();
+  const checkUserLoading = ref(false);
+
   let playImproPulseAnimation = () => {
   }
   let playPulseAnimation = () => {
@@ -31,6 +33,10 @@ export const useUserStore = defineStore('userStore', () => {
     if (user.value) {
       user.value.money += money;
     }
+  }
+
+  const setCheckUserLoading = (state: boolean) => {
+    checkUserLoading.value = state;
   }
 
   const setPulseAnimationMethod = (pulseAnimation: () => void) => {
@@ -131,5 +137,7 @@ export const useUserStore = defineStore('userStore', () => {
     setImproPulseAnimationMethod,
     animationPlusMoney,
     offlineBonusConfirm,
+    checkUserLoading,
+    setCheckUserLoading,
   };
 });

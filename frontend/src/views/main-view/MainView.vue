@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 100%;
+  min-width: 100%;
   height: 100%;
   background-image: url('@/assets/img/main-view-bg.webp');
   background-repeat: no-repeat;
@@ -203,6 +203,7 @@ onBeforeUnmount(() => {
   background-position: center;
   position: relative;
   box-sizing: border-box;
+  overflow-y: auto;
 
   .boost-modal-wrapper {
     display: flex;
