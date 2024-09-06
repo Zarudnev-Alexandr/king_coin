@@ -17,6 +17,8 @@ const handleClick = () => {
     return;
   }
 
+  if (props.taskItem.completed) return;
+
   appStore.setSelectTaskForFulfill(props.taskItem);
 }
 </script>
