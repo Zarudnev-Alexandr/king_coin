@@ -16,6 +16,5 @@ app.directive('set-screen-height', setScreenHeight);
 
 app.use(i18n);
 app.use(pinia);
-Telegram.WebApp.expand();
 Telegram.WebApp.disableVerticalSwipes();
 app.mount('#app')
