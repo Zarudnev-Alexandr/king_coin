@@ -3,13 +3,14 @@ interface Props {
   buttonText?: string;
   disabledText?: string;
   isDisabled?: boolean;
+  isLoading?: boolean
 }
 
 const props = defineProps<Props>();
 const emits = defineEmits(['onAccept']);
 
 const handleOnAccept = () => {
-  if (props.isDisabled) return;
+  if (props.isDisabled || props.isLoading) return;
 
   emits('onAccept');
 }
@@ -17,7 +18,7 @@ const handleOnAccept = () => {
 
 <template>
   <div class="modal-action-button-wrapper"
-       :class="{ 'active-bg': !props.isDisabled, 'disabled-bg': props.isDisabled }"
+       :class="{ 'active-bg': !props.isDisabled && !props.isLoading, 'loading-bg': props.isLoading ,'disabled-bg': props.isDisabled && !props.isLoading }"
        @click="handleOnAccept"
   >
     <svg width="93" height="47" viewBox="0 0 93 47" fill="none" xmlns="http://www.w3.org/2000/svg"
@@ -38,7 +39,14 @@ const handleOnAccept = () => {
           fill="white"/>
     </svg>
     <slot>
-      <span class="action-button-title">{{ props.isDisabled ? props.disabledText : props.buttonText }}</span>
+      <span v-if="!isLoading" class="action-button-title">{{
+          props.isDisabled ? props.disabledText : props.buttonText
+        }}</span>
+      <div v-else class="loading-indicator">
+        <span class="indicator-item"/>
+        <span class="indicator-item"/>
+        <span class="indicator-item"/>
+      </div>
     </slot>
   </div>
 </template>
@@ -69,7 +77,45 @@ const handleOnAccept = () => {
   background: radial-gradient(120.14% 120.14% at 50% -11.81%, #FFFFFF 0%, #FFE531 20%, #FFA531 74.03%, #FF8200 100%);
 }
 
+.loading-bg {
+  background: radial-gradient(120.14% 120.14% at 50% -11.81%, #FFFFFF 0%, #EFD41C 20%, #EB8D14 74.03%, #DD7100 100%);
+}
+
 .disabled-bg {
   background-color: rgba(160, 116, 50, 1);
+}
+
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+
+  .indicator-item {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    animation: loader 0.6s infinite;
+  }
+
+  .indicator-item:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .indicator-item:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .indicator-item:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+}
+
+@keyframes loader {
+  0%, 20%, 100% {
+    background-color: rgba(93, 56, 0, 0.5);
+  }
+  10% {
+    background-color: rgba(93, 56, 0, 1);
+  }
 }
 </style>

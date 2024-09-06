@@ -11,12 +11,14 @@ import ModalActionButton from "@/components/ModalActionButton.vue";
 import {useI18n} from "vue-i18n";
 import {ToastType} from "@/shared/api/types/toast.ts";
 import TaskFulfillInivteContent from "@/views/income-view/components/task-fulfill-inivte-content.vue";
+import {ref} from "vue";
 
 const appStore = useAppStore();
 const taskStore = useIncomeStore();
 const userStore = useUserStore()
 const taskApiService = new TasksApiService(axiosInstance, errorHandler);
 const {t} = useI18n();
+const isLoading = ref(false);
 
 const handleClose = () => {
   appStore.setSelectTaskForFulfill(null);
@@ -35,6 +37,7 @@ const handleAccept = () => {
 }
 
 const claimDailyReward = async () => {
+  isLoading.value = true;
   const res = await taskApiService.claimDailyTask();
   if (res && res.right) {
     taskStore.claimDailyTask();
@@ -46,11 +49,16 @@ const claimDailyReward = async () => {
       userStore.setLevelUpData(res.right.user_check.info.data);
       userStore.setLevelUpVisible(true);
     }
+  } else {
+    appStore.pushToast(ToastType.ERROR, "Произашло ошибка, попробуйте позже!")
   }
+
+  isLoading.value = false;
 }
 
 const checkTask = async () => {
   const checkTaskId = appStore.selectTaskForFulfill!.id;
+  isLoading.value = true;
   const res = await taskApiService.checkTask(appStore.selectTaskForFulfill!.id);
   if (res && res.right) {
     taskStore.taskCompleted(checkTaskId);
@@ -63,6 +71,8 @@ const checkTask = async () => {
       userStore.setLevelUpVisible(true);
     }
   }
+
+  isLoading.value = false;
 
   if (res && res.left) {
     console.log(res.left);
@@ -102,6 +112,7 @@ const getMainButtonText = () => {
           :button-text="getMainButtonText()"
           @on-accept="handleAccept"
           :is-disabled="isDisabled()"
+          :is-loading="isLoading"
           :disabled-text="isDisabled() ? $t('see_you_tomorrow') : $t('claim')"
       />
     </template>

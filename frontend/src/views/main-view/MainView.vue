@@ -21,13 +21,17 @@ import Level10Image from "@/assets/img/level/character-10.webp"
 import BoostApiService from "@/shared/api/services/boost-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import ModalActionButton from "@/components/ModalActionButton.vue";
+import {useAppStore} from "@/shared/pinia/app-store.ts";
+import {ToastType} from "@/shared/api/types/toast.ts";
 
 const router = useRouter();
 const visibleBoostModal = ref(false);
+const appStore = useAppStore()
 const userStore = useUserStore();
 const user = userStore.user;
 const boostApiService = new BoostApiService(axiosInstance, errorHandler);
 const isAnimating = ref(false);
+const boostLoading = ref(false);
 
 const gotoRatingView = () => {
   router.push({name: 'Rating'});
@@ -78,13 +82,18 @@ const openBoostModal = () => {
 const upgradeBoost = async () => {
   if (user!.money < user!.next_boost.price) return;
 
+  boostLoading.value = true
   const res = await boostApiService.upgradeBoost();
   if (res && res.right) {
     userStore.animationPlusMoney(res.right.user_check.money - user!.money);
     userStore.user!.earnings_per_hour = res.right.user_check.total_hourly_income;
     userStore.updateBoostData(res.right.next_boost);
     visibleBoostModal.value = false;
+  } else {
+    appStore.pushToast(ToastType.ERROR, "Произашло ошибка, попробуйте позже!")
   }
+
+  boostLoading.value = false;
 }
 
 const isDisabled = () => {
@@ -183,6 +192,7 @@ onBeforeUnmount(() => {
             :button-text="$t('get_it')"
             @on-accept="upgradeBoost"
             :is-disabled="isDisabled()"
+            :is-loading="boostLoading"
             :disabled-text="isDisabled() ? $t('no_money') : $t('get_it')"
         />
       </template>

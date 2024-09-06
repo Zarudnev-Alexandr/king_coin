@@ -41,13 +41,13 @@ const checkSubscribe = async () => {
   isLoading.value = true
   const cardId = improvementsStore.selectCoinForImpro?.id;
   const res = await coinApiService.checkIsAvailable(improvementsStore.selectCoinForImpro!);
-  isLoading.value = false
   if (res && res.right && improvementsStore.selectCoinForImpro) {
     const card = improvementsStore.getCardById(cardId);
     if (card) card.conditions_met = true;
   } else if (res && res.left) {
     appStore.pushToast(ToastType.ERROR, t('no_subscription'));
   }
+  isLoading.value = false
 }
 
 const checkCombo = (res: CoinUpgradeResponse) => {
@@ -114,7 +114,10 @@ const handleAccept = async () => {
       userStore.setLevelUpData(res.right.user_check.info.data);
       userStore.setLevelUpVisible(true);
     }
+  } else {
+    appStore.pushToast(ToastType.ERROR, "Произашло ошибка, попробуйте позже!")
   }
+
   isLoading.value = false;
 }
 
@@ -183,6 +186,7 @@ const mainButtonText = computed(() => {
           :button-text="mainButtonText"
           @on-accept="handleAccept"
           :is-disabled="isDisabled()"
+          :is-loading="isLoading"
           :disabled-text="isDisabled() ? $t('no_money') : $t('get_it')"
       />
     </template>
