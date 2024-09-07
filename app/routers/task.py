@@ -39,6 +39,7 @@ async def create_task(task: TaskCreateSchema, db: AsyncSession = Depends(get_db)
     task_data = {
         "name": task.name,
         "description": task.description,
+        "english_description": task.english_description,
         "type": task.type,
         "reward": task.reward,
         "requirement": task.requirement,
