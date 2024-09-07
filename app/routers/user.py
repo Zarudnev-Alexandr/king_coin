@@ -584,15 +584,6 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
     await db.refresh(user)
     await db.refresh(daily_reward)
 
-    # await ws_manager.notify_user(user.tg_id, {"event": "claim_daily_reward", "data": {"day": daily_reward.day,
-    #                                                                                   "reward": daily_reward.reward,
-    #                                                                                   "users_money": user.money}, "user_check": user_check})
-
-    # return DailyRewardResponse(
-    #     day=daily_reward.day,
-    #     reward=daily_reward.reward,
-    #     total_money=user.money
-    # )
     return {"day": daily_reward.day,
             "reward": daily_reward.reward,
             "users_money": user.money,
@@ -632,6 +623,9 @@ async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = D
 
     # Получаем текущую дату
     today = datetime.utcnow()
+
+    if last_received and today > last_received + timedelta(days=2):
+        days_in_row = 0
 
     # Проверяем, была ли награда уже получена сегодня
     if last_received and today < last_received + timedelta(hours=24):
