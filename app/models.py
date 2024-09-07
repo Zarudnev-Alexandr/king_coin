@@ -211,6 +211,7 @@ class Task(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
     name: Mapped[str] = mapped_column(String, unique=True)
     description: Mapped[str] = mapped_column(Text, nullable=True)
+    english_description: Mapped[str] = mapped_column(Text, nullable=True)
     type: Mapped[TaskType] = mapped_column(Enum(TaskType))
     reward: Mapped[int] = mapped_column(Integer)
     requirement: Mapped[int] = mapped_column(BigInteger, nullable=True)
@@ -224,6 +225,7 @@ class Task(Base):
             "id": self.id,
             "name": self.name,
             "description": self.description,
+            "english_description": self.english_description,
             "type": self.type,
             "reward": self.reward,
             "link": self.link,
