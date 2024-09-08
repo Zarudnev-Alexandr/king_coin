@@ -12,9 +12,9 @@ class UserApiService {
   constructor(private client: AxiosInstance, private errorHandler: AxiosErrorHandler) {
   }
 
-  public async getCurrentUser(ref: string | undefined | null): Promise<Either<CommonResponseError, User>> {
-    if (ref) {
-      this.userApi += `?ref=${ref}`;
+  public async getCurrentUser(): Promise<Either<CommonResponseError, User>> {
+    if (Telegram.WebApp.initDataUnsafe.start_param) {
+      this.userApi += `?ref=${Telegram.WebApp.initDataUnsafe.start_param}`;
     }
 
     return this.errorHandler.processRequest<User>(async () => {

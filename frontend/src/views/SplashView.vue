@@ -4,12 +4,9 @@ import AppIconButton from "@/components/AppIconButton.vue";
 import {useUserStore} from "@/shared/pinia/user-store.ts";
 import UserApiService from "@/shared/api/services/user-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
-import {useRoute, useRouter} from "vue-router";
 import BonusImg from "@/assets/img/bonus.png";
 
 const userStore = useUserStore();
-const route = useRoute();
-const router = useRouter();
 
 const userApiService = new UserApiService(axiosInstance, errorHandler);
 
@@ -58,15 +55,7 @@ onMounted(async () => {
   img.onerror = () => {
   };
 
-  await router.isReady();
-
-  let ref = null;
-
-  if (route.query.ref) {
-    ref = route.query.ref;
-  }
-
-  const response = await userApiService.getCurrentUser(ref as string);
+  const response = await userApiService.getCurrentUser();
   if (response.left) {
     return;
   }
