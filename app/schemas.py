@@ -188,6 +188,7 @@ class InitDataSchema(BaseModel):
 class TaskBaseSchema(BaseModel):
     name: str
     description: str
+    english_description: str
     type: TaskType
     reward: int
     requirement: Optional[int] = None
