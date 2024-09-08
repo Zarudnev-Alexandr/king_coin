@@ -1,5 +1,6 @@
 interface Task {
   name: string;
+  english_description: string;
   description: string;
   type: string;
   reward: number;

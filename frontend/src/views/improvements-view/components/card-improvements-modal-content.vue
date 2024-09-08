@@ -115,7 +115,7 @@ const handleAccept = async () => {
       userStore.setLevelUpVisible(true);
     }
   } else {
-    appStore.pushToast(ToastType.ERROR, "Произашло ошибка, попробуйте позже!")
+    appStore.pushToast(ToastType.ERROR, t('request_error_text'))
   }
 
   isLoading.value = false;

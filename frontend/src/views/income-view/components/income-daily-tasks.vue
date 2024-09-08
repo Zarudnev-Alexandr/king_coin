@@ -36,6 +36,7 @@ const getWatchedAdsCount = computed(() => {
 const task = ref<Task>({
   name: t('daily_reward'),
   description: t('largest_telegram_channel'),
+  english_description: t('daily_reward'),
   type: "daily",
   reward: getCurrentDailyReward.value,
   requirement: 4,
@@ -48,6 +49,7 @@ const task = ref<Task>({
 
 const adTask: Ref<Task> = ref({
   name: t('watch_an_ad', {count: incomeStore.dailyTask?.ads_watched_today ?? 0}),
+  english_description: t('watch_an_ad', {count: incomeStore.dailyTask?.ads_watched_today ?? 0}),
   description: "Посмотрите рекламу и получите 3 монеты",
   type: "ad",
   reward: incomeStore.dailyTask?.ads_reward ?? 0,

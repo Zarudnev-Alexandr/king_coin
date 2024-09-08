@@ -23,9 +23,11 @@ import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts"
 import ModalActionButton from "@/components/ModalActionButton.vue";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 import {ToastType} from "@/shared/api/types/toast.ts";
+import {useI18n} from "vue-i18n";
 
 const router = useRouter();
 const visibleBoostModal = ref(false);
+const {t} = useI18n();
 const appStore = useAppStore()
 const userStore = useUserStore();
 const user = userStore.user;
@@ -89,8 +91,9 @@ const upgradeBoost = async () => {
     userStore.user!.earnings_per_hour = res.right.user_check.total_hourly_income;
     userStore.updateBoostData(res.right.next_boost);
     visibleBoostModal.value = false;
+    appStore.playCoinAnimation();
   } else {
-    appStore.pushToast(ToastType.ERROR, "Произашло ошибка, попробуйте позже!")
+    appStore.pushToast(ToastType.ERROR, t('request_error_text'))
   }
 
   boostLoading.value = false;

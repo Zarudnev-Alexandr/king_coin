@@ -2,6 +2,7 @@
 import CoinCountItem from "@/views/friends-view/components/coin-count-item.vue";
 import {useAppStore} from "@/shared/pinia/app-store.ts";
 import Task from "@/shared/api/types/task.ts";
+import {useSettingsStore} from "@/shared/pinia/settings-store.ts";
 
 interface Props {
   taskItem: Task;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 const appStore = useAppStore();
+const settingsStore = useSettingsStore();
 const props: Props = defineProps<Props>();
 
 const handleClick = () => {
@@ -16,8 +18,6 @@ const handleClick = () => {
     props.customHandle();
     return;
   }
-
-  if (props.taskItem.completed) return;
 
   appStore.setSelectTaskForFulfill(props.taskItem);
 }
@@ -29,7 +29,9 @@ const handleClick = () => {
       <img :src="props.taskItem.image_url" alt="" class="task-avatar">
       <img src="@/assets/svg/income/task-is-done-icon.png" alt="" class="is-done-icon" v-if="props.taskItem.completed">
     </div>
-    <h2 class="sf-pro-font">{{ props.taskItem.name }}</h2>
+    <h2 class="sf-pro-font">{{
+        settingsStore.currenLanguage?.short === 'ru' ? props.taskItem.name : props.taskItem.english_description
+      }}</h2>
     <CoinCountItem :count="props.taskItem.reward" format-number="withSpace"/>
   </div>
 </template>

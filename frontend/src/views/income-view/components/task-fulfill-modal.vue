@@ -50,7 +50,7 @@ const claimDailyReward = async () => {
       userStore.setLevelUpVisible(true);
     }
   } else {
-    appStore.pushToast(ToastType.ERROR, "Произашло ошибка, попробуйте позже!")
+    appStore.pushToast(ToastType.ERROR, t('request_error_text'))
   }
 
   isLoading.value = false;
@@ -90,6 +90,7 @@ const checkTask = async () => {
 }
 
 const getMainButtonText = () => {
+  if (appStore.selectTaskForFulfill?.completed) return t('completed');
   if (appStore.selectTaskForFulfill?.type === 'generic') {
     return t('check');
   } else if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram') {
