@@ -714,7 +714,7 @@ async def get_referral_link_api(initData: str = Header(...), db: AsyncSession = 
     user = init_data_decode["user"]
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    referral_link = f"https://t.me/KingCoin_ebot/launch?start=ref_{user.tg_id}"
+    referral_link = f"https://t.me/KingCoin_ebot/launch?startapp={user.tg_id}"
     return {"referral_link": referral_link}
 
 
