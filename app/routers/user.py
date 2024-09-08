@@ -209,6 +209,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             raise HTTPException(status_code=400, detail="Invalid ref parameter")
 
     data_from_init_data = await decode_init_data(initData, db)
+    print('🤩🤩', data_from_init_data)
 
     tg_id = data_from_init_data["tg_id"]
     username = data_from_init_data["username"]
@@ -392,6 +393,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         }
 
         await db.close()
+        print(user_data)
         return user_data
 
 
