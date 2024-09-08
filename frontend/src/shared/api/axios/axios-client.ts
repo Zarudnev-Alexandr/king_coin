@@ -16,7 +16,7 @@ class AxiosClientCreator {
       timeout: this.defaultConnectTimeout,
       headers: {
         'Content-Type': 'application/json',
-        'initData': Telegram.WebApp.initData !== '' ? JSON.stringify(Telegram.WebApp.initData) : testInitData,
+        'initData': Telegram.WebApp.initData !== '' ? Telegram.WebApp.initData : testInitData,
       },
     });
 
