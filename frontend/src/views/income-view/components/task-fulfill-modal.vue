@@ -25,7 +25,10 @@ const handleClose = () => {
 }
 
 const isDisabled = () => {
-  return appStore.selectTaskForFulfill?.type === 'daily' && taskStore.dailyTask?.is_collect;
+  if (appStore.selectTaskForFulfill?.type === 'daily') {
+    return taskStore.dailyTask?.is_collect;
+  }
+  return appStore.selectTaskForFulfill?.completed;
 }
 
 const handleAccept = () => {
@@ -75,7 +78,6 @@ const checkTask = async () => {
   isLoading.value = false;
 
   if (res && res.left) {
-    console.log(res.left);
     if (appStore.selectTaskForFulfill?.type === 'generic') {
       if (res.left.message === 'Task not started yet') {
         appStore.pushToast(ToastType.ERROR, t('not_completed_task'));
@@ -90,7 +92,6 @@ const checkTask = async () => {
 }
 
 const getMainButtonText = () => {
-  if (appStore.selectTaskForFulfill?.completed) return t('completed');
   if (appStore.selectTaskForFulfill?.type === 'generic') {
     return t('check');
   } else if (appStore.selectTaskForFulfill?.type === 'subscribe_telegram') {
@@ -99,6 +100,15 @@ const getMainButtonText = () => {
     return t('check');
   }
   return t('claim');
+}
+
+const getDisabledButtonText = () => {
+  if (!isDisabled()) return t('claim');
+  if (appStore.selectTaskForFulfill?.type === 'daily') {
+    return t('see_you_tomorrow')
+  }
+
+  return t('completed');
 }
 </script>
 
@@ -114,7 +124,7 @@ const getMainButtonText = () => {
           @on-accept="handleAccept"
           :is-disabled="isDisabled()"
           :is-loading="isLoading"
-          :disabled-text="isDisabled() ? $t('see_you_tomorrow') : $t('claim')"
+          :disabled-text="getDisabledButtonText()"
       />
     </template>
     <template #default>
