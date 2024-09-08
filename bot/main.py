@@ -41,107 +41,56 @@ async def command_start_process(message: types.Message,
     inviter_id = command.args.split("_")[1] if command.args else ''
     checked_inviter_id = await check_args(inviter_id, message.from_user.id)
 
-    # Собираем данные для регистрации
-    # init_data = {
-    #     "id": message.from_user.id,
-    #     "username": message.from_user.username or "",
-    #     "first_name": message.from_user.first_name or "",
-    #     "last_name": message.from_user.last_name or "",
-    #     "invited_tg_id": int(checked_inviter_id) if checked_inviter_id != '0' else None,
-    #     "is_premium": message.from_user.is_premium  # Если у пользователя есть Telegram Premium
-    # }
-    #
-    # url = f'{API_URL}users/logreg'
-    #
-    # # Преобразуем init_data в строку JSON
-    # init_data_json = json.dumps(init_data)
-    #
-    # # Создаем заголовки
-    # headers = {
-    #     'Content-Type': 'application/json',
-    #     'initData': init_data_json
-    # }
-    #
-    # async with aiohttp.ClientSession() as session:
-    #     async with session.post(url, headers=headers) as resp:
-    #         if resp.status == 200:
-    #             user_data = await resp.json()
-    #             print("User registered:", user_data)
-    #         else:
-    #             print("Error registering user:", await resp.text())
-
-
-
     builder = InlineKeyboardBuilder()
-    builder.add(
-        InlineKeyboardButton(text=f'Начать играть с начальным бонусом', web_app=types.WebAppInfo(
+    builder.row(
+        InlineKeyboardButton(text=f'Играть сейчас! 👑', web_app=types.WebAppInfo(
             url=f'https://king-coin.online:444?ref={int(checked_inviter_id) if checked_inviter_id != "0" else None}'))
+    )
+    builder.row(
+        InlineKeyboardButton(text='Подписаться на сообщество', url='https://t.me/kingcoin_com'),
+    )
+    builder.row(
+        InlineKeyboardButton(text='Наш сайт', url='https://kingcoin.tech/')
     )
 
     await message.answer(
-        "🌟 Добро пожаловать!",
+        """
+        Привет, King!
+Твоя задача - стать самой большой обезьяной в крипто-джунглях!🌴
+Быстрее прыгай в самолёт и начинай собирать монеты. Собирай активы, анализируй прибыльность инвестиций, разумно распоряжайтесь ресурсами и получи престижный титул King Coin.
+Собирай свою стаю, приглашая новых друзей в игру - мы щедро вознаградим твоё участие во время листинга.
+А так же не забывай, что KingCoin каждую неделю раздает 150 TON за активность в игре и за её пределами.
+Удачи! Джунгли тебя зовут! 
+        """,
         reply_markup=builder.as_markup()
     )
 
 
 @dp.message(CommandStart())
 async def command_start_no_referral(message: types.Message):
-    # Собираем данные для регистрации без реферала
-    # init_data = {
-    #     "id": message.from_user.id,
-    #     "username": message.from_user.username or "",
-    #     "first_name": message.from_user.first_name or "",
-    #     "last_name": message.from_user.last_name or "",
-    #     "invited_tg_id": None,
-    #     "is_premium": message.from_user.is_premium  # Если у пользователя есть Telegram Premium
-    # }
-    #
-    # url = f'{API_URL}users/logreg'
-    #
-    # # Преобразуем init_data в строку JSON
-    # init_data_json = json.dumps(init_data)
-    #
-    # # Создаем заголовки
-    # headers = {
-    #     'Content-Type': 'application/json',
-    #     'initData': init_data_json
-    # }
-    #
-    # async with aiohttp.ClientSession() as session:
-    #     async with session.post(url, headers=headers) as resp:
-    #         if resp.status == 200:
-    #             user_data = await resp.json()
-    #             print("User registered:", user_data)
-    #         else:
-    #             print("Error registering user:", await resp.text())
 
     builder = InlineKeyboardBuilder()
-    builder.add(
-        InlineKeyboardButton(text='Играть', web_app=types.WebAppInfo(url='https://king-coin.online:444/'))
+    builder.row(
+        InlineKeyboardButton(text='Играть сейчас! 👑', web_app=types.WebAppInfo(url='https://king-coin.online:444/')),
+    )
+    builder.row(
+        InlineKeyboardButton(text='Подписаться на сообщество', url='https://t.me/kingcoin_com'),
+    )
+    builder.row(
+        InlineKeyboardButton(text='Наш сайт', url='https://kingcoin.tech/')
     )
 
     await message.answer(
-        "🌟 Добро пожаловать!",
+        """
+        Привет, King!
+Твоя задача - стать самой большой обезьяной в крипто-джунглях!🌴
+Быстрее прыгай в самолёт и начинай собирать монеты. Собирай активы, анализируй прибыльность инвестиций, разумно распоряжайтесь ресурсами и получи престижный титул King Coin.
+Собирай свою стаю, приглашая новых друзей в игру - мы щедро вознаградим твоё участие во время листинга.
+А так же не забывай, что KingCoin каждую неделю раздает 150 TON за активность в игре и за её пределами.
+Удачи! Джунгли тебя зовут! 
+        """,
         reply_markup=builder.as_markup()
     )
-
-
-# @dp.message(CommandStart())
-# async def command_start_process(message: Message, dialog_manager: DialogManager):
-#     await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
-#
-#
-# start_dialog = Dialog(
-#     Window(
-#         Format('🌟 Добро пожаловать!'),
-#         Group(
-#             WebApp(Const('Играть'), Const('https://king-coin.online:444/'))
-#         ),
-#         state=StartSG.start
-#     )
-# )
-
-
 
 
 # dp.include_router(start_dialog)
