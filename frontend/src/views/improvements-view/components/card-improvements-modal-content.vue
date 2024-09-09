@@ -93,7 +93,7 @@ const handleAccept = async () => {
   }
 
   isLoading.value = true
-  const res = await coinApiService.upgradeCoin(improvementsStore.selectCoinForImpro.id);
+  const res = await coinApiService.upgradeCoin(improvementsStore.selectCoinForImpro.id, userStore.user.tg_id);
   if (res.right) {
     userStore.animationPlusMoney(res.right.user_check.money - userStore.user.money);
     userStore.user.earnings_per_hour = res.right.user_check.total_hourly_income;

@@ -20,9 +20,9 @@ class CoinApiService {
     })
   }
 
-  public async upgradeCoin(coinId: number): Promise<Either<CommonResponseError, CoinUpgradeResponse>> {
+  public async upgradeCoin(coinId: number, userId: number): Promise<Either<CommonResponseError, CoinUpgradeResponse>> {
     return this.errorHandler.processRequest<CoinUpgradeResponse>(async () => {
-      const response = await this.client.post(this.upgradeCoinApi, {upgrade_id: coinId});
+      const response = await this.client.post(this.upgradeCoinApi, {user_id: userId, upgrade_id: coinId});
       return response.data;
     })
   }
