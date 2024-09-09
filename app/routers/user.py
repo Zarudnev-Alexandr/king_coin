@@ -933,3 +933,18 @@ async def all_users_count(tg_id: int, db: AsyncSession = Depends(get_db)):
         "users_registered_today": users_registered_today,
         "online_peak": today_online_peak,
     }
+
+
+@user_route.get("/get_user_status/{tg_id}")
+async def get_user_status(tg_id: int, db: AsyncSession = Depends(get_db)):
+    """Узнаем, админ пользователь или нет"""
+
+    user = await get_user(db, tg_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not user.is_admin:
+        return False
+
+    return True
