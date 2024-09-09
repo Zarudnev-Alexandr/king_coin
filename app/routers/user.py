@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_id, add_boost, \
     get_boost_by_lvl, get_next_boost, upgrade_user_boost, get_user_bool, get_daily_reward, add_daily_reward, \
-    update_user_level, get_daily_reward_all
+    update_user_level, get_daily_reward_all, get_count_of_all_users, get_all_earned_money, get_users_registered_today
 from ..api.added_funcs import decode_init_data, transform_init_data, validate, user_check_and_update, \
     user_check_and_update_only_money
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
@@ -395,31 +395,31 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         return user_data
 
 
-@user_route.post('/boost')
-async def create_upgrade(boost_create: BoostCreateSchema,
-                         db: AsyncSession = Depends(get_db)):
-    user_data = {
-        'name': boost_create.name,
-        'lvl': boost_create.lvl,
-        "price": boost_create.price,
-        'tap_boost': boost_create.tap_boost,
-        'one_tap': boost_create.one_tap,
-        'pillars_2': boost_create.pillars_2,
-        'pillars_10': boost_create.pillars_10,
-        'pillars_30': boost_create.pillars_30,
-        'pillars_100': boost_create.pillars_100
-    }
-
-    boost = await get_boost_by_lvl(db, boost_lvl=boost_create.lvl)
-
-    if boost:
-        raise HTTPException(status_code=409, detail="this lvl is already in use")
-
-    new_boost = await add_boost(db, **user_data)
-    if new_boost:
-        return new_boost
-    else:
-        raise HTTPException(status_code=400, detail="failed to create boost")
+# @user_route.post('/boost')
+# async def create_upgrade(boost_create: BoostCreateSchema,
+#                          db: AsyncSession = Depends(get_db)):
+#     user_data = {
+#         'name': boost_create.name,
+#         'lvl': boost_create.lvl,
+#         "price": boost_create.price,
+#         'tap_boost': boost_create.tap_boost,
+#         'one_tap': boost_create.one_tap,
+#         'pillars_2': boost_create.pillars_2,
+#         'pillars_10': boost_create.pillars_10,
+#         'pillars_30': boost_create.pillars_30,
+#         'pillars_100': boost_create.pillars_100
+#     }
+#
+#     boost = await get_boost_by_lvl(db, boost_lvl=boost_create.lvl)
+#
+#     if boost:
+#         raise HTTPException(status_code=409, detail="this lvl is already in use")
+#
+#     new_boost = await add_boost(db, **user_data)
+#     if new_boost:
+#         return new_boost
+#     else:
+#         raise HTTPException(status_code=400, detail="failed to create boost")
 
 
 @user_route.post('/upgrade-boost')
@@ -485,29 +485,6 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
         "boost_at_max_level": next_boost_after_bought is None,
         "user_check": user_check
     }
-
-    # await ws_manager.notify_user(user.tg_id, {"event": "upgrade_boost", "data": {
-    #     "lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
-    #     "price":
-    #         next_boost_after_bought.price if next_boost_after_bought else None,
-    #     "tap_boost":
-    #         next_boost_after_bought.tap_boost if next_boost_after_bought else None,
-    #     "one_tap":
-    #         next_boost_after_bought.one_tap if next_boost_after_bought else None,
-    #     "pillars_2":
-    #         next_boost_after_bought.pillars_2 if next_boost_after_bought else None,
-    #     "pillars_10":
-    #         next_boost_after_bought.pillars_10 if next_boost_after_bought else None,
-    #     "pillars_30":
-    #         next_boost_after_bought.pillars_30 if next_boost_after_bought else None,
-    #     "pillars_100":
-    #         next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
-    #     "user_id": user_boost.user_id,
-    #     "boost_id": user_boost.boost_id,
-    #     "user_money": user.money,
-    #     "next_boost": next_boost_after_bought_dict if next_boost_after_bought else None,
-    #     "boost_at_max_level": next_boost_after_bought is None
-    # }})
 
     return response
 
@@ -590,24 +567,24 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
             "user_check": user_check}
 
 
-@user_route.post('/create-daily-reward')
-async def create_daily_reward(daily_reward: CreateDailyRewardSchema,
-                              db: AsyncSession = Depends(get_db)):
-    user_data = {
-        'day': daily_reward.day,
-        'reward': daily_reward.reward,
-    }
-
-    old_daily_reward = await get_daily_reward(db, day=daily_reward.day)
-
-    if old_daily_reward:
-        raise HTTPException(status_code=409, detail="this day is already in use")
-
-    new_daily_reward = await add_daily_reward(db, **user_data)
-    if new_daily_reward:
-        return new_daily_reward
-    else:
-        raise HTTPException(status_code=400, detail="failed to create boost")
+# @user_route.post('/create-daily-reward')
+# async def create_daily_reward(daily_reward: CreateDailyRewardSchema,
+#                               db: AsyncSession = Depends(get_db)):
+#     user_data = {
+#         'day': daily_reward.day,
+#         'reward': daily_reward.reward,
+#     }
+#
+#     old_daily_reward = await get_daily_reward(db, day=daily_reward.day)
+#
+#     if old_daily_reward:
+#         raise HTTPException(status_code=409, detail="this day is already in use")
+#
+#     new_daily_reward = await add_daily_reward(db, **user_data)
+#     if new_daily_reward:
+#         return new_daily_reward
+#     else:
+#         raise HTTPException(status_code=400, detail="failed to create boost")
 
 
 @user_route.get('/daily-reward')
@@ -925,3 +902,31 @@ async def get_current_user_state(initData: str = Header(...), db: AsyncSession =
     user_check = await user_check_and_update(initData, db)
     if user_check:
         return user_check
+
+
+@user_route.get("/daily_stats")
+async def all_users_count(tg_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Считаем дневную статистику:
+    1) количество пользоватлей всего
+    2) всего монет заработано
+    3) количество юзеров за сегодня
+    """
+
+    user = await get_user(db, tg_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Вы не админ, чтобы пользоваться этим API")
+
+    count_of_all_users = await get_count_of_all_users(db)
+    all_earned_money = await get_all_earned_money(db)
+    users_registered_today = await get_users_registered_today(db)
+
+    return {
+        "count_of_all_users": count_of_all_users,
+        "all_earned_money": int(all_earned_money),
+        "users_registered_today": users_registered_today
+    }

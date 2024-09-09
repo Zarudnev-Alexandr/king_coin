@@ -6,7 +6,7 @@ import aiohttp
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart, CommandObject
+from aiogram.filters import CommandStart, CommandObject, Command
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import InlineKeyboardButton, Message
 from aiogram.utils.callback_answer import CallbackAnswerMiddleware
@@ -91,6 +91,44 @@ async def command_start_no_referral(message: types.Message):
         """,
         reply_markup=builder.as_markup()
     )
+
+
+@dp.message(Command('daily'))
+async def command_daily(message: types.Message):
+    # URL вашего бэкенда
+    backend_url = "https://king-coin.online/api/users/daily_stats"
+
+    # Telegram ID пользователя, отправившего команду
+    tg_id = message.from_user.id
+
+    # Формируем запрос
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(backend_url, params={"tg_id": tg_id}) as response:
+                if response.status == 404:
+                    await message.answer("Пользователь не найден.")
+                    return
+                elif response.status == 403:
+                    await message.answer("У вас нет прав для использования этого API.")
+                    return
+                elif response.status != 200:
+                    await message.answer("Произошла ошибка при запросе к серверу.")
+                    return
+
+                # Получаем данные из ответа
+                data = await response.json()
+
+                # Формируем ответное сообщение для пользователя
+                response_message = (
+                    f"📊 Статистика на сегодня:\n\n"
+                    f"👥 Количество пользователей: {data['count_of_all_users']}\n"
+                    f"💰 Всего монет заработано: {data['all_earned_money']}\n"
+                    f"🆕 Пользователей зарегистрировано сегодня: {data['users_registered_today']}"
+                )
+                await message.answer(response_message)
+
+    except Exception as e:
+        await message.answer(f"Произошла непредвиденная ошибка: {str(e)}")
 
 
 # dp.include_router(start_dialog)

@@ -176,10 +176,18 @@ async def get_tasks_for_user(initData: str = Header(...), db: AsyncSession = Dep
 
 
 @task_route.post('/task/{task_id}/upload_image', response_model=ImageUploadResponse)
-async def upload_image(task_id: int, file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+async def upload_image(task_id: int,
+                       initData: str = Header(...),
+                       file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
     """
     Добавление изображения к таскам
     """
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
+
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can use this API")
+
     # Проверка, существует ли апгрейд
     task = await db.get(Task, task_id)
     if not task:

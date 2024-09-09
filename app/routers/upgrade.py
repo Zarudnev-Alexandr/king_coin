@@ -30,25 +30,25 @@ env.read_env()
 SERVER_URL = env('SERVER_URL')
 
 
-@upgrade_route.post('/upgrade-category')
-async def create_upgrade_category_func(upgrade_category_create: UpgradeCategoryBaseSchema,
-                                       db: AsyncSession = Depends(get_db)) -> UpgradeCategoryBaseSchemaWithId:
-    """
-    Добавление категории, в которой хранятся апгрейды (Crypto, например) в БД
-    """
-    user_data = {
-        "category": upgrade_category_create.category
-    }
-    upgrade_category = await get_upgrade_category_by_name(db, upgrade_category_name=upgrade_category_create.category)
-
-    if upgrade_category:
-        raise HTTPException(status_code=409, detail="this name is already in use")
-
-    new_upgrade_category = await create_upgrade_category(db, **user_data)
-    if new_upgrade_category:
-        return new_upgrade_category
-    else:
-        raise HTTPException(status_code=400, detail="failed to create upgrade category")
+# @upgrade_route.post('/upgrade-category')
+# async def create_upgrade_category_func(upgrade_category_create: UpgradeCategoryBaseSchema,
+#                                        db: AsyncSession = Depends(get_db)) -> UpgradeCategoryBaseSchemaWithId:
+#     """
+#     Добавление категории, в которой хранятся апгрейды (Crypto, например) в БД
+#     """
+#     user_data = {
+#         "category": upgrade_category_create.category
+#     }
+#     upgrade_category = await get_upgrade_category_by_name(db, upgrade_category_name=upgrade_category_create.category)
+#
+#     if upgrade_category:
+#         raise HTTPException(status_code=409, detail="this name is already in use")
+#
+#     new_upgrade_category = await create_upgrade_category(db, **user_data)
+#     if new_upgrade_category:
+#         return new_upgrade_category
+#     else:
+#         raise HTTPException(status_code=400, detail="failed to create upgrade category")
 
 
 @upgrade_route.get('/upgrade-category/all')
@@ -150,65 +150,65 @@ async def get_upgrade_category_all(initData: str = Header(...),
     return all_categories_with_upgrades
 
 
-@upgrade_route.post('/upgrade')
-async def create_upgrade(upgrade_create: CreateUpgradeSchema,
-                         db: AsyncSession = Depends(get_db)) -> UpgradeSchema:
-    """
-    Добавление апгрейда в БД
-    """
-    user_data = {
-        "name": upgrade_create.name,
-        "category_id": upgrade_create.category_id,
-        "image_url": upgrade_create.image_url,
-        "is_in_shop": upgrade_create.is_in_shop,
-        "description": upgrade_create.description,
-        "english_description": upgrade_create.english_description,
-        "sort_position": upgrade_create.sort_position,
-    }
+# @upgrade_route.post('/upgrade')
+# async def create_upgrade(upgrade_create: CreateUpgradeSchema,
+#                          db: AsyncSession = Depends(get_db)) -> UpgradeSchema:
+#     """
+#     Добавление апгрейда в БД
+#     """
+#     user_data = {
+#         "name": upgrade_create.name,
+#         "category_id": upgrade_create.category_id,
+#         "image_url": upgrade_create.image_url,
+#         "is_in_shop": upgrade_create.is_in_shop,
+#         "description": upgrade_create.description,
+#         "english_description": upgrade_create.english_description,
+#         "sort_position": upgrade_create.sort_position,
+#     }
+#
+#     upgrade = await get_upgrade_by_name(db, upgrade_name=upgrade_create.name)
+#
+#     if upgrade:
+#         raise HTTPException(status_code=409, detail="this name is already in use")
+#
+#     new_upgrade = await add_upgrade(db, **user_data)
+#     if new_upgrade:
+#         return new_upgrade
+#     else:
+#         raise HTTPException(status_code=400, detail="failed to create upgrade")
 
-    upgrade = await get_upgrade_by_name(db, upgrade_name=upgrade_create.name)
 
-    if upgrade:
-        raise HTTPException(status_code=409, detail="this name is already in use")
-
-    new_upgrade = await add_upgrade(db, **user_data)
-    if new_upgrade:
-        return new_upgrade
-    else:
-        raise HTTPException(status_code=400, detail="failed to create upgrade")
-
-
-@upgrade_route.post('/upgrade-level')
-async def create_upgrade(upgrade_level_create: UpgradeLevelSchema,
-                         db: AsyncSession = Depends(get_db)) -> UpgradeLevelSchema:
-    """
-    Добавление уровней для апгрейдов в БД
-    """
-    user_data = {
-        "upgrade_id": upgrade_level_create.upgrade_id,
-        "lvl": upgrade_level_create.lvl,
-        "factor": upgrade_level_create.factor,
-        "price": upgrade_level_create.price
-    }
-
-    if upgrade_level_create.lvl < 1:
-        raise HTTPException(status_code=400, detail="level cannot be less than 1")
-
-    upgrade = await get_upgrade_by_id(db, upgrade_id=upgrade_level_create.upgrade_id)
-
-    if not upgrade:
-        raise HTTPException(status_code=404, detail="upgrade not found")
-
-    upgrade_level = await get_upgrade_level(upgrade_level_create.upgrade_id, upgrade_level_create.lvl, db)
-
-    if upgrade_level:
-        raise HTTPException(status_code=409, detail="this upgrade level is already in use")
-
-    new_upgrade_level = await add_upgrade_level(db, **user_data)
-    if new_upgrade_level:
-        return new_upgrade_level
-    else:
-        raise HTTPException(status_code=400, detail="failed to create upgrade level")
+# @upgrade_route.post('/upgrade-level')
+# async def create_upgrade(upgrade_level_create: UpgradeLevelSchema,
+#                          db: AsyncSession = Depends(get_db)) -> UpgradeLevelSchema:
+#     """
+#     Добавление уровней для апгрейдов в БД
+#     """
+#     user_data = {
+#         "upgrade_id": upgrade_level_create.upgrade_id,
+#         "lvl": upgrade_level_create.lvl,
+#         "factor": upgrade_level_create.factor,
+#         "price": upgrade_level_create.price
+#     }
+#
+#     if upgrade_level_create.lvl < 1:
+#         raise HTTPException(status_code=400, detail="level cannot be less than 1")
+#
+#     upgrade = await get_upgrade_by_id(db, upgrade_id=upgrade_level_create.upgrade_id)
+#
+#     if not upgrade:
+#         raise HTTPException(status_code=404, detail="upgrade not found")
+#
+#     upgrade_level = await get_upgrade_level(upgrade_level_create.upgrade_id, upgrade_level_create.lvl, db)
+#
+#     if upgrade_level:
+#         raise HTTPException(status_code=409, detail="this upgrade level is already in use")
+#
+#     new_upgrade_level = await add_upgrade_level(db, **user_data)
+#     if new_upgrade_level:
+#         return new_upgrade_level
+#     else:
+#         raise HTTPException(status_code=400, detail="failed to create upgrade level")
 
 
 @upgrade_route.post('/buy-upgrade')
@@ -402,22 +402,22 @@ async def can_i_buy_this_upgrade(upgrade_id: int,
 
 
 
-@upgrade_route.post('/create-daily-combo')
-async def create_daily_combo(daily_combo_create: CreateDailyComboSchema,
-                             db: AsyncSession = Depends(get_db)) -> DailyComboSchema:
-    """
-    Создание дневного комбо. Комбо не обязательно работает один день, просто подразумевается, что менять его будут
-    раз в день) Вносим сюда 3 разных апгрейда и награду
-    """
-
-    user_data = {
-        "upgrade_1_id": daily_combo_create.upgrade_1_id,
-        "upgrade_2_id": daily_combo_create.upgrade_2_id,
-        "upgrade_3_id": daily_combo_create.upgrade_3_id,
-        "reward": daily_combo_create.reward,
-    }
-    new_combo = await create_combo(db, **user_data)
-    return new_combo
+# @upgrade_route.post('/create-daily-combo')
+# async def create_daily_combo(daily_combo_create: CreateDailyComboSchema,
+#                              db: AsyncSession = Depends(get_db)) -> DailyComboSchema:
+#     """
+#     Создание дневного комбо. Комбо не обязательно работает один день, просто подразумевается, что менять его будут
+#     раз в день) Вносим сюда 3 разных апгрейда и награду
+#     """
+#
+#     user_data = {
+#         "upgrade_1_id": daily_combo_create.upgrade_1_id,
+#         "upgrade_2_id": daily_combo_create.upgrade_2_id,
+#         "upgrade_3_id": daily_combo_create.upgrade_3_id,
+#         "reward": daily_combo_create.reward,
+#     }
+#     new_combo = await create_combo(db, **user_data)
+#     return new_combo
 
 
 @upgrade_route.get("/user-combo")
@@ -477,10 +477,18 @@ async def get_user_combo_progress(initData: str = Header(...),
 
 
 @upgrade_route.post('/upgrade/{upgrade_id}/upload_image', response_model=ImageUploadResponse)
-async def upload_image(upgrade_id: int, file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+async def upload_image(upgrade_id: int,
+                       initData: str = Header(...),
+                       file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
     """
     Добавление изображения к апгрейдам
     """
+    init_data_decode = await decode_init_data(initData, db)
+    user = init_data_decode["user"]
+
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can use this API")
+
     # Проверка, существует ли апгрейд
     upgrade = await db.get(Upgrades, upgrade_id)
     if not upgrade:
