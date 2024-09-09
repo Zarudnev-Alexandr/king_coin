@@ -1,6 +1,7 @@
 import datetime
 from datetime import date
 
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app import models, schemas
@@ -147,32 +148,40 @@ async def add_daily_reward(db: AsyncSession, **kwargs) -> DailyReward:
     return daily_reward
 
 
-# async def get_upgrade_category(db: AsyncSession, category_id: int):
-#     result = await db.execute(select(models.UpgradeCategory).filter(models.UpgradeCategory.id == category_id))
-#     return result.scalars().first()
+async def get_count_of_all_users(db: AsyncSession):
+    """Считаем количество всех пользователей в бд"""
+
+    result = await db.execute(
+        select(func.count(models.User.tg_id))
+    )
+    count_of_all_users = result.scalar_one()
+
+    return count_of_all_users
 
 
-# async def create_upgrade_category(db: AsyncSession, category: schemas.UpgradeCategoryCreate):
-#     db_category = models.UpgradeCategory(**category.dict())
-#     db.add(db_category)
-#     await db.commit()
-#     await db.refresh(db_category)
-#     return db_category
-#
-#
-# async def get_upgrade(db: AsyncSession, upgrade_id: int):
-#     result = await db.execute(select(models.Upgrades).filter(models.Upgrades.id == upgrade_id))
-#     return result.scalars().first()
-#
-#
-# async def create_upgrade(db: AsyncSession, upgrade: schemas.UpgradeCreate):
-#     db_upgrade = models.Upgrades(**upgrade.dict())
-#     db.add(db_upgrade)
-#     await db.commit()
-#     await db.refresh(db_upgrade)
-#     return db_upgrade
-#
-#
-# async def create_click(db: AsyncSession, click: schemas.ClickCreate):
-#     # This function can be expanded to handle click data and associated logic
-#     pass
+async def get_all_earned_money(db: AsyncSession):
+    """Считаем количество всех заработанных денег в бд"""
+
+    result = await db.execute(
+        select(func.sum(models.User.money))
+    )
+    count_of_all_users = result.scalar_one()
+
+    return count_of_all_users
+
+
+async def get_users_registered_today(db: AsyncSession):
+    """Считаем количество пользователей, зарегистрировавшихся сегодня"""
+
+    today = datetime.datetime.utcnow()
+
+    result = await db.scalar(
+        select(func.count(models.User.tg_id)).filter(
+            func.date(models.User.created) == today.date()
+        )
+    )
+
+    print("😀😀😀", result)
+
+    return result
+
