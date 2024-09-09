@@ -123,7 +123,7 @@ async def command_daily(message: types.Message):
                     f"📊 Статистика на сегодня:\n\n"
                     f"👥 Количество пользователей: {data['count_of_all_users']}\n"
                     # f"💰 Всего монет заработано: {data['all_earned_money']}\n"
-                    f"🆕 Пользователей зарегистрировано сегодня: {data['users_registered_today']}"
+                    f"🆕 Пользователей зарегистрировано сегодня: {data['users_registered_today']}\n"
                     f"📈 Пик онлайна сегодня: {data['online_peak']}"
                 )
                 await message.answer(response_message)
