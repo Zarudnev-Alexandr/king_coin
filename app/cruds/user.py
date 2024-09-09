@@ -181,7 +181,18 @@ async def get_users_registered_today(db: AsyncSession):
         )
     )
 
-    print("😀😀😀", result)
-
     return result
 
+
+async def get_online_peak_today(db: AsyncSession):
+    """Считаем количество пользователейкоторые зашли сегодня"""
+
+    today = datetime.datetime.utcnow()
+
+    result = await db.scalar(
+        select(func.count(models.User.tg_id)).filter(
+            func.date(models.User.last_login) == today.date()
+        )
+    )
+
+    return result
