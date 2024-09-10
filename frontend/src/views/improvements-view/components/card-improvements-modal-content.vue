@@ -30,9 +30,8 @@ const handleClose = () => {
 }
 
 const isDisabled = () => {
-  if (!improvementsStore.selectCoinForImpro?.conditions_met) return false;
-
   if (!improvementsStore.selectCoinForImpro || !improvementsStore.selectCoinForImpro!.price_of_next_lvl) return true;
+  if (!checkIsAvailable(improvementsStore.selectCoinForImpro!)) return false;
 
   return userStore.user!.money < improvementsStore.selectCoinForImpro!.price_of_next_lvl!;
 }
