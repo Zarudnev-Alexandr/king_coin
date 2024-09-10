@@ -32,7 +32,9 @@ const handleClose = () => {
 const isDisabled = () => {
   if (!improvementsStore.selectCoinForImpro?.conditions_met) return false;
 
-  return !improvementsStore.selectCoinForImpro || (userStore.user?.money ?? 0) < (improvementsStore.selectCoinForImpro.price_of_next_lvl ?? 0);
+  if (!improvementsStore.selectCoinForImpro || !improvementsStore.selectCoinForImpro!.price_of_next_lvl) return true;
+
+  return userStore.user!.money < improvementsStore.selectCoinForImpro!.price_of_next_lvl!;
 }
 
 const checkSubscribe = async () => {
