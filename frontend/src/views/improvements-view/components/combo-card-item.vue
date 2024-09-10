@@ -34,6 +34,8 @@ const props: Props = defineProps<Props>()
     justify-content: center;
     align-items: center;
     border-radius: 10px;
+    height: 100%;
+    box-sizing: border-box;
 
     .combo-item-content {
       display: flex;

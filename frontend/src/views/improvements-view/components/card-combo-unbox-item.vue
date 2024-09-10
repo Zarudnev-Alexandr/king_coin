@@ -67,7 +67,7 @@
     border-radius: 10px;
     height: 100%;
     position: relative;
-
+    box-sizing: border-box;
   }
 }
 </style>
