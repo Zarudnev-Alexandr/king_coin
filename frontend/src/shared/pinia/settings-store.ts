@@ -8,9 +8,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('language');
   const localSoundOn = new LocalStorageService<boolean>('soundOn');
   const localVibrationOn = new LocalStorageService<boolean>('vibrationOn');
-  const { locale } = useI18n();
+  const {locale} = useI18n();
 
   if (localLanguage.getItem() === null) {
+    if (Telegram.WebApp.initDataUnsafe) {
+      localLanguage.setItem(Telegram.WebApp.initDataUnsafe.user?.language_code === 'ru' ? Languages[0] : Languages[1]);
+      return;
+    }
+
     localLanguage.setItem(Languages[0]);
   }
 

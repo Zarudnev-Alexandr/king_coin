@@ -56,16 +56,19 @@ const checkCombo = (res: CoinUpgradeResponse) => {
     improvementsStore.combo.upgrade_1.is_bought = true;
     improvementsStore.combo.upgrade_1.name = improvementsStore.selectCoinForImpro?.name ?? '';
     improvementsStore.combo.upgrade_1.image_url = improvementsStore.selectCoinForImpro?.image_url ?? '';
+    improvementsStore.combo.combo.upgrade_1_id = res.upgrade_id;
     improvementsStore.setComboNotify(true);
   } else if (res.combo_status.upgrade_2_purchased && improvementsStore.combo) {
     improvementsStore.combo.upgrade_2.is_bought = true;
     improvementsStore.combo.upgrade_2.name = improvementsStore.selectCoinForImpro?.name ?? '';
     improvementsStore.combo.upgrade_2.image_url = improvementsStore.selectCoinForImpro?.image_url ?? '';
+    improvementsStore.combo.combo.upgrade_2_id = res.upgrade_id;
     improvementsStore.setComboNotify(true);
   } else if (res.combo_status.upgrade_3_purchased && improvementsStore.combo) {
     improvementsStore.combo.upgrade_3.is_bought = true;
     improvementsStore.combo.upgrade_3.name = improvementsStore.selectCoinForImpro?.name ?? '';
     improvementsStore.combo.upgrade_3.image_url = improvementsStore.selectCoinForImpro?.image_url ?? '';
+    improvementsStore.combo.combo.upgrade_3_id = res.upgrade_id;
     improvementsStore.setComboNotify(true);
   }
 }

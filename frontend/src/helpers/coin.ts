@@ -58,3 +58,8 @@ export const availableOpenModal = (coin: Coin) => {
 
   return true
 }
+
+export const isSpecialCard = (id: number) => {
+  const improvementsStore = useImprovementsStore();
+  return improvementsStore.specialCoinList.some(item => item.id === id);
+}

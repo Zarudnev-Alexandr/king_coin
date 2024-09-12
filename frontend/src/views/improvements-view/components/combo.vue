@@ -5,10 +5,11 @@ import {onMounted, Ref, ref, watch} from "vue";
 import ComboApiService from "@/shared/api/services/combo-api-service.ts";
 import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts";
 import {useImprovementsStore} from "@/shared/pinia/improvements-store.ts";
+import {isSpecialCard} from "@/helpers/coin.ts";
 
 const comboApiService = new ComboApiService(axiosInstance, errorHandler);
 const improvementsStore = useImprovementsStore();
-const images: Ref<{ url: string, name: string }[]> = ref([]);
+const images: Ref<{ url: string, name: string, isSpecial: boolean }[]> = ref([]);
 
 onMounted(async () => {
   if (improvementsStore.combo) {
@@ -40,15 +41,30 @@ const updateImages = () => {
   let imgTemp = []
 
   if (improvementsStore.combo?.upgrade_1.is_bought) {
-    imgTemp.push({url: improvementsStore.combo.upgrade_1.image_url!, name: improvementsStore.combo.upgrade_1.name})
+    const isSpecial = isSpecialCard(improvementsStore.combo.combo.upgrade_1_id!)
+    imgTemp.push({
+      url: improvementsStore.combo.upgrade_1.image_url!,
+      name: improvementsStore.combo.upgrade_1.name,
+      isSpecial: isSpecial
+    })
   }
 
   if (improvementsStore.combo?.upgrade_2.is_bought) {
-    imgTemp.push({url: improvementsStore.combo.upgrade_2.image_url!, name: improvementsStore.combo.upgrade_2.name})
+    const isSpecial = isSpecialCard(improvementsStore.combo.combo.upgrade_2_id!)
+    imgTemp.push({
+      url: improvementsStore.combo.upgrade_2.image_url!,
+      name: improvementsStore.combo.upgrade_2.name,
+      isSpecial: isSpecial
+    })
   }
 
   if (improvementsStore.combo?.upgrade_3.is_bought) {
-    imgTemp.push({url: improvementsStore.combo.upgrade_3.image_url!, name: improvementsStore.combo.upgrade_3.name})
+    const isSpecial = isSpecialCard(improvementsStore.combo.combo.upgrade_3_id!)
+    imgTemp.push({
+      url: improvementsStore.combo.upgrade_3.image_url!,
+      name: improvementsStore.combo.upgrade_3.name,
+      isSpecial: isSpecial
+    })
   }
   images.value = imgTemp;
 }
@@ -70,11 +86,14 @@ const updateImages = () => {
     </div>
 
     <div class="combo-list">
-      <ComboCardItem :title="images[0].name" :img_url="images[0].url" v-if="images.length > 0"/>
+      <ComboCardItem :title="images[0].name" :img_url="images[0].url" v-if="images.length > 0"
+                     :is-special="images[0].isSpecial"/>
       <card-combo-unbox-item v-else/>
-      <ComboCardItem :title="images[1].name" :img_url="images[1].url" v-if="images.length > 1"/>
+      <ComboCardItem :title="images[1].name" :img_url="images[1].url" v-if="images.length > 1"
+                     :is-special="images[1].isSpecial"/>
       <card-combo-unbox-item v-else/>
-      <ComboCardItem :title="images[2].name" :img_url="images[2].url" v-if="images.length > 2"/>
+      <ComboCardItem :title="images[2].name" :img_url="images[2].url" v-if="images.length > 2"
+                     :is-special="images[2].isSpecial"/>
       <card-combo-unbox-item v-else/>
     </div>
   </div>
