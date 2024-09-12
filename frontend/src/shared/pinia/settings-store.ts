@@ -11,12 +11,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const {locale} = useI18n();
 
   if (localLanguage.getItem() === null) {
-    if (Telegram.WebApp.initDataUnsafe) {
-      localLanguage.setItem(Telegram.WebApp.initDataUnsafe.user?.language_code === 'ru' ? Languages[0] : Languages[1]);
-      return;
+    if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user?.language_code === 'ru') {
+      localLanguage.setItem(Languages[0]);
+      } else {
+      localLanguage.setItem(Languages[1]);
     }
-
-    localLanguage.setItem(Languages[0]);
   }
 
   if (localSoundOn.getItem() === null) {
