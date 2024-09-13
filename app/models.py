@@ -64,7 +64,8 @@ class UpgradeCategory(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, unique=True, index=True)
     category: Mapped[str] = mapped_column(String, unique=True, index=True)
 
-    upgrades: Mapped[list["Upgrades"]] = relationship("Upgrades", back_populates="category", lazy='selectin')
+    upgrades: Mapped[list["Upgrades"]] = relationship("Upgrades", back_populates="category",
+                                                      order_by='Upgrades.sort_position', lazy='selectin')
 
 
 class UpgradeLevel(Base):
