@@ -18,7 +18,6 @@ const settingsStore = useSettingsStore();
 const userApiService = new UserApiService(axiosInstance, errorHandler);
 const selectLangIsOpen = ref(false);
 const removeModalIsVisible = ref(false);
-const lang = Telegram.WebApp.initDataUnsafe.user?.language_code;
 
 const closeSelectLangModal = () => {
   selectLangIsOpen.value = false;
@@ -78,10 +77,6 @@ const acceptRemoveAccount = async () => {
                        :class="{'off-bg': !settingsStore.vibrationOn}">
         <img :src="settingsStore.vibrationOn ? VibrationOnSvg : VibrationOffSvg" alt="">
       </app-icon-button>
-
-      <div style="display: flex; justify-content: center">
-        <span style="font-size: 20px;">Lang: {{ lang }}</span>
-      </div>
     </div>
     <div style="flex: 1"></div>
     <div style="display: flex; justify-content: center;">
