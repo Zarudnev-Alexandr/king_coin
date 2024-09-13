@@ -41,24 +41,24 @@ async def command_start_process(message: types.Message,
 
     builder = InlineKeyboardBuilder()
     builder.row(
-        InlineKeyboardButton(text=f'Играть сейчас! 👑', web_app=types.WebAppInfo(
+        InlineKeyboardButton(text=f'Play now👑', web_app=types.WebAppInfo(
             url=f'https://king-coin.online:444?ref={int(checked_inviter_id) if checked_inviter_id != "0" else None}'))
     )
     builder.row(
-        InlineKeyboardButton(text='Подписаться на сообщество', url='https://t.me/kingcoin_com'),
+        InlineKeyboardButton(text='Subscribe to community', url='https://t.me/kingcoin_com'),
     )
     builder.row(
-        InlineKeyboardButton(text='Наш сайт', url='https://kingcoin.tech/')
+        InlineKeyboardButton(text='Our site', url='https://kingcoin.tech/')
     )
 
     await message.answer(
         """
-        Привет, King!
-Твоя задача - стать самой большой обезьяной в крипто-джунглях!🌴
-Быстрее прыгай в самолёт и начинай собирать монеты. Собирай активы, анализируй прибыльность инвестиций, разумно распоряжайтесь ресурсами и получи престижный титул King Coin.
-Собирай свою стаю, приглашая новых друзей в игру - мы щедро вознаградим твоё участие во время листинга.
-А так же не забывай, что KingCoin каждую неделю раздает 150 TON за активность в игре и за её пределами.
-Удачи! Джунгли тебя зовут! 
+        Hello, King!  
+Your task is to become the biggest monkey in the crypto-jungles! 🌴  
+Jump into the plane quickly and start collecting coins. Gather assets, analyze investment profitability, manage resources wisely, and earn the prestigious title of King Coin.  
+Gather your crew by inviting new friends to the game—we will generously reward your participation during the listing.  
+Also, don’t forget that KingCoin gives away 150 TON every week for activity in and outside the game.  
+Good luck! The jungle is calling you!
         """,
         reply_markup=builder.as_markup()
     )
@@ -69,23 +69,23 @@ async def command_start_no_referral(message: types.Message):
 
     builder = InlineKeyboardBuilder()
     builder.row(
-        InlineKeyboardButton(text='Играть сейчас! 👑', web_app=types.WebAppInfo(url='https://king-coin.online:444/')),
+        InlineKeyboardButton(text='Play now👑', web_app=types.WebAppInfo(url='https://king-coin.online:444/')),
     )
     builder.row(
-        InlineKeyboardButton(text='Подписаться на сообщество', url='https://t.me/kingcoin_com'),
+        InlineKeyboardButton(text='Subscribe to community', url='https://t.me/kingcoin_com'),
     )
     builder.row(
-        InlineKeyboardButton(text='Наш сайт', url='https://kingcoin.tech/')
+        InlineKeyboardButton(text='Our site', url='https://kingcoin.tech/')
     )
 
     await message.answer(
         """
-        Привет, King!
-Твоя задача - стать самой большой обезьяной в крипто-джунглях!🌴
-Быстрее прыгай в самолёт и начинай собирать монеты. Собирай активы, анализируй прибыльность инвестиций, разумно распоряжайтесь ресурсами и получи престижный титул King Coin.
-Собирай свою стаю, приглашая новых друзей в игру - мы щедро вознаградим твоё участие во время листинга.
-А так же не забывай, что KingCoin каждую неделю раздает 150 TON за активность в игре и за её пределами.
-Удачи! Джунгли тебя зовут! 
+        Hello, King!  
+Your task is to become the biggest monkey in the crypto-jungles! 🌴  
+Jump into the plane quickly and start collecting coins. Gather assets, analyze investment profitability, manage resources wisely, and earn the prestigious title of King Coin.  
+Gather your crew by inviting new friends to the game—we will generously reward your participation during the listing.  
+Also, don’t forget that KingCoin gives away 150 TON every week for activity in and outside the game.  
+Good luck! The jungle is calling you!
         """,
         reply_markup=builder.as_markup()
     )
