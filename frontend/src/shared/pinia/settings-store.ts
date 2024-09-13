@@ -5,7 +5,7 @@ import Languages from "@/shared/constants/languages.ts";
 import {useI18n} from "vue-i18n";
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('langu');
+  const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('langua');
   const localSoundOn = new LocalStorageService<boolean>('soundOn');
   const localVibrationOn = new LocalStorageService<boolean>('vibrationOn');
   const {locale} = useI18n();
