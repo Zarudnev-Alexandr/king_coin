@@ -3,7 +3,7 @@ import en from '@/locales/en.json';
 import ru from '@/locales/ru.json';
 import {LocalStorageService} from "@/shared/api/services/local-storage-service.ts";
 
-const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('language');
+const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('languag');
 
 const messages = {
   en: en,
