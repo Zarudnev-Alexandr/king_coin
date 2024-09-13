@@ -3,7 +3,7 @@ import en from '@/locales/en.json';
 import ru from '@/locales/ru.json';
 import {LocalStorageService} from "@/shared/api/services/local-storage-service.ts";
 
-const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('language');
+const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('languag');
 
 const messages = {
   en: en,
@@ -12,7 +12,7 @@ const messages = {
 
 export const i18n = createI18n({
   legacy: false,
-  locale: localLanguage.getItem()?.short || 'ru',
-  fallbackLocale: localLanguage.getItem()?.short || 'ru',
+  locale: localLanguage.getItem()?.short || 'en',
+  fallbackLocale: localLanguage.getItem()?.short || 'en',
   messages
 });

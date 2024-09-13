@@ -5,7 +5,7 @@ import Languages from "@/shared/constants/languages.ts";
 import {useI18n} from "vue-i18n";
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('lang');
+  const localLanguage = new LocalStorageService<{ name: string, short: string, icon: string }>('languag');
   const localSoundOn = new LocalStorageService<boolean>('soundOn');
   const localVibrationOn = new LocalStorageService<boolean>('vibrationOn');
   const {locale} = useI18n();
@@ -13,7 +13,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   if (localLanguage.getItem() === null) {
     if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user?.language_code === 'ru') {
       localLanguage.setItem(Languages[0]);
-      } else {
+    } else {
       localLanguage.setItem(Languages[1]);
     }
   }
@@ -30,6 +30,16 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   const vibrationOn = ref(localVibrationOn.getItem());
   const currenLanguage = ref(localLanguage.getItem());
 
+  const setLanguage = (value: { name: string, short: string, icon: string }) => {
+    localLanguage.setItem(value);
+    currenLanguage.value = value;
+    locale.value = value.short;
+  };
+
+  if (localLanguage.getItem() !== null) {
+    setLanguage(localLanguage.getItem()!);
+  }
+
   const setSoundOn = (value: boolean) => {
     localSoundOn.setItem(value);
     soundOn.value = value;
@@ -40,11 +50,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     vibrationOn.value = value;
   };
 
-  const setLanguage = (value: { name: string, short: string, icon: string }) => {
-    localLanguage.setItem(value);
-    currenLanguage.value = value;
-    locale.value = value.short;
-  };
 
   return {
     soundOn,
