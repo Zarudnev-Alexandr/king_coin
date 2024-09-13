@@ -273,6 +273,8 @@ async def check_conditions(user, all_upgrades, condition, db):
     elif condition.condition_type == UpgradeConditionType.REACH_UPGRADE_LEVEL:
         all_upgrades_dict = {upgrade.id: upgrade for upgrade in all_upgrades}
         related_upgrade = all_upgrades_dict.get(condition.related_upgrade_id)
+        if not hasattr(related_upgrade, 'lvl'):
+            related_upgrade.lvl = 0
         if not related_upgrade or related_upgrade.lvl < condition.condition_value:
             conditions_met = False
             unmet_conditions.append({
