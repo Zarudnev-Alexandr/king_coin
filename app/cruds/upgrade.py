@@ -1,5 +1,6 @@
 from typing import List
 
+from cachetools import TTLCache
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
@@ -162,7 +163,7 @@ async def process_upgrade(user, user_upgrade, upgrade, db):
     #                                                  "factor": current_lvl_data.factor,
     #                                                  "lvl": current_lvl_data.lvl,
     #                                                  "price_at_current_lvl": current_lvl_data.price})
-        # raise HTTPException(status_code=400, detail="Level is max!")
+    # raise HTTPException(status_code=400, detail="Level is max!")
 
     if user.money < next_lvl_data.price:
         raise HTTPException(status_code=400, detail="You have not money to upgrade")
@@ -184,18 +185,18 @@ async def get_user_upgrades(user_id: int, db: AsyncSession) -> List[UserUpgrades
 
 async def get_user_upgrades_in_this_category(user_id: int, category_id: int, db: AsyncSession) -> List[UserUpgrades]:
     result = await db.execute(
-        select(UserUpgrades).\
-        join(Upgrades).join(UpgradeCategory).\
-        filter(UserUpgrades.user_id == user_id, UpgradeCategory.id == category_id)
+        select(UserUpgrades). \
+            join(Upgrades).join(UpgradeCategory). \
+            filter(UserUpgrades.user_id == user_id, UpgradeCategory.id == category_id)
     )
     return result.unique().scalars().all()
 
 
 async def get_user_upgrades_in_all_categories(user_id: int, db: AsyncSession) -> List[UserUpgrades]:
     result = await db.execute(
-        select(UserUpgrades).\
-        join(Upgrades).join(UpgradeCategory).\
-        filter(UserUpgrades.user_id == user_id)
+        select(UserUpgrades). \
+            join(Upgrades).join(UpgradeCategory). \
+            filter(UserUpgrades.user_id == user_id)
     )
     return result.unique().scalars().all()
 
@@ -300,3 +301,10 @@ async def check_conditions(user, all_upgrades, condition, db):
     condition_result = {"conditions_met": conditions_met, "unmet_conditions": unmet_conditions}
     return condition_result
 
+
+@cached(ttl=3600)
+async def get_cached_latest_daily_combo(db: AsyncSession):
+    latest_combo = await db.execute(
+        select(DailyCombo).order_by(DailyCombo.created.desc()).limit(1)
+    )
+    return latest_combo.scalars().first()

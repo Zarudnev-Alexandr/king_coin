@@ -14,7 +14,7 @@ from app.cruds.upgrade import get_upgrade_category_by_name, create_upgrade_categ
     get_all_upgrade_category, get_upgrade_level, add_upgrade_level, get_user_upgrades_by_upgrade_id, add_bought_upgrade, \
     process_upgrade, get_user_upgrades_in_this_category, create_combo, get_user_combo, get_latest_user_combo, \
     get_cached_all_upgrade_categories, get_user_upgrades_for_all_categories, get_sorted_filtered_upgrades, \
-    check_conditions
+    check_conditions, get_cached_latest_daily_combo
 from app.cruds.user import get_user, get_user_bool
 from app.database import get_db
 from app.models import UpgradeLevel, DailyCombo, UserDailyComboProgress, Upgrades, UpgradeConditionType
@@ -242,8 +242,7 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     }
 
     # Check the latest daily combo
-    latest_combo = await db.execute(select(DailyCombo).order_by(DailyCombo.created.desc()).limit(1))
-    latest_combo = latest_combo.scalars().first()
+    latest_combo = await get_cached_latest_daily_combo(db)
 
     if latest_combo:
         # Check if the bought upgrade is part of the daily combo
@@ -267,7 +266,6 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
                 combo_status["upgrade_2_purchased"] = True
             elif upgrade_id == latest_combo.upgrade_3_id and not user_combo_progress.upgrade_3_bought:
                 user_combo_progress.upgrade_3_bought = True
-                combo_status["upgrade_3_purchased"] = True
 
             # Check if all upgrades are bought and grant reward
             if (user_combo_progress.upgrade_1_bought and
@@ -284,50 +282,50 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
 
     await db.refresh(user_upgrade)
 
-    next_upgrade_level = await db.execute(
-        select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=user_upgrade.lvl + 1)
-    )
-    next_upgrade_level = next_upgrade_level.scalars().first()
+    current_upgrade_lvl_data = None
+    next_upgrade_lvl_data = None
 
-    current_upgrade_level = await db.execute(
-        select(UpgradeLevel).filter_by(upgrade_id=upgrade.id, lvl=user_upgrade.lvl)
-    )
-    current_upgrade_level = current_upgrade_level.scalars().first()
+    for level in upgrade.levels:
+        if level.lvl == user_upgrade.lvl:
+            current_upgrade_lvl_data = {
+                "lvl": level.lvl,
+                "factor": level.factor
+            }
+        elif level.lvl == user_upgrade.lvl + 1:
+            next_upgrade_lvl_data = {
+                "lvl": level.lvl,
+                "factor": level.factor,
+                "price": level.price
+            }
+
+    # Если текущий уровень не найден, это может быть первый уровень
+    if not current_upgrade_lvl_data:
+        current_upgrade_lvl_data = {
+            "lvl": None,  # или 0, если нужен дефолтный уровень
+            "factor": None
+        }
+
+    # Если следующий уровень не найден, значит это последний уровень
+    if not next_upgrade_lvl_data:
+        next_upgrade_lvl_data = {
+            "lvl": None,
+            "factor": None,
+            "price": None
+        }
 
     user_check = await user_check_and_update_without_init_data(user, db)
     await db.refresh(upgrade)
     return_data = {
         "user_remaining_money": user.money,
         "upgrade_id": upgrade.id,
-        "current_lvl": current_upgrade_level.lvl if current_upgrade_level else None,
-        "current_factor": current_upgrade_level.factor if current_upgrade_level else None,
-        "factor_at_new_lvl": next_upgrade_level.factor if next_upgrade_level else None,
-        "price_of_next_lvl": next_upgrade_level.price if next_upgrade_level else None,
-        "next_lvl": next_upgrade_level.lvl if next_upgrade_level else None,
-        "combo_status": combo_status if latest_combo else {},  # Only include combo_status if there's a combo
+        "current_lvl": current_upgrade_lvl_data["lvl"] if current_upgrade_lvl_data else None,
+        "current_factor": current_upgrade_lvl_data["factor"] if current_upgrade_lvl_data else None,
+        "factor_at_new_lvl": next_upgrade_lvl_data["factor"] if next_upgrade_lvl_data else None,
+        "price_of_next_lvl": next_upgrade_lvl_data["price"] if next_upgrade_lvl_data else None,
+        "next_lvl": next_upgrade_lvl_data["lvl"] if next_upgrade_lvl_data else None,
+        "combo_status": combo_status if latest_combo else {},
         "user_check": user_check
     }
-
-    await ws_manager.notify_user(user.tg_id, {
-        "event": "buy_upgrade",
-        "data": {
-            "user_remaining_money": user.money,
-            "upgrade_id": upgrade.id,
-            "current_lvl": current_upgrade_level.lvl if current_upgrade_level else None,
-            "current_factor": current_upgrade_level.factor if current_upgrade_level else None,
-            "factor_at_new_lvl": next_upgrade_level.factor if next_upgrade_level else None,
-            "price_of_next_lvl": next_upgrade_level.price if next_upgrade_level else None,
-            "next_lvl": next_upgrade_level.lvl if next_upgrade_level else None,
-            "combo_status": {
-                "new_combo_created": combo_status["new_combo_created"],
-                "upgrade_1_purchased": combo_status["upgrade_1_purchased"],
-                "upgrade_2_purchased": combo_status["upgrade_2_purchased"],
-                "upgrade_3_purchased": combo_status["upgrade_3_purchased"],
-                "combo_completed": combo_status["combo_completed"],
-                "reward_claimed": combo_status["reward_claimed"]
-            } if latest_combo else {}
-        }
-    })
 
     return return_data
 
