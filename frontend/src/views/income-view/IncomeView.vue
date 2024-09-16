@@ -10,8 +10,11 @@ import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts"
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import VibrationService from "@/shared/api/services/vibration-service.ts";
 import IncomeSkeleton from "@/views/income-view/components/income-skeleton.vue";
+import TAppApiService from "@/shared/api/services/t-app-api-service.ts";
+import {axiosTappInstance} from "@/shared/api/axios/tapp-client.ts";
 
-const taskService = new TasksApiService(axiosInstance, errorHandler)
+const taskService = new TasksApiService(axiosInstance, errorHandler);
+const tappApiService = new TAppApiService(axiosTappInstance, errorHandler);
 const vibrationService = new VibrationService();
 const {setTasks, setDailyTask, tasks, dailyTask} = useIncomeStore();
 const isLoading = ref(false);
@@ -37,6 +40,9 @@ onMounted(async () => {
       isLoadingDaily.value = false;
     }
   }
+
+  const res = await tappApiService.getFeeds();
+  console.log(res);
 })
 
 const isLoadingTasks = computed(() => {
