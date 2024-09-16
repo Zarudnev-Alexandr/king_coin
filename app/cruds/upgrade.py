@@ -1,12 +1,16 @@
 from typing import List
 
+from cachetools import TTLCache
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+from aiocache import cached
 
-from app.models import UpgradeCategory, Upgrades, UpgradeLevel, UserUpgrades, DailyCombo, UserDailyComboProgress
+from app.cruds.task import get_invited_count, check_telegram_subscription
+from app.models import UpgradeCategory, Upgrades, UpgradeLevel, UserUpgrades, DailyCombo, UserDailyComboProgress, \
+    UpgradeConditionType
 
 
 async def get_upgrade_category_by_id(db: AsyncSession, upgrade_category_id: int):
@@ -37,11 +41,13 @@ async def get_upgrade_category_all_func(db: AsyncSession):
 
 async def get_all_upgrade_category(db: AsyncSession):
     """Все категории улучшений (карточкек)"""
-    query = select(UpgradeCategory)
-
-    result = await db.execute(query)
-    upgrades = result.unique().scalars().all()
-    return upgrades
+    result = await db.execute(
+        select(UpgradeCategory).
+        join(UpgradeCategory.upgrades).
+        filter(Upgrades.is_in_shop == True).
+        order_by(UpgradeCategory.id, Upgrades.sort_position)
+    )
+    return result.unique().scalars().all()
 
 
 async def create_upgrade_category(db: AsyncSession, **kwargs) -> UpgradeCategory:
@@ -157,7 +163,7 @@ async def process_upgrade(user, user_upgrade, upgrade, db):
     #                                                  "factor": current_lvl_data.factor,
     #                                                  "lvl": current_lvl_data.lvl,
     #                                                  "price_at_current_lvl": current_lvl_data.price})
-        # raise HTTPException(status_code=400, detail="Level is max!")
+    # raise HTTPException(status_code=400, detail="Level is max!")
 
     if user.money < next_lvl_data.price:
         raise HTTPException(status_code=400, detail="You have not money to upgrade")
@@ -179,18 +185,18 @@ async def get_user_upgrades(user_id: int, db: AsyncSession) -> List[UserUpgrades
 
 async def get_user_upgrades_in_this_category(user_id: int, category_id: int, db: AsyncSession) -> List[UserUpgrades]:
     result = await db.execute(
-        select(UserUpgrades).\
-        join(Upgrades).join(UpgradeCategory).\
-        filter(UserUpgrades.user_id == user_id, UpgradeCategory.id == category_id)
+        select(UserUpgrades). \
+            join(Upgrades).join(UpgradeCategory). \
+            filter(UserUpgrades.user_id == user_id, UpgradeCategory.id == category_id)
     )
     return result.unique().scalars().all()
 
 
 async def get_user_upgrades_in_all_categories(user_id: int, db: AsyncSession) -> List[UserUpgrades]:
     result = await db.execute(
-        select(UserUpgrades).\
-        join(Upgrades).join(UpgradeCategory).\
-        filter(UserUpgrades.user_id == user_id)
+        select(UserUpgrades). \
+            join(Upgrades).join(UpgradeCategory). \
+            filter(UserUpgrades.user_id == user_id)
     )
     return result.unique().scalars().all()
 
@@ -220,3 +226,85 @@ async def get_user_combo(db: AsyncSession, user_id: int, latest_combo):
     )
     user_combo_progress = user_combo_progress.scalars().first()
     return user_combo_progress
+
+
+@cached(ttl=3600)  # Кэшируем данные на час
+async def get_cached_all_upgrade_categories(db: AsyncSession):
+    return await get_all_upgrade_category(db)
+
+
+async def get_user_upgrades_for_all_categories(user_id: int, db: AsyncSession) -> dict[int, dict]:
+    # Один запрос для всех улучшений пользователя по всем категориям
+    result = await db.execute(
+        select(UserUpgrades).join(Upgrades).filter(UserUpgrades.user_id == user_id)
+    )
+    upgrades = result.scalars().all()
+
+    # Преобразуем данные в словарь, где ключ - upgrade_id, а значение - данные о уровне и купленности
+    return {upgrade.upgrade_id: {
+        "lvl": upgrade.lvl,
+        "is_bought": True
+    } for upgrade in upgrades}
+
+
+async def get_sorted_filtered_upgrades(category_id: int, db: AsyncSession):
+    result = await db.execute(
+        select(Upgrades).filter_by(upgrade_category_id=category_id, is_in_shop=True).order_by(Upgrades.sort_position)
+    )
+    return result.scalars().all()
+
+
+async def check_conditions(user, all_upgrades, condition, db):
+    """Проверяем задания на карточке"""
+    conditions_met = True
+    unmet_conditions = []
+
+    if condition.condition_type == UpgradeConditionType.INVITE:
+        invited_count = await get_invited_count(db, user.tg_id)
+        if invited_count < condition.condition_value:
+            conditions_met = False
+            unmet_conditions.append({
+                "type": "invite",
+                "required_value": condition.condition_value,
+                "current_value": invited_count,
+                "description": condition.description,
+                "name_of_condition_upgrade": condition.name_of_condition_upgrade,
+            })
+
+    elif condition.condition_type == UpgradeConditionType.REACH_UPGRADE_LEVEL:
+        all_upgrades_dict = {upgrade.id: upgrade for upgrade in all_upgrades}
+        related_upgrade = all_upgrades_dict.get(condition.related_upgrade_id)
+        if not hasattr(related_upgrade, 'lvl'):
+            related_upgrade.lvl = 0
+        if not related_upgrade or related_upgrade.lvl < condition.condition_value:
+            conditions_met = False
+            unmet_conditions.append({
+                "type": "reach_upgrade_level",
+                "related_upgrade_id": condition.related_upgrade_id,
+                "required_value": condition.condition_value,
+                "current_value": related_upgrade.lvl if related_upgrade else 0,
+                "description": condition.description,
+                "name_of_condition_upgrade": condition.name_of_condition_upgrade
+            })
+
+    elif condition.condition_type == UpgradeConditionType.SUBSCRIBE_TELEGRAM:
+        is_subscribed = check_telegram_subscription(int(condition.channel_url), user.tg_id)
+        if not is_subscribed:
+            conditions_met = False
+            unmet_conditions.append({
+                "type": "subscribe_telegram",
+                "channel_url": condition.channel_url,
+                "description": condition.description,
+                "name_of_condition_upgrade": condition.name_of_condition_upgrade
+            })
+
+    condition_result = {"conditions_met": conditions_met, "unmet_conditions": unmet_conditions}
+    return condition_result
+
+
+@cached(ttl=3600)
+async def get_cached_latest_daily_combo(db: AsyncSession):
+    latest_combo = await db.execute(
+        select(DailyCombo).order_by(DailyCombo.created.desc()).limit(1)
+    )
+    return latest_combo.scalars().first()
