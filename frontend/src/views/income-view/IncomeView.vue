@@ -10,13 +10,12 @@ import {axiosInstance, errorHandler} from "@/shared/api/axios/axios-instance.ts"
 import {useIncomeStore} from "@/shared/pinia/income-store.ts";
 import VibrationService from "@/shared/api/services/vibration-service.ts";
 import IncomeSkeleton from "@/views/income-view/components/income-skeleton.vue";
-import TAppApiService from "@/shared/api/services/t-app-api-service.ts";
-import {axiosTappInstance} from "@/shared/api/axios/tapp-client.ts";
+import TAppTaskList from "@/views/income-view/components/t-app-task-list.vue";
 
 const taskService = new TasksApiService(axiosInstance, errorHandler);
-const tappApiService = new TAppApiService(axiosTappInstance, errorHandler);
+
 const vibrationService = new VibrationService();
-const {setTasks, setDailyTask, tasks, dailyTask} = useIncomeStore();
+const {setTasks, setDailyTask, tasks, dailyTask, tAppTaskLoading} = useIncomeStore();
 const isLoading = ref(false);
 const isLoadingDaily = ref(false);
 
@@ -40,9 +39,6 @@ onMounted(async () => {
       isLoadingDaily.value = false;
     }
   }
-
-  const res = await tappApiService.getFeeds();
-  console.log(res);
 })
 
 const isLoadingTasks = computed(() => {
@@ -53,9 +49,10 @@ const isLoadingTasks = computed(() => {
 <template>
   <div class="income-wrapper">
     <income-header/>
-    <income-actual-tasks v-if="!isLoadingTasks"/>
-    <income-daily-tasks v-if="!isLoadingTasks"/>
-    <income-task-list v-if="!isLoadingTasks"/>
+    <income-actual-tasks v-if="!isLoadingTasks && !tAppTaskLoading"/>
+    <income-daily-tasks v-if="!isLoadingTasks && !tAppTaskLoading"/>
+    <income-task-list v-if="!isLoadingTasks && !tAppTaskLoading"/>
+    <t-app-task-list v-if="!isLoadingTasks && !tAppTaskLoading"/>
     <income-skeleton v-if="isLoadingTasks"/>
   </div>
 </template>
