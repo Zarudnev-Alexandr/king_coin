@@ -20,7 +20,7 @@ class TAppApiService {
   }
 
   public async getFeeds(): Promise<Either<CommonResponseError, FeedItem[]>> {
-    const userId = 1567445; // Можно поменять id тут
+    const userId = Telegram.WebApp.initDataUnsafe ? Telegram.WebApp.initDataUnsafe.user!.id : 45221782
 
     // Формируем параметры запроса
     const params = new URLSearchParams({
