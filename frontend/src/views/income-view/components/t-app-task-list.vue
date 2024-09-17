@@ -18,7 +18,8 @@ const appStore = useAppStore();
 const userStore = useUserStore();
 const {t} = useI18n();
 const loadingCheck = ref(false);
-const {setTAppTasks, tAppTasks, setTAppTaskLoading, tAppTaskLoading, isLoading} = useIncomeStore();
+const loadingTasks = ref(false);
+const {setTAppTasks, tAppTasks} = useIncomeStore();
 const selectedFeed: Ref<FeedItem | null> = ref(null);
 
 const setSelectedFeed = (feed: FeedItem | null) => {
@@ -28,13 +29,13 @@ const setSelectedFeed = (feed: FeedItem | null) => {
 const getTasks = async () => {
   if (tAppTasks.length !== 0) return;
 
-  setTAppTaskLoading(true);
+  loadingTasks.value = true
   const res = await tappApiService.getFeeds();
 
   if (res && res.right) {
     setTAppTasks(res.right);
-    setTAppTaskLoading(false);
   }
+  loadingTasks.value = false;
 }
 
 const checkTask = async () => {
@@ -60,7 +61,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="tapp-tasks-wrap" v-if="!tAppTaskLoading && !isLoading">
+  <div class="tapp-tasks-wrap" v-if="!loadingTasks">
     <h3 class="sf-pro-font">T app Tasks</h3>
     <div class="task-list-wrap">
       <t-app-task-item v-for="(task, index) in tAppTasks"

@@ -15,7 +15,7 @@ import TAppTaskList from "@/views/income-view/components/t-app-task-list.vue";
 const taskService = new TasksApiService(axiosInstance, errorHandler);
 
 const vibrationService = new VibrationService();
-const {setTasks, setDailyTask, tasks, dailyTask, tAppTaskLoading} = useIncomeStore();
+const {setTasks, setDailyTask, tasks, dailyTask} = useIncomeStore();
 const isLoading = ref(false);
 const isLoadingDaily = ref(false);
 
@@ -49,11 +49,11 @@ const isLoadingTasks = computed(() => {
 <template>
   <div class="income-wrapper">
     <income-header/>
-    <income-actual-tasks v-if="!isLoadingTasks && !tAppTaskLoading"/>
-    <income-daily-tasks v-if="!isLoadingTasks && !tAppTaskLoading"/>
-    <income-task-list v-if="!isLoadingTasks && !tAppTaskLoading"/>
-    <t-app-task-list v-if="!isLoadingTasks && !tAppTaskLoading"/>
+    <income-actual-tasks v-if="!isLoadingTasks"/>
+    <income-daily-tasks v-if="!isLoadingTasks"/>
+    <income-task-list v-if="!isLoadingTasks"/>
     <income-skeleton v-if="isLoadingTasks"/>
+    <t-app-task-list/>
   </div>
 </template>
 
