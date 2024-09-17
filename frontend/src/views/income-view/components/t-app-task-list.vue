@@ -51,7 +51,10 @@ const checkTask = async () => {
 }
 
 const goToSubscribe = async () => {
-  window.open(selectedFeed.value?.url ?? '', '_blank');
+  if (selectedFeed.value?.url) {
+    Telegram.WebApp.openLink(selectedFeed.value.url, {try_instant_view: true})
+  }
+
   await tappApiService.onClick(selectedFeed.value!);
 }
 
