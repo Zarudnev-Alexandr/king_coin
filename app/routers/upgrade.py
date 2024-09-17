@@ -266,6 +266,7 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
                 combo_status["upgrade_2_purchased"] = True
             elif upgrade_id == latest_combo.upgrade_3_id and not user_combo_progress.upgrade_3_bought:
                 user_combo_progress.upgrade_3_bought = True
+                combo_status["upgrade_3_purchased"] = True
 
             # Check if all upgrades are bought and grant reward
             if (user_combo_progress.upgrade_1_bought and
