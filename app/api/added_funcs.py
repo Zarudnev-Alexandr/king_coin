@@ -10,7 +10,8 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cruds.upgrade import get_user_upgrades, get_upgrade_by_id, get_user_upgrades_with_levels
+from app.cruds.upgrade import get_user_upgrades, get_upgrade_by_id, get_user_upgrades_with_levels, \
+    get_cached_all_upgrade_categories, get_user_upgrades_for_all_categories
 from app.cruds.user import get_user
 from app.models import Level
 
@@ -106,7 +107,7 @@ async def user_check_and_update(initData: str, db: AsyncSession):
 
     hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
-    user_upgrades = await get_user_upgrades(user.tg_id, db)
+    # user_upgrades = await get_user_upgrades(user.tg_id, db)
 
     # total_hourly_income = 0
     # for user_upgrade in user_upgrades:
@@ -115,14 +116,14 @@ async def user_check_and_update(initData: str, db: AsyncSession):
     #         if current_lvl == lvl.lvl:
     #             total_hourly_income += lvl.factor
 
-    upgrades = await asyncio.gather(
-        *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-    )
-
-    total_hourly_income = sum(
-        next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-        for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-    )
+    # upgrades = await asyncio.gather(
+    #     *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+    # )
+    #
+    # total_hourly_income = sum(
+    #     next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+    #     for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+    # )
 
     # Получаем сразу все апгрейды пользователя и соответствующие уровни за один запрос
     # user_upgrades_with_levels = await get_user_upgrades_with_levels(user.tg_id, db)
@@ -130,6 +131,32 @@ async def user_check_and_update(initData: str, db: AsyncSession):
     # total_hourly_income = sum(
     #     level.factor for _, _, level in user_upgrades_with_levels
     # )
+
+    all_upgrade_categories = await get_cached_all_upgrade_categories(db)
+    user_upgrades_dict = await get_user_upgrades_for_all_categories(user.tg_id, db)
+
+    total_hourly_income = 0  # Инициализация общего дохода
+
+    for upgrade_category in all_upgrade_categories:
+        for upgrade in upgrade_category.upgrades:
+            # Получаем данные об апгрейде пользователя, если он существует
+            user_upgrade = user_upgrades_dict.get(upgrade.id, None)
+            if user_upgrade:
+                upgrade.lvl = user_upgrade["lvl"]
+            else:
+                upgrade.lvl = 0
+
+            current_level_data = None
+
+            # Ищем уровень апгрейда
+            for level in upgrade.levels:
+                if level.lvl == upgrade.lvl:
+                    current_level_data = level
+
+            # Если текущий уровень найден, обновляем фактор и суммируем доход
+            if current_level_data:
+                upgrade.factor = current_level_data.factor
+                total_hourly_income += current_level_data.factor  # Суммируем факторы для расчета дохода
 
     total_income = total_hourly_income * hours_passed
 
@@ -185,15 +212,15 @@ async def user_check_and_update_only_money(initData: str, db: AsyncSession):
 
     hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
-    user_upgrades = await get_user_upgrades(user.tg_id, db)
-    upgrades = await asyncio.gather(
-        *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-    )
-
-    total_hourly_income = sum(
-        next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-        for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-    )
+    # user_upgrades = await get_user_upgrades(user.tg_id, db)
+    # upgrades = await asyncio.gather(
+    #     *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+    # )
+    #
+    # total_hourly_income = sum(
+    #     next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+    #     for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+    # )
 
     # user_upgrades = await get_user_upgrades(user.tg_id, db)
     #
@@ -210,6 +237,32 @@ async def user_check_and_update_only_money(initData: str, db: AsyncSession):
     # total_hourly_income = sum(
     #     level.factor for _, _, level in user_upgrades_with_levels
     # )
+
+    all_upgrade_categories = await get_cached_all_upgrade_categories(db)
+    user_upgrades_dict = await get_user_upgrades_for_all_categories(user.tg_id, db)
+
+    total_hourly_income = 0  # Инициализация общего дохода
+
+    for upgrade_category in all_upgrade_categories:
+        for upgrade in upgrade_category.upgrades:
+            # Получаем данные об апгрейде пользователя, если он существует
+            user_upgrade = user_upgrades_dict.get(upgrade.id, None)
+            if user_upgrade:
+                upgrade.lvl = user_upgrade["lvl"]
+            else:
+                upgrade.lvl = 0
+
+            current_level_data = None
+
+            # Ищем уровень апгрейда
+            for level in upgrade.levels:
+                if level.lvl == upgrade.lvl:
+                    current_level_data = level
+
+            # Если текущий уровень найден, обновляем фактор и суммируем доход
+            if current_level_data:
+                upgrade.factor = current_level_data.factor
+                total_hourly_income += current_level_data.factor  # Суммируем факторы для расчета дохода
 
     total_income = total_hourly_income * hours_passed
 
@@ -245,15 +298,15 @@ async def user_check_and_update_without_init_data(user, db: AsyncSession):
 
     hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
-    user_upgrades = await get_user_upgrades(user.tg_id, db)
-    upgrades = await asyncio.gather(
-        *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-    )
-
-    total_hourly_income = sum(
-        next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-        for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-    )
+    # user_upgrades = await get_user_upgrades(user.tg_id, db)
+    # upgrades = await asyncio.gather(
+    #     *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+    # )
+    #
+    # total_hourly_income = sum(
+    #     next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+    #     for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+    # )
 
     # user_upgrades = await get_user_upgrades(user.tg_id, db)
     #
@@ -270,6 +323,32 @@ async def user_check_and_update_without_init_data(user, db: AsyncSession):
     # total_hourly_income = sum(
     #     level.factor for _, _, level in user_upgrades_with_levels
     # )
+
+    all_upgrade_categories = await get_cached_all_upgrade_categories(db)
+    user_upgrades_dict = await get_user_upgrades_for_all_categories(user.tg_id, db)
+
+    total_hourly_income = 0  # Инициализация общего дохода
+
+    for upgrade_category in all_upgrade_categories:
+        for upgrade in upgrade_category.upgrades:
+            # Получаем данные об апгрейде пользователя, если он существует
+            user_upgrade = user_upgrades_dict.get(upgrade.id, None)
+            if user_upgrade:
+                upgrade.lvl = user_upgrade["lvl"]
+            else:
+                upgrade.lvl = 0
+
+            current_level_data = None
+
+            # Ищем уровень апгрейда
+            for level in upgrade.levels:
+                if level.lvl == upgrade.lvl:
+                    current_level_data = level
+
+            # Если текущий уровень найден, обновляем фактор и суммируем доход
+            if current_level_data:
+                upgrade.factor = current_level_data.factor
+                total_hourly_income += current_level_data.factor  # Суммируем факторы для расчета дохода
 
     total_income = total_hourly_income * hours_passed
 
@@ -322,15 +401,15 @@ async def user_check_and_update_without_init_data_only_money(user, db: AsyncSess
 
     hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
-    user_upgrades = await get_user_upgrades(user.tg_id, db)
-    upgrades = await asyncio.gather(
-        *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-    )
-
-    total_hourly_income = sum(
-        next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-        for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-    )
+    # user_upgrades = await get_user_upgrades(user.tg_id, db)
+    # upgrades = await asyncio.gather(
+    #     *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+    # )
+    #
+    # total_hourly_income = sum(
+    #     next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+    #     for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+    # )
 
     # user_upgrades = await get_user_upgrades(user.tg_id, db)
     #
@@ -341,6 +420,33 @@ async def user_check_and_update_without_init_data_only_money(user, db: AsyncSess
     #         if current_lvl == lvl.lvl:
     #             total_hourly_income += lvl.factor
 
+    all_upgrade_categories = await get_cached_all_upgrade_categories(db)
+    user_upgrades_dict = await get_user_upgrades_for_all_categories(user.tg_id, db)
+
+    total_hourly_income = 0  # Инициализация общего дохода
+
+    for upgrade_category in all_upgrade_categories:
+        for upgrade in upgrade_category.upgrades:
+            # Получаем данные об апгрейде пользователя, если он существует
+            user_upgrade = user_upgrades_dict.get(upgrade.id, None)
+            if user_upgrade:
+                upgrade.lvl = user_upgrade["lvl"]
+            else:
+                upgrade.lvl = 0
+
+            current_level_data = None
+
+            # Ищем уровень апгрейда
+            for level in upgrade.levels:
+                if level.lvl == upgrade.lvl:
+                    current_level_data = level
+
+            # Если текущий уровень найден, обновляем фактор и суммируем доход
+            if current_level_data:
+                upgrade.factor = current_level_data.factor
+                total_hourly_income += current_level_data.factor  # Суммируем факторы для расчета дохода
+
+    # Рассчитываем итоговый доход на основе почасового дохода и времени
     total_income = total_hourly_income * hours_passed
 
     user.money += total_income
