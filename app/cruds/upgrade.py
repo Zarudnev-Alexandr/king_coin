@@ -3,7 +3,7 @@ from typing import List
 from cachetools import TTLCache
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from aiocache import cached
@@ -181,6 +181,16 @@ async def get_user_upgrades(user_id: int, db: AsyncSession) -> List[UserUpgrades
         select(UserUpgrades).where(UserUpgrades.user_id == user_id)
     )
     return result.unique().scalars().all()
+
+
+async def get_user_upgrades_with_levels(user_id: int, db: AsyncSession):
+    result = await db.execute(
+        select(UserUpgrades, Upgrades, UpgradeLevel)
+        .join(Upgrades, UserUpgrades.upgrade_id == Upgrades.id)  # Соединение UserUpgrades с Upgrades по upgrade_id
+        .join(UpgradeLevel, and_(UpgradeLevel.upgrade_id == UserUpgrades.upgrade_id, UpgradeLevel.lvl == UserUpgrades.lvl))  # Соединение UpgradeLevel с UserUpgrades по upgrade_id и lvl
+        .where(UserUpgrades.user_id == user_id)
+    )
+    return result.unique().all()
 
 
 async def get_user_upgrades_in_this_category(user_id: int, category_id: int, db: AsyncSession) -> List[UserUpgrades]:
