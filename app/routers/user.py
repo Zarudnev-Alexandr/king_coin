@@ -226,24 +226,24 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
 
         hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
-        # user_upgrades = await get_user_upgrades(tg_id, db)
-        # upgrades = await asyncio.gather(
-        #     *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-        # )
+        user_upgrades = await get_user_upgrades(tg_id, db)
+        upgrades = await asyncio.gather(
+            *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+        )
+
+        total_hourly_income = sum(
+            next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+            for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+        )
+
+        # user_upgrades = await get_user_upgrades(user.tg_id, db)
         #
-        # total_hourly_income = sum(
-        #     next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-        #     for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-        # )
-
-        user_upgrades = await get_user_upgrades(user.tg_id, db)
-
-        total_hourly_income = 0
-        for user_upgrade in user_upgrades:
-            current_lvl = user_upgrade.lvl
-            for lvl in user_upgrade.upgrade.levels:
-                if current_lvl == lvl.lvl:
-                    total_hourly_income += lvl.factor
+        # total_hourly_income = 0
+        # for user_upgrade in user_upgrades:
+        #     current_lvl = user_upgrade.lvl
+        #     for lvl in user_upgrade.upgrade.levels:
+        #         if current_lvl == lvl.lvl:
+        #             total_hourly_income += lvl.factor
 
         total_income = total_hourly_income * hours_passed
 
@@ -755,25 +755,25 @@ async def get_invited_users(
 
     for invited_user in invited_users:
         # Получаем апгрейды пользователя
-        # user_upgrades = await get_user_upgrades(invited_user.tg_id, db)
-        # upgrades = await asyncio.gather(
-        #     *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-        # )
-        #
-        # # Рассчитываем общий ежечасный доход пользователя
-        # total_hourly_income = sum(
-        #     next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-        #     for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-        # )
-
         user_upgrades = await get_user_upgrades(invited_user.tg_id, db)
+        upgrades = await asyncio.gather(
+            *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+        )
 
-        total_hourly_income = 0
-        for user_upgrade in user_upgrades:
-            current_lvl = user_upgrade.lvl
-            for lvl in user_upgrade.upgrade.levels:
-                if current_lvl == lvl.lvl:
-                    total_hourly_income += lvl.factor
+        # Рассчитываем общий ежечасный доход пользователя
+        total_hourly_income = sum(
+            next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+            for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+        )
+
+        # user_upgrades = await get_user_upgrades(invited_user.tg_id, db)
+        #
+        # total_hourly_income = 0
+        # for user_upgrade in user_upgrades:
+        #     current_lvl = user_upgrade.lvl
+        #     for lvl in user_upgrade.upgrade.levels:
+        #         if current_lvl == lvl.lvl:
+        #             total_hourly_income += lvl.factor
 
         # Подсчет количества пользователей, приглашенных данным пользователем
         invited_count = await db.scalar(select(func.count()).where(User.invited_tg_id == invited_user.tg_id))
