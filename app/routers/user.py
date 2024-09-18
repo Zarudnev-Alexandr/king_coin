@@ -16,7 +16,7 @@ from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_i
 from ..api.added_funcs import decode_init_data, transform_init_data, validate, user_check_and_update, \
     user_check_and_update_only_money
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
-from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id
+from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id, get_user_upgrades_with_levels
 from ..database import get_db
 from ..models import DailyReward, User, UserAdWatch
 from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
@@ -226,15 +226,15 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
 
         hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
-        user_upgrades = await get_user_upgrades(tg_id, db)
-        upgrades = await asyncio.gather(
-            *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
-        )
-
-        total_hourly_income = sum(
-            next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
-            for user_upgrade, upgrade in zip(user_upgrades, upgrades)
-        )
+        # user_upgrades = await get_user_upgrades(tg_id, db)
+        # upgrades = await asyncio.gather(
+        #     *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
+        # )
+        #
+        # total_hourly_income = sum(
+        #     next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
+        #     for user_upgrade, upgrade in zip(user_upgrades, upgrades)
+        # )
 
         # user_upgrades = await get_user_upgrades(user.tg_id, db)
         #
@@ -244,6 +244,13 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         #     for lvl in user_upgrade.upgrade.levels:
         #         if current_lvl == lvl.lvl:
         #             total_hourly_income += lvl.factor
+
+        # Получаем сразу все апгрейды пользователя и соответствующие уровни за один запрос
+        user_upgrades_with_levels = await get_user_upgrades_with_levels(user.tg_id, db)
+
+        total_hourly_income = sum(
+            level.factor for _, _, level in user_upgrades_with_levels
+        )
 
         total_income = total_hourly_income * hours_passed
 
