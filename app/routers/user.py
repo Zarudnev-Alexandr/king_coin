@@ -22,6 +22,10 @@ from ..models import DailyReward, User, UserAdWatch
 from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
     InitDataSchema, GameResultsSchema
 from ..websockets.settings import ws_manager
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 user_route = APIRouter()
 
@@ -51,9 +55,9 @@ user_route = APIRouter()
 #     try:
 #
 #         async for msg in consumer:
-#             print(f'Consumer msg😍😍😍😍😍😍: {msg}')
+#             logger.info(f'Consumer msg😍😍😍😍😍😍: {msg}')
 #     except Exception as e:
-#         print(f"Error consuming messages: {e}")
+#         logger.info(f"Error consuming messages: {e}")
 #     finally:
 #         await consumer.stop()
 
@@ -95,7 +99,7 @@ user_route = APIRouter()
 #     await consumer.start()
 #     try:
 #         async for msg in consumer:
-#             print(f'Received message: {msg.value.decode("utf-8")}')
+#             logger.info(f'Received message: {msg.value.decode("utf-8")}')
 #             message = json.loads(msg.value.decode("utf-8"))
 #             user_data = UserCreate(**message)
 #
@@ -103,7 +107,7 @@ user_route = APIRouter()
 #                 await create_user(db, user_data)
 #                 await db.commit()
 #     except Exception as e:
-#         print(f"Error consuming messages: {e}")
+#         logger.info(f"Error consuming messages: {e}")
 #     finally:
 #         await consumer.stop()
 
@@ -186,7 +190,7 @@ user_route = APIRouter()
 #             boost_data = {}
 #     else:
 #         boost_data = {}
-#     print('🐟', boost_data)
+#     logger.info('🐟', boost_data)
 #
 #     await db.commit()
 #     await db.refresh(user)
@@ -219,17 +223,17 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
     end = datetime.now()
     interval = end - start
     total_time_diff += interval
-    # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на decode_init_data')
+    logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на decode_init_data')
 
     # Время с момента последней проверки
     diff_from_previous = end - previous_end
-    # print(
-    #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+    logger.info(
+        f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
     previous_end = end
 
     now = datetime.now() - timedelta(minutes=datetime.now().minute % 15, seconds=datetime.now().second,
                                      microseconds=datetime.now().microsecond)
-    # print(f'1) now = {now}')
+    logger.info(f'1) now = {now}')
 
 
 
@@ -252,12 +256,12 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         end = datetime.now()
         interval = end - start
         total_time_diff += interval
-        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_upgrades')
+        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_upgrades')
 
         # Время с момента последней проверки
         diff_from_previous = end - previous_end
-        # print(
-        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        logger.info(
+            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
         previous_end = end
 
         # Время на get_upgrade_by_id
@@ -268,12 +272,12 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         end = datetime.now()
         interval = end - start
         total_time_diff += interval
-        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_upgrade_by_id')
+        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_upgrade_by_id')
 
         # Время с момента последней проверки
         diff_from_previous = end - previous_end
-        # print(
-        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        logger.info(
+            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
         previous_end = end
 
         total_hourly_income = sum(
@@ -291,12 +295,12 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         end = datetime.now()
         interval = end - start
         total_time_diff += interval
-        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_boost')
+        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_boost')
 
         # Время с момента последней проверки
         diff_from_previous = end - previous_end
-        # print(
-        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        logger.info(
+            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
         previous_end = end
 
         if user_boost:
@@ -306,12 +310,12 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             end = datetime.now()
             interval = end - start
             total_time_diff += interval
-            # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_boost_by_id')
+            logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_boost_by_id')
 
             # Время с момента последней проверки
             diff_from_previous = end - previous_end
-            # print(
-            #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+            logger.info(
+                f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
             previous_end = end
 
             if current_boost:
@@ -334,13 +338,13 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
                 end = datetime.now()
                 interval = end - start
                 total_time_diff += interval
-                # print(
-                #     f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_next_boost')
+                logger.info(
+                    f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_next_boost')
 
                 # Время с момента последней проверки
                 diff_from_previous = end - previous_end
-                # print(
-                #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+                logger.info(
+                    f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
                 previous_end = end
 
                 next_boost_data = {
@@ -367,12 +371,12 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         end = datetime.now()
         interval = end - start
         total_time_diff += interval
-        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на update_user_level')
+        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на update_user_level')
 
         # Время с момента последней проверки
         diff_from_previous = end - previous_end
-        # print(
-        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        logger.info(
+            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
         previous_end = end
 
         next_level_data = {
@@ -388,14 +392,14 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         end = datetime.now()
         interval = end - start
         total_time_diff += interval
-        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на commit')
+        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на commit')
 
         # Время с момента последней проверки
         diff_from_previous = end - previous_end
-        # print(
-        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        logger.info(
+            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
 
-        # print(f'Общее время выполнения всех await: {total_time_diff}')
+        logger.info(f'Общее время выполнения всех await: {total_time_diff}')
         await db.refresh(user)
 
         user_data = {
@@ -1075,7 +1079,7 @@ async def test123(db: AsyncSession = Depends(get_db)):
     end = datetime.now()
     interval = end - start
     total_time_diff += interval
-    # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера1')
+    logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера1')
     return get_data
 
 
@@ -1090,7 +1094,7 @@ async def test1232():
         end = datetime.now()
         interval = end - start
         total_time_diff += interval
-        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера2')
+        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера2')
         return get_data
 
 
@@ -1104,5 +1108,5 @@ async def test_perf(db: CurrentAsyncSession):
     end = datetime.now()
     interval = end - start
     total_time_diff += interval
-    # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера3')
+    logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера3')
     return {"time": interval.seconds}
