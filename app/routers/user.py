@@ -17,7 +17,7 @@ from ..api.added_funcs import decode_init_data, transform_init_data, validate, u
     user_check_and_update_only_money
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id, get_user_upgrades_with_levels
-from ..database import get_db
+from ..database import get_db, sessionmanager, CurrentAsyncSession
 from ..models import DailyReward, User, UserAdWatch
 from ..schemas import Message, UserCreate, UserBase, BoostCreateSchema, DailyRewardResponse, CreateDailyRewardSchema, \
     InitDataSchema, GameResultsSchema
@@ -209,7 +209,29 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid ref parameter")
 
+    start_time = datetime.now()
+    previous_end = start_time  # Переменная для сохранения времени предыдущего этапа
+    total_time_diff = timedelta()
+
+    # Время на decode_init_data
+    start = datetime.now()
     data_from_init_data = await decode_init_data(initData, db)
+    end = datetime.now()
+    interval = end - start
+    total_time_diff += interval
+    # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на decode_init_data')
+
+    # Время с момента последней проверки
+    diff_from_previous = end - previous_end
+    # print(
+    #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+    previous_end = end
+
+    now = datetime.now() - timedelta(minutes=datetime.now().minute % 15, seconds=datetime.now().second,
+                                     microseconds=datetime.now().microsecond)
+    # print(f'1) now = {now}')
+
+
 
     tg_id = data_from_init_data["tg_id"]
     username = data_from_init_data["username"]
@@ -219,48 +241,79 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
     user = data_from_init_data["user"]
 
     if user:
-        # Пользователь найден, выполняем вход
         current_time = datetime.utcnow()
         last_login = user.last_login or current_time
         time_diff = current_time - last_login
-
         hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
+        # Время на get_user_upgrades
+        start = datetime.now()
         user_upgrades = await get_user_upgrades(tg_id, db)
+        end = datetime.now()
+        interval = end - start
+        total_time_diff += interval
+        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_upgrades')
+
+        # Время с момента последней проверки
+        diff_from_previous = end - previous_end
+        # print(
+        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        previous_end = end
+
+        # Время на get_upgrade_by_id
+        start = datetime.now()
         upgrades = await asyncio.gather(
             *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
         )
+        end = datetime.now()
+        interval = end - start
+        total_time_diff += interval
+        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_upgrade_by_id')
+
+        # Время с момента последней проверки
+        diff_from_previous = end - previous_end
+        # print(
+        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        previous_end = end
 
         total_hourly_income = sum(
             next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
             for user_upgrade, upgrade in zip(user_upgrades, upgrades)
         )
 
-        # user_upgrades = await get_user_upgrades(user.tg_id, db)
-        #
-        # total_hourly_income = 0
-        # for user_upgrade in user_upgrades:
-        #     current_lvl = user_upgrade.lvl
-        #     for lvl in user_upgrade.upgrade.levels:
-        #         if current_lvl == lvl.lvl:
-        #             total_hourly_income += lvl.factor
-
-        # Получаем сразу все апгрейды пользователя и соответствующие уровни за один запрос
-        # user_upgrades_with_levels = await get_user_upgrades_with_levels(user.tg_id, db)
-        #
-        # total_hourly_income = sum(
-        #     level.factor for _, _, level in user_upgrades_with_levels
-        # )
-
         total_income = total_hourly_income * hours_passed
-
         user.money += total_income
         user.last_login = current_time
-        # user.last_check_time = current_time
 
+        # Время на get_user_boost
+        start = datetime.now()
         user_boost = await get_user_boost(db, tg_id)
+        end = datetime.now()
+        interval = end - start
+        total_time_diff += interval
+        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_boost')
+
+        # Время с момента последней проверки
+        diff_from_previous = end - previous_end
+        # print(
+        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        previous_end = end
+
         if user_boost:
+            # Время на get_boost_by_id
+            start = datetime.now()
             current_boost = await get_boost_by_id(db, user_boost.boost_id)
+            end = datetime.now()
+            interval = end - start
+            total_time_diff += interval
+            # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_boost_by_id')
+
+            # Время с момента последней проверки
+            diff_from_previous = end - previous_end
+            # print(
+            #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+            previous_end = end
+
             if current_boost:
                 boost_data = {
                     "boost_id": current_boost.lvl,
@@ -275,14 +328,27 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
                     "pillars_100": current_boost.pillars_100
                 }
 
+                # Время на get_next_boost
+                start = datetime.now()
                 next_boost = await get_next_boost(db, current_boost.lvl)
+                end = datetime.now()
+                interval = end - start
+                total_time_diff += interval
+                # print(
+                #     f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_next_boost')
+
+                # Время с момента последней проверки
+                diff_from_previous = end - previous_end
+                # print(
+                #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+                previous_end = end
+
                 next_boost_data = {
                     "boost_id": next_boost.lvl,
                     "name": next_boost.name,
                     "price": next_boost.price,
                     "lvl": next_boost.lvl,
                     "tap_boost": next_boost.tap_boost,
-                    "one_tap": next_boost.one_tap,
                     "pillars_2": current_boost.pillars_2,
                     "pillars_10": next_boost.pillars_10,
                     "pillars_30": next_boost.pillars_30,
@@ -295,11 +361,19 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             boost_data = {}
             next_boost_data = None
 
-        await db.commit()
-        await db.refresh(user)
+        # Время на update_user_level
+        start = datetime.now()
         next_level = await update_user_level(db, user)
-        if next_level:
-            await db.refresh(next_level)
+        end = datetime.now()
+        interval = end - start
+        total_time_diff += interval
+        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на update_user_level')
+
+        # Время с момента последней проверки
+        diff_from_previous = end - previous_end
+        # print(
+        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+        previous_end = end
 
         next_level_data = {
             "lvl": next_level.lvl if next_level else None,
@@ -307,6 +381,22 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             "taps_for_level": next_level.taps_for_level if next_level else None,
             "money_to_get_the_next_boost": next_level.required_money - user.money if next_level and next_level.required_money else None
         } if next_level else {}
+
+        # Время на commit
+        start = datetime.now()
+        await db.commit()
+        end = datetime.now()
+        interval = end - start
+        total_time_diff += interval
+        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на commit')
+
+        # Время с момента последней проверки
+        diff_from_previous = end - previous_end
+        # print(
+        #     f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
+
+        # print(f'Общее время выполнения всех await: {total_time_diff}')
+        await db.refresh(user)
 
         user_data = {
             "tg_id": user.tg_id,
@@ -973,3 +1063,46 @@ async def get_user_status(tg_id: int, db: AsyncSession = Depends(get_db)):
         return False
 
     return True
+
+
+@user_route.get("/test123")
+async def test123(db: AsyncSession = Depends(get_db)):
+    start_time = datetime.now()
+    previous_end = start_time
+    total_time_diff = timedelta()
+    start = datetime.now()
+    get_data = await get_user(db, 1)
+    end = datetime.now()
+    interval = end - start
+    total_time_diff += interval
+    # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера1')
+    return get_data
+
+
+@user_route.get("/test1232")
+async def test1232():
+    start_time = datetime.now()
+    previous_end = start_time
+    total_time_diff = timedelta()
+    start = datetime.now()
+    async with sessionmanager.session() as db:
+        get_data = await get_user(db, 1)
+        end = datetime.now()
+        interval = end - start
+        total_time_diff += interval
+        # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера2')
+        return get_data
+
+
+@user_route.get('/test-perf-123')
+async def test_perf(db: CurrentAsyncSession):
+    start_time = datetime.now()
+    previous_end = start_time
+    total_time_diff = timedelta()
+    start = datetime.now()
+    get_data = await get_user(db, 1)
+    end = datetime.now()
+    interval = end - start
+    total_time_diff += interval
+    # print(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на получение юзера3')
+    return {"time": interval.seconds}
