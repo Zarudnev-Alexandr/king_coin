@@ -1,8 +1,9 @@
 from asyncio import current_task
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import AsyncIterator, AsyncGenerator, Annotated
 
 import asyncpg
+from fastapi import Depends
 from marshmallow.exceptions import SCHEMA
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine, async_scoped_session
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import os
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:test@db:5432/king_coin")
+
 
 # async def init_db():
 #     pool = await asyncpg.create_pool(DATABASE_URL)
@@ -61,21 +63,30 @@ class DatabaseSessionManager:
 
 sessionmanager = DatabaseSessionManager()
 
+async_engine = create_async_engine(str(DATABASE_URL), pool_pre_ping=True)
 
-async def get_db() -> AsyncIterator[AsyncSession]:
-    session = sessionmanager.session()
-    if session is None:
-        raise Exception("DatabaseSessionManager is not initialized")
-    try:
-        # Setting the search path and yielding the session...
-        yield session
-    except Exception:
-        await session.rollback()
-        raise
-    finally:
-        # Closing the session after use...
-        await session.close()
+async_session_maker = async_sessionmaker(
+    async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
 
+
+# async def get_db() -> AsyncIterator[AsyncSession]:
+#     session = sessionmanager.session()
+#     if session is None:
+#         raise Exception("DatabaseSessionManager is not initialized")
+#     try:
+#         # Setting the search path and yielding the session...
+#         yield session
+#     except Exception:
+#         await session.rollback()
+#         raise
+#     finally:
+#         # Closing the session after use...
+#         await session.close()
 
 @asynccontextmanager
 async def get_db_for_websockets() -> AsyncIterator[AsyncSession]:
@@ -89,3 +100,18 @@ async def get_db_for_websockets() -> AsyncIterator[AsyncSession]:
         raise
     finally:
         await session.close()
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+CurrentAsyncSession = Annotated[AsyncSession, Depends(get_db)]
+
+# @asynccontextmanager
+# async def get_db_for_websockets() -> AsyncIterator[AsyncSession]:
+
+
+
