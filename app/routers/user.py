@@ -603,6 +603,12 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
 #     else:
 #         raise HTTPException(status_code=400, detail="failed to create boost")
 
+@user_route.get('/test-perf-123')
+async def test_perf(initData: str = Header(...), session: CurrentAsyncSession):
+    start_time = time.time()
+    users = await session.execute(select(User).limit(100))
+    end_time = time.time()
+    return {"time": end_time - start_time}
 
 @user_route.get('/daily-reward')
 async def get_daily_reward_api(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
