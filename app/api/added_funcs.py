@@ -14,6 +14,8 @@ from app.cruds.upgrade import get_user_upgrades, get_upgrade_by_id, get_user_upg
     get_cached_all_upgrade_categories, get_user_upgrades_for_all_categories
 from app.cruds.user import get_user
 from app.models import Level
+import time
+import logging
 
 env = Env()
 env.read_env()
@@ -48,7 +50,6 @@ def validate(data: dict, bot_token: str):
 async def decode_init_data(initData: str, db: AsyncSession):
     try:
         parsed_data = transform_init_data(initData)
-        # Преобразование строки user из JSON в словарь
         if "user" in parsed_data:
             parsed_data["user"] = json.loads(parsed_data["user"])
     except Exception as e:
@@ -68,7 +69,7 @@ async def decode_init_data(initData: str, db: AsyncSession):
     if not tg_id:
         raise HTTPException(status_code=400, detail="User ID is required")
 
-    user = await get_user(db, tg_id)
+    user = await log_execution_time(get_user)(db, tg_id)
     # if not user:
     #     raise HTTPException(status_code=404, detail="User not found")
 
@@ -460,3 +461,18 @@ async def user_check_and_update_without_init_data_only_money(user, db: AsyncSess
             "total_income": total_income,
             "hours_passed": hours_passed,
             }
+
+
+logger = logging.getLogger("timing_logger")
+logging.basicConfig(level=logging.INFO)
+
+
+def log_execution_time(func):
+    async def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = await func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        logger.info(f"Function {func.__name__} executed in {execution_time:.4f} seconds")
+        return result
+    return wrapper

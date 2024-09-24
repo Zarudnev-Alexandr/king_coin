@@ -14,7 +14,7 @@ from app.cruds.user import get_user, create_user, get_user_boost, get_boost_by_i
     update_user_level, get_daily_reward_all, get_count_of_all_users, get_all_earned_money, get_users_registered_today, \
     get_online_peak_today
 from ..api.added_funcs import decode_init_data, transform_init_data, validate, user_check_and_update, \
-    user_check_and_update_only_money
+    user_check_and_update_only_money, log_execution_time
 from ..config import loop, KAFKA_BOOTSTRAP_SERVERS, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC
 from ..cruds.upgrade import get_user_upgrades, get_upgrade_by_id, get_user_upgrades_with_levels
 from ..database import get_db, sessionmanager, CurrentAsyncSession
@@ -205,6 +205,7 @@ user_route = APIRouter()
 
 @user_route.post('/logreg')
 async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
+    logger.info(f"**logreg**---------------------")
     if ref == "None":
         ref = None
     else:
@@ -213,29 +214,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid ref parameter")
 
-    start_time = datetime.now()
-    previous_end = start_time  # Переменная для сохранения времени предыдущего этапа
-    total_time_diff = timedelta()
-
-    # Время на decode_init_data
-    start = datetime.now()
-    data_from_init_data = await decode_init_data(initData, db)
-    end = datetime.now()
-    interval = end - start
-    total_time_diff += interval
-    logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на decode_init_data')
-
-    # Время с момента последней проверки
-    diff_from_previous = end - previous_end
-    logger.info(
-        f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-    previous_end = end
-
-    now = datetime.now() - timedelta(minutes=datetime.now().minute % 15, seconds=datetime.now().second,
-                                     microseconds=datetime.now().microsecond)
-    logger.info(f'1) now = {now}')
-
-
+    data_from_init_data = await log_execution_time(decode_init_data)(initData, db)
 
     tg_id = data_from_init_data["tg_id"]
     username = data_from_init_data["username"]
@@ -250,35 +229,11 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         time_diff = current_time - last_login
         hours_passed = min(time_diff.total_seconds() / 3600, 3)
 
-        # Время на get_user_upgrades
-        start = datetime.now()
-        user_upgrades = await get_user_upgrades(tg_id, db)
-        end = datetime.now()
-        interval = end - start
-        total_time_diff += interval
-        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_upgrades')
+        user_upgrades = await log_execution_time(get_user_upgrades)(tg_id, db)
 
-        # Время с момента последней проверки
-        diff_from_previous = end - previous_end
-        logger.info(
-            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-        previous_end = end
-
-        # Время на get_upgrade_by_id
-        start = datetime.now()
-        upgrades = await asyncio.gather(
+        upgrades = await log_execution_time(asyncio.gather)(
             *[get_upgrade_by_id(db, user_upgrade.upgrade_id) for user_upgrade in user_upgrades]
         )
-        end = datetime.now()
-        interval = end - start
-        total_time_diff += interval
-        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_upgrade_by_id')
-
-        # Время с момента последней проверки
-        diff_from_previous = end - previous_end
-        logger.info(
-            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-        previous_end = end
 
         total_hourly_income = sum(
             next((lvl.factor for lvl in upgrade.levels if lvl.lvl == user_upgrade.lvl), 0)
@@ -289,34 +244,10 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
         user.money += total_income
         user.last_login = current_time
 
-        # Время на get_user_boost
-        start = datetime.now()
-        user_boost = await get_user_boost(db, tg_id)
-        end = datetime.now()
-        interval = end - start
-        total_time_diff += interval
-        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_user_boost')
-
-        # Время с момента последней проверки
-        diff_from_previous = end - previous_end
-        logger.info(
-            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-        previous_end = end
+        user_boost = await log_execution_time(get_user_boost)(db, tg_id)
 
         if user_boost:
-            # Время на get_boost_by_id
-            start = datetime.now()
-            current_boost = await get_boost_by_id(db, user_boost.boost_id)
-            end = datetime.now()
-            interval = end - start
-            total_time_diff += interval
-            logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_boost_by_id')
-
-            # Время с момента последней проверки
-            diff_from_previous = end - previous_end
-            logger.info(
-                f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-            previous_end = end
+            current_boost = await log_execution_time(get_boost_by_id)(db, user_boost.boost_id)
 
             if current_boost:
                 boost_data = {
@@ -332,20 +263,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
                     "pillars_100": current_boost.pillars_100
                 }
 
-                # Время на get_next_boost
-                start = datetime.now()
-                next_boost = await get_next_boost(db, current_boost.lvl)
-                end = datetime.now()
-                interval = end - start
-                total_time_diff += interval
-                logger.info(
-                    f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на get_next_boost')
-
-                # Время с момента последней проверки
-                diff_from_previous = end - previous_end
-                logger.info(
-                    f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-                previous_end = end
+                next_boost = await log_execution_time(get_next_boost)(db, current_boost.lvl)
 
                 next_boost_data = {
                     "boost_id": next_boost.lvl,
@@ -365,19 +283,7 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             boost_data = {}
             next_boost_data = None
 
-        # Время на update_user_level
-        start = datetime.now()
-        next_level = await update_user_level(db, user)
-        end = datetime.now()
-        interval = end - start
-        total_time_diff += interval
-        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на update_user_level')
-
-        # Время с момента последней проверки
-        diff_from_previous = end - previous_end
-        logger.info(
-            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-        previous_end = end
+        next_level = await log_execution_time(update_user_level)(db, user)
 
         next_level_data = {
             "lvl": next_level.lvl if next_level else None,
@@ -386,21 +292,8 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
             "money_to_get_the_next_boost": next_level.required_money - user.money if next_level and next_level.required_money else None
         } if next_level else {}
 
-        # Время на commit
-        start = datetime.now()
-        await db.commit()
-        end = datetime.now()
-        interval = end - start
-        total_time_diff += interval
-        logger.info(f'Прошло {interval.seconds} секунд и {interval.microseconds // 1000} миллисекунд на commit')
-
-        # Время с момента последней проверки
-        diff_from_previous = end - previous_end
-        logger.info(
-            f'Время с момента последней проверки: {diff_from_previous.seconds} секунд и {diff_from_previous.microseconds // 1000} миллисекунд')
-
-        logger.info(f'Общее время выполнения всех await: {total_time_diff}')
-        await db.refresh(user)
+        await log_execution_time(db.commit)()
+        # await log_execution_time(db.refresh)(user)
 
         user_data = {
             "tg_id": user.tg_id,
@@ -535,25 +428,26 @@ async def logreg(initData: str = Header(...), ref: Optional[str] = Query(None), 
 
 @user_route.post('/upgrade-boost')
 async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(get_db)):
+    logger.info(f"**upgrade_boost**---------------------")
     """
     Улучшаем буст
     """
-    init_data_decode = await decode_init_data(initData, db)
+    init_data_decode = await log_execution_time(decode_init_data)(initData, db)
     user = init_data_decode["user"]
 
-    await user_check_and_update_only_money(initData, db)
+    await log_execution_time(user_check_and_update_only_money)(initData, db)
 
-    user_boost = await get_user_boost(db, user.tg_id)
+    user_boost = await log_execution_time(get_user_boost)(db, user.tg_id)
     if not user_boost:
         raise HTTPException(status_code=404, detail="User boost not found")
 
-    current_boost = await get_boost_by_id(db, user_boost.boost_id)
+    current_boost = await log_execution_time(get_boost_by_id)(db, user_boost.boost_id)
     if not current_boost:
         raise HTTPException(status_code=404, detail="Current boost not found")
 
-    next_boost = await get_next_boost(db, current_boost.lvl)
+    next_boost = await log_execution_time(get_next_boost)(db, current_boost.lvl)
     if not next_boost:
-        user_check = await user_check_and_update(initData, db)
+        user_check = await log_execution_time(user_check_and_update)(initData, db)
         # Если следующего буста нет, возвращаем текущий статус с флагом "буст на максимальном уровне"
         response = {
             "user_id": user_boost.user_id,
@@ -568,12 +462,12 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
     if user.money < next_boost.price:
         raise HTTPException(status_code=400, detail="Not enough money to upgrade boost")
 
-    new_user_boost = await upgrade_user_boost(db, user_boost, user, next_boost)
+    new_user_boost = await log_execution_time(upgrade_user_boost)(db, user_boost, user, next_boost)
     if not new_user_boost:
         raise HTTPException(status_code=500, detail="Failed to improve boost")
 
     # Получаем следующий уровень буста после обновления
-    next_boost_after_bought = await get_next_boost(db, next_boost.lvl)
+    next_boost_after_bought = await log_execution_time(get_next_boost)(db, next_boost.lvl)
 
     next_boost_after_bought_dict = {
         "lvl": next_boost_after_bought.lvl if next_boost_after_bought else None,
@@ -586,7 +480,7 @@ async def upgrade_boost(initData: str = Header(...), db: AsyncSession = Depends(
         "pillars_100": next_boost_after_bought.pillars_100 if next_boost_after_bought else None,
     }
 
-    user_check = await user_check_and_update(initData, db)
+    user_check = await log_execution_time(user_check_and_update)(initData, db)
 
     response = {
         "user_id": user_boost.user_id,
@@ -630,7 +524,7 @@ async def claim_daily_reward_api(initData: str = Header(...), db: AsyncSession =
     """
     Получаем дневную награду
     """
-    init_data_decode = await decode_init_data(initData, db)
+    init_data_decode = await log_execution_time(decode_init_data)(initData, db)
     user = init_data_decode["user"]
 
     await user_check_and_update_only_money(initData, db)
@@ -813,7 +707,7 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     """
     Получаем результаты игры
     """
-    init_data_decode = await decode_init_data(initData, db)
+    init_data_decode = await log_execution_time(decode_init_data)(initData, db)
     user = init_data_decode["user"]
 
     # В будущем тут будет шифрование
@@ -827,14 +721,14 @@ async def get_game_result_api(encrypted_information: GameResultsSchema,
     if user.number_of_columns_passed is None or \
             user.number_of_columns_passed < encrypted_information.number_of_columns_passed:
         user.number_of_columns_passed = encrypted_information.number_of_columns_passed
-    await db.commit()
-    await db.refresh(user)
+    await log_execution_time(db.commit)()
+    await log_execution_time(db.refresh)(user)
 
     # Отправка уведомления через WebSocket
     await ws_manager.notify_user(user.tg_id, {"event": "game_result", "data": {"money_added": earned_coins,
                                                                                "users_money": user.money}})
 
-    user_check = await user_check_and_update(initData, db)
+    user_check = await log_execution_time(user_check_and_update)(initData, db)
     return {"money_added": earned_coins, "users_money": user.money, "user_check": user_check}
 
 

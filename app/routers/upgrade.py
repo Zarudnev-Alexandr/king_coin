@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 from environs import Env
@@ -7,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.added_funcs import decode_init_data, user_check_and_update_without_init_data, \
-    user_check_and_update_without_init_data_only_money
+    user_check_and_update_without_init_data_only_money, log_execution_time
 from app.cruds.task import get_invited_count, check_telegram_subscription
 from app.cruds.upgrade import get_upgrade_category_by_name, create_upgrade_category, get_upgrade_category_by_id, \
     get_upgrade_by_name, add_upgrade, get_upgrade_by_id, get_all_upgrades_in_shop, get_all_upgrades, \
@@ -30,6 +31,9 @@ env = Env()
 env.read_env()
 
 SERVER_URL = env('SERVER_URL')
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # @upgrade_route.post('/upgrade-category')
@@ -59,14 +63,15 @@ async def get_upgrade_category_all(initData: str = Header(...),
     """
     Все категории со всеми карточками для конкретного пользователя
     """
-    init_data_decode = await decode_init_data(initData, db)
+    logger.info(f"**get_upgrade_category_all**---------------------")
+    init_data_decode = await log_execution_time(decode_init_data)(initData, db)
     user = init_data_decode["user"]
 
-    all_upgrade_categories = await get_cached_all_upgrade_categories(db)
+    all_upgrade_categories = await log_execution_time(get_cached_all_upgrade_categories)(db)
     if not all_upgrade_categories:
         raise HTTPException(status_code=404, detail="Upgrade categories not found")
 
-    user_upgrades_dict = await get_user_upgrades_for_all_categories(user.tg_id, db)
+    user_upgrades_dict = await log_execution_time(get_user_upgrades_for_all_categories)(user.tg_id, db)
 
     all_upgrades = []
     for upgrade_category in all_upgrade_categories:
@@ -107,7 +112,7 @@ async def get_upgrade_category_all(initData: str = Header(...),
 
             # Задания на карточки
             if upgrade.conditions:
-                condition_result = await check_conditions(user, all_upgrades, upgrade.conditions[0], db)
+                condition_result = await log_execution_time(check_conditions)(user, all_upgrades, upgrade.conditions[0], db)
                 if condition_result:
                     upgrade.conditions_met = condition_result['conditions_met']
                     upgrade.unmet_conditions = condition_result['unmet_conditions']
@@ -186,16 +191,17 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     Покупка апгрейда пользователем. Если апгрейд вообще не куплен, то выдается 1 уровень, если первый уровень есть,
     то просто идет прокачка
     """
+    logger.info(f"**buy_upgrade**---------------------")
     user_id = user_upgrade_create.user_id
     upgrade_id = user_upgrade_create.upgrade_id
 
-    user = await get_user(db, user_id)
+    user = await log_execution_time(get_user)(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await user_check_and_update_without_init_data_only_money(user, db)
+    await log_execution_time(user_check_and_update_without_init_data_only_money)(user, db)
 
-    upgrade = await get_upgrade_by_id(db, upgrade_id)
+    upgrade = await log_execution_time(get_upgrade_by_id)(db, upgrade_id)
     if not upgrade:
         raise HTTPException(status_code=404, detail="Upgrade not found")
 
@@ -208,12 +214,12 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     conditions = upgrade.conditions
     for condition in conditions:
         if condition.condition_type == UpgradeConditionType.INVITE:
-            invited_count = await get_invited_count(db, user.tg_id)
+            invited_count = await log_execution_time(get_invited_count)(db, user.tg_id)
             if invited_count < condition.condition_value:
                 raise HTTPException(status_code=400, detail=f"You need to invite {condition.condition_value} friends")
 
         elif condition.condition_type == UpgradeConditionType.REACH_UPGRADE_LEVEL:
-            related_upgrade = await get_user_upgrades_by_upgrade_id(user_id, condition.related_upgrade_id, db)
+            related_upgrade = await log_execution_time(get_user_upgrades_by_upgrade_id)(user_id, condition.related_upgrade_id, db)
             if not related_upgrade or related_upgrade.lvl < condition.condition_value:
                 raise HTTPException(status_code=400,
                                     detail=f"You need to reach level {condition.condition_value} of upgrade {condition.related_upgrade_id}")
@@ -223,13 +229,13 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
             if not is_subscribed:
                 raise HTTPException(status_code=400, detail=f"You need to subscribe to {condition.channel_url}")
 
-    user_upgrade = await get_user_upgrades_by_upgrade_id(user_id, upgrade_id, db)
+    user_upgrade = await log_execution_time(get_user_upgrades_by_upgrade_id)(user_id, upgrade_id, db)
 
     if not user_upgrade:
-        user_upgrade = await add_bought_upgrade(db, user, upgrade, lvl=1)
+        user_upgrade = await log_execution_time(add_bought_upgrade)(db, user, upgrade, lvl=1)
         new_upgrade_purchased = True
     else:
-        await process_upgrade(user, user_upgrade, upgrade, db)
+        await log_execution_time(process_upgrade)(user, user_upgrade, upgrade, db)
         new_upgrade_purchased = False
 
     combo_status = {
@@ -242,11 +248,11 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
     }
 
     # Check the latest daily combo
-    latest_combo = await get_cached_latest_daily_combo(db)
+    latest_combo = await log_execution_time(get_cached_latest_daily_combo)(db)
 
     if latest_combo:
         # Check if the bought upgrade is part of the daily combo
-        user_combo_progress = await db.execute(
+        user_combo_progress = await log_execution_time(db.execute)(
             select(UserDailyComboProgress)
             .filter_by(user_id=user_id, combo_id=latest_combo.id)
         )
@@ -278,10 +284,10 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
                 combo_status["combo_completed"] = True
                 combo_status["reward_claimed"] = True
 
-            await db.commit()
-            await db.refresh(user_combo_progress)
+            await log_execution_time(db.commit)()
+            await log_execution_time(db.refresh)(user_combo_progress)
 
-    await db.refresh(user_upgrade)
+    await log_execution_time(db.refresh)(user_upgrade)
 
     current_upgrade_lvl_data = None
     next_upgrade_lvl_data = None
@@ -314,8 +320,8 @@ async def buy_upgrade(user_upgrade_create: UserUpgradeCreateSchema,
             "price": None
         }
 
-    user_check = await user_check_and_update_without_init_data(user, db)
-    await db.refresh(upgrade)
+    user_check = await log_execution_time(user_check_and_update_without_init_data)(user, db)
+    await log_execution_time(db.refresh)(upgrade)
     return_data = {
         "user_remaining_money": user.money,
         "upgrade_id": upgrade.id,
